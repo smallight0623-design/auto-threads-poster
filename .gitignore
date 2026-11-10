@@ -1,0 +1,26 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+venv/
+env/
+
+# Sensitive user credentials & session (MUST NOT BE COMMITTED)
+threads_session.json
+*.session.json
+config.json
+
+# Local temporary media and logs
+downloads/
+logs/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+
+# Local test / debug scripts
+test_*.py
+debug_*.py
+inspect_*.py

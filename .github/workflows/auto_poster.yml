@@ -1,0 +1,58 @@
+name: Auto Reddit to Threads Poster
+
+on:
+  # 支援外部點火器 (如 cron-job.org) 呼叫 GitHub API 秒速觸發
+  repository_dispatch:
+    types: [external_trigger]
+  # 支援在 GitHub 網頁上手動點擊立即測試
+  workflow_dispatch:
+  # 保留定時排程作為備援 (UTC 04:00, 10:00, 13:00 對應台灣 12:00, 18:00, 21:00)
+  schedule:
+    - cron: '0 4,10,13 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  run-poster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install FFmpeg (用於影音壓制)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Browsers & System Deps
+        run: |
+          playwright install chromium --with-deps
+
+      - name: Run Main Poster Process
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          THREADS_SESSION_DATA: ${{ secrets.THREADS_SESSION_DATA }}
+          THREADS_USERNAME: ${{ secrets.THREADS_USERNAME }}
+          THREADS_PASSWORD: ${{ secrets.THREADS_PASSWORD }}
+        run: |
+          python main.py
+
+      - name: Commit and Push History & Error Logs
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add posted_ids.json logs/latest_error.json config.json 2>/dev/null || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: sync posting state and logs [skip ci]" && git push)
