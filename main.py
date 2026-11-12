@@ -15,7 +15,7 @@ from reddit_scraper import fetch_top_reddit_posts
 from threads_scraper import fetch_top_threads_posts
 from x_scraper import fetch_top_x_tweets
 from bahamut_scraper import fetch_top_bahamut_posts
-from ai_engine import call_ai_proxy
+from ai_engine import call_ai_proxy, select_best_post_material
 from media_handler import download_media
 from threads_playwright import post_to_threads
 from facebook_playwright import post_to_facebook
@@ -78,46 +78,66 @@ async def _run_for_account_internal(acc_id: str):
         "CUSTOM_TAGS": account.get("custom_tags", "")
     }
 
-    # 1. 爬蟲監控階段 (依據來源平台與發現模式)
-    try:
-        posts = []
-        if source_platform.lower() == "threads":
-            account_manager.update_account_status(acc_id, "抓取熱門貼文", f"透過 Playwright 搜尋 Threads [{game_name}] 爆文 (門檻 {min_upvotes} 讚)...")
-            posts = await fetch_top_threads_posts(game_name, min_likes=min_upvotes, session_file=session_path)
-        elif "x" in source_platform.lower() or "twitter" in source_platform.lower():
-            account_manager.update_account_status(acc_id, "抓取熱門貼文", f"透過 Playwright 搜尋 X (Twitter) [{game_name}] 即時推文 (門檻 {min_upvotes} 讚)...")
-            x_session = os.path.join(os.path.dirname(session_path), "x_session.json") if session_path else "x_session.json"
-            if not os.path.exists(x_session) and os.path.exists("x_session.json"):
-                x_session = "x_session.json"
-            posts = await fetch_top_x_tweets(game_name, min_likes=min_upvotes, session_file=x_session, sort_recent=(discovery_mode == "rising"))
-        elif "巴哈" in source_platform or "bahamut" in source_platform.lower():
-            account_manager.update_account_status(acc_id, "抓取熱門貼文", f"正在抓取巴哈姆特哈啦板 [{game_name}] 台灣本土爆文 (門檻 {min_upvotes} GP)...")
-            posts = await fetch_top_bahamut_posts(subreddit or game_name, min_gp=min_upvotes)
-        else: # 預設 Reddit
-            mode_desc = "剛爆發潛力榜 (Rising)" if discovery_mode == "rising" else "成熟熱門榜 (Hot)"
-            account_manager.update_account_status(acc_id, "抓取熱門貼文", f"透過 Playwright 掃描 Reddit r/{subreddit} {mode_desc} (門檻 {min_upvotes} 讚)...")
-            posts = await fetch_top_reddit_posts(subreddit, min_upvotes=min_upvotes, sort_type=discovery_mode)
-    except Exception as e:
-        account_manager.record_account_error(acc_id, f"來源平台爬取階段 ({source_platform} Scraper)", e)
-        return False
+    # 1. 跨平台多來源雷達監控階段
+    raw_posts = []
+    source_platforms = account.get("source_platforms") or [account.get("source_platform", "Reddit")]
+    strategy_prompt = account.get("strategy_prompt", "")
+
+    for src in source_platforms:
+        src_name = src.strip()
+        try:
+            if src_name.lower() == "threads":
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Threads [{game_name}] 爆文 (門檻 {min_upvotes} 讚)...")
+                p_list = await fetch_top_threads_posts(game_name, min_likes=min_upvotes, session_file=session_path)
+            elif "x" in src_name.lower() or "twitter" in src_name.lower():
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 X (Twitter) [{game_name}] 即時推文 (門檻 {min_upvotes} 讚)...")
+                x_session = os.path.join(os.path.dirname(session_path), "x_session.json") if session_path else "x_session.json"
+                if not os.path.exists(x_session) and os.path.exists("x_session.json"):
+                    x_session = "x_session.json"
+                p_list = await fetch_top_x_tweets(game_name, min_likes=min_upvotes, session_file=x_session, sort_recent=(discovery_mode == "rising"))
+            elif "巴哈" in src_name or "bahamut" in src_name.lower():
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描巴哈姆特哈啦板 [{game_name}] 本土爆文 (門檻 {min_upvotes} GP)...")
+                p_list = await fetch_top_bahamut_posts(subreddit or game_name, min_gp=min_upvotes)
+            else: # 預設 Reddit
+                mode_desc = "潛力榜 (Rising)" if discovery_mode == "rising" else "熱門榜 (Hot)"
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Reddit r/{subreddit} {mode_desc} (門檻 {min_upvotes} 讚)...")
+                p_list = await fetch_top_reddit_posts(subreddit, min_upvotes=min_upvotes, sort_type=discovery_mode)
+
+            for p in p_list:
+                p["source_platform"] = src_name
+                raw_posts.append(p)
+        except Exception as e:
+            print(f"[{acc_id}] 來源平台 {src_name} 抓取警告: {e}")
 
     # 2. 去重檢查
     history = account_manager.get_account_history(acc_id)
-    candidate = next((p for p in posts if p["id"] not in history), None)
-    if not candidate:
-        account_manager.update_account_status(acc_id, "完成", "目前無符合門檻的新熱門貼文需要發布。", state="SUCCESS")
+    available_candidates = [p for p in raw_posts if p["id"] not in history]
+
+    if not available_candidates:
+        account_manager.update_account_status(acc_id, "完成", "目前各來源平台無符合門檻之全新未發布貼文。", state="SUCCESS")
+        account_manager.mark_account_run_completed(acc_id)
         return True
+
+    # 3. AI 流量總監智慧「選材評估」階段 (從候選池中挑出最有料、最好笑的爆款)
+    if len(available_candidates) > 1:
+        account_manager.update_account_status(acc_id, "AI 選材評估", f"AI 流量總監正在從 {len(available_candidates)} 篇多平台候選文中評選最有料爆款...")
+        candidate = select_best_post_material(available_candidates, strategy_prompt, game_name, ai_config)
+    else:
+        candidate = available_candidates[0]
 
     # 立即預約鎖定候選貼文至歷史清單，杜絕任何重複發布可能
     account_manager.add_account_history(acc_id, candidate["id"])
 
-    account_manager.update_account_status(acc_id, "鎖定目標", f"鎖定熱門貼文：[{candidate['id']}] {candidate['title'][:40]}... (👍 {candidate['upvotes']})")
+    curation_note = f" (理由: {candidate.get('curation_reason')})" if candidate.get('curation_reason') else ""
+    account_manager.update_account_status(acc_id, "鎖定目標", f"鎖定 [{candidate.get('source_platform')}] 爆文：{candidate['title'][:35]}... (👍 {candidate['upvotes']}){curation_note}")
 
-    # 3. AI 中轉站翻譯與風格重塑 (不標作者、1:1 格式、在地專有名詞)
+    # 4. AI 1:1 道地翻譯 (嚴格不改動內容、不標作者、在地遊戲譯名)
     try:
-        account_manager.update_account_status(acc_id, "AI 在地化翻譯", f"傳送至 AI 中轉站，目標地區：【{account.get('target_region')}】...")
+        account_manager.update_account_status(acc_id, "AI 道地翻譯", f"傳送至 AI 執行 1:1 忠實翻譯，目標語言：【{account.get('target_region')}】...")
         localized_text = call_ai_proxy(candidate["full_content"], ai_config)
     except Exception as e:
+        account_manager.record_account_error(acc_id, "AI 翻譯階段 (AI Brain Proxy)", e)
+        return False
         account_manager.record_account_error(acc_id, "AI 中轉站翻譯階段 (AI Brain Proxy)", e)
         return False
 
@@ -143,8 +163,9 @@ async def _run_for_account_internal(acc_id: str):
         account_manager.record_account_error(acc_id, f"Playwright 自動發布階段 ({target_platform} Publisher)", e)
         return False
 
-    # 成功寫入去重歷史
+    # 成功寫入去重歷史並推算下一次巡航時間
     account_manager.add_account_history(acc_id, candidate["id"])
+    account_manager.mark_account_run_completed(acc_id)
     account_manager.update_account_status(acc_id, "發布成功", f"貼文 [{candidate['id']}] 已順利同步至 {target_platform}！", state="SUCCESS")
     print(f"🎉 帳號【{acc_name}】在 {target_platform} 任務圓滿完成！")
     return True

@@ -13,10 +13,34 @@ if sys.platform == "win32":
     except Exception:
         pass
 
+import asyncio
 import account_manager
 
 app = FastAPI(title="Threads 矩陣多帳號自動發布主控台")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(auto_scheduler_daemon())
+
+async def auto_scheduler_daemon():
+    """24/7 背景排程巡航守護進程：每 30 秒自動檢測所有工作台的下次發布時間，時間到自動點火"""
+    await asyncio.sleep(3)
+    print("🕒 [Auto Scheduler] 24/7 自動巡航排程守護進程已啟動！")
+    while True:
+        try:
+            due_accounts = account_manager.get_due_accounts()
+            for acc in due_accounts:
+                acc_id = acc["id"]
+                acc_name = acc.get("name", acc_id)
+                print(f"⏰ [Auto Scheduler] 帳號【{acc_name}】排程時間到 ({acc.get('next_run')})，自動點火發布！")
+                account_manager.mark_account_run_completed(acc_id)
+                env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+                subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc_id], cwd=BASE_DIR, env=env)
+                await asyncio.sleep(2)
+        except Exception as e:
+            print(f"⚠️ [Auto Scheduler Error] {e}")
+        await asyncio.sleep(30)
 
 REGIONS = [
     "台灣 (繁體中文)",
@@ -185,8 +209,11 @@ async def serve_dashboard():
                     <span id="stat-model" class="text-xs font-mono font-bold text-purple-300 mt-2 block truncate">--</span>
                 </div>
                 <div class="bg-gray-900/80 border border-gray-800 p-4 rounded-xl">
-                    <span class="text-xs text-gray-400 block">中轉站狀態</span>
-                    <span id="stat-relay" class="text-xs font-semibold text-blue-400 mt-2 block truncate">連線正常</span>
+                    <span class="text-xs text-gray-400 block">24/7 自動排程巡航</span>
+                    <span id="stat-scheduler" class="text-xs font-semibold text-emerald-400 mt-2 block truncate flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+                        <span>🟢 守護巡航中</span>
+                    </span>
                 </div>
             </div>
 
@@ -234,13 +261,59 @@ async def serve_dashboard():
                             </select>
                         </div>
                         <div>
-                            <label class="block text-gray-300 font-medium mb-1">📡 來源監控雷達 (跨平台資訊差)*</label>
-                            <select id="acc-source-platform" name="source_platform" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
-                                <option value="Reddit">Reddit (歐美即時熱區)</option>
-                                <option value="X">X / Twitter (全球即時快訊)</option>
-                                <option value="巴哈姆特">巴哈姆特哈啦板 (台灣最大遊戲社群)</option>
-                                <option value="Threads">Threads (Meta 即時爆串)</option>
-                            </select>
+                            <label class="block text-gray-300 font-medium mb-1">📡 來源監控雷達（可複選多平台並行監控）*</label>
+                            <div class="flex flex-wrap gap-2 pt-1">
+                                <label class="flex items-center gap-1.5 bg-gray-950 border border-gray-800 px-2 py-1.5 rounded-lg cursor-pointer hover:border-gray-700">
+                                    <input type="checkbox" name="source_platforms" value="巴哈姆特" id="src-baha" class="rounded bg-gray-900 border-gray-700 text-indigo-500">
+                                    <span class="text-[11px]">巴哈姆特</span>
+                                </label>
+                                <label class="flex items-center gap-1.5 bg-gray-950 border border-gray-800 px-2 py-1.5 rounded-lg cursor-pointer hover:border-gray-700">
+                                    <input type="checkbox" name="source_platforms" value="Reddit" id="src-reddit" class="rounded bg-gray-900 border-gray-700 text-indigo-500">
+                                    <span class="text-[11px]">Reddit</span>
+                                </label>
+                                <label class="flex items-center gap-1.5 bg-gray-950 border border-gray-800 px-2 py-1.5 rounded-lg cursor-pointer hover:border-gray-700">
+                                    <input type="checkbox" name="source_platforms" value="X" id="src-x" class="rounded bg-gray-900 border-gray-700 text-indigo-500">
+                                    <span class="text-[11px]">𝕏 (Twitter)</span>
+                                </label>
+                                <label id="lbl-source-threads" class="hidden items-center gap-1.5 bg-gray-950 border border-gray-800 px-2 py-1.5 rounded-lg cursor-pointer hover:border-gray-700">
+                                    <input type="checkbox" name="source_platforms" value="Threads" id="src-threads" class="rounded bg-gray-900 border-gray-700 text-indigo-500">
+                                    <span class="text-[11px]">Threads</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-gray-300 font-medium">🎯 獨立 Agent 成長策略與選材使命 (Prompt)*</label>
+                            <span class="text-indigo-400 text-[10px]">✨ AI 依此標準在多平台候選文中評選最有料爆款</span>
+                        </div>
+                        <textarea id="acc-strategy" name="strategy_prompt" rows="2" placeholder="例如：目標是在該領域吸引最多粉絲關注，優先挑選最有料、最好笑的迷因圖文與即時情報，避開生硬的文字公告。" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-100 focus:border-indigo-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="bg-gray-950/70 border border-gray-800 p-3 rounded-xl space-y-2.5">
+                        <label class="block text-gray-300 font-medium">⏰ 24/7 自動排程巡航發布模式</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <label class="flex items-center gap-1.5 bg-gray-900 p-2 rounded-lg border border-gray-800 cursor-pointer text-gray-300">
+                                <input type="radio" name="schedule_type" value="fixed_times" id="sched-fixed" onchange="updateScheduleFields()" class="text-indigo-500">
+                                <span>黃金時段定點</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-gray-900 p-2 rounded-lg border border-gray-800 cursor-pointer text-gray-300">
+                                <input type="radio" name="schedule_type" value="interval" id="sched-interval" onchange="updateScheduleFields()" class="text-indigo-500" checked>
+                                <span>固定週期巡航</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 bg-gray-900 p-2 rounded-lg border border-gray-800 cursor-pointer text-gray-300">
+                                <input type="radio" name="schedule_type" value="manual" id="sched-manual" onchange="updateScheduleFields()" class="text-indigo-500">
+                                <span>僅手動點火</span>
+                            </label>
+                        </div>
+                        <div id="sched-fixed-box" class="hidden">
+                            <label class="text-[11px] text-gray-400 block mb-1">每日發布時間點 (逗號分隔，24小時制)：</label>
+                            <input id="acc-fixed-times" name="fixed_times" value="12:30, 18:30, 22:00" placeholder="例如：12:30, 18:30, 22:00" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-200">
+                        </div>
+                        <div id="sched-interval-box">
+                            <label class="text-[11px] text-gray-400 block mb-1">巡航間隔時間 (分鐘)：</label>
+                            <input type="number" id="acc-interval-minutes" name="interval_minutes" value="180" min="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-200">
                         </div>
                     </div>
 
@@ -424,10 +497,10 @@ async def serve_dashboard():
                 const global = data.global_settings || {{}};
 
                 // 更新頂部指標
-                document.getElementById('stat-total').innerText = accounts.length;
-                document.getElementById('stat-enabled').innerText = accounts.filter(a => a.enabled).length;
-                document.getElementById('stat-model').innerText = global.AI_MODEL || '未設定';
-                document.getElementById('stat-relay').innerText = global.AI_BASE_URL ? (new URL(global.AI_BASE_URL)).hostname : '未設定';
+                if (document.getElementById('stat-total')) document.getElementById('stat-total').innerText = accounts.length;
+                if (document.getElementById('stat-enabled')) document.getElementById('stat-enabled').innerText = accounts.filter(a => a.enabled).length;
+                if (document.getElementById('stat-model')) document.getElementById('stat-model').innerText = global.AI_MODEL || '未設定';
+                if (document.getElementById('stat-relay')) document.getElementById('stat-relay').innerText = global.AI_BASE_URL ? (new URL(global.AI_BASE_URL)).hostname : '未設定';
 
                 // 更新卡片列表
                 const container = document.getElementById('accounts-container');
@@ -472,7 +545,19 @@ async def serve_dashboard():
                     ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold flex items-center gap-1">📘 Facebook</span>`
                     : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-bold flex items-center gap-1">🧵 Threads</span>`;
 
-                const sourceBadge = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">📡 來源: ${{escapeHtml(acc.source_platform || 'Reddit')}} (${{acc.discovery_mode === 'rising' ? '⚡潛力速報' : '🔥熱門'}})</span>`;
+                const sources = acc.source_platforms || (acc.source_platform ? [acc.source_platform] : ['Reddit']);
+                const sourcesBadge = sources.map(s => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-sky-300 border border-gray-700">📡 ${{escapeHtml(s)}}</span>`).join(' ');
+
+                let scheduleBadge = '';
+                if (acc.schedule_type === 'manual') {{
+                    scheduleBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700">✋ 僅手動點火</span>`;
+                }} else if (acc.next_run) {{
+                    const diffMs = new Date(acc.next_run.replace(/-/g, '/')) - new Date();
+                    const diffMins = Math.round(diffMs / 60000);
+                    const timePart = acc.next_run.split(' ')[1] || acc.next_run;
+                    const countdownDesc = diffMins > 0 ? `倒數 ${{diffMins}} 分鐘` : '即將自動發布';
+                    scheduleBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700 font-semibold">⏰ 下次: ${{timePart}} (${{countdownDesc}})</span>`;
+                }}
 
                 return `
                     <div class="bg-gray-900 border ${{isFailed ? 'border-red-900/60 shadow-lg shadow-red-950/20' : (isRunning ? 'border-indigo-600 shadow-lg shadow-indigo-950/30' : 'border-gray-800')}} rounded-2xl p-5 space-y-4 transition-all">
@@ -490,7 +575,7 @@ async def serve_dashboard():
                                         <span class="text-[10px] text-gray-400 font-mono">${{acc.id}}</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-indigo-300 font-medium">${{acc.target_region}}</span>
                                         ${{platformBadge}}
-                                        ${{sourceBadge}}
+                                        ${{sourcesBadge}}
                                     </div>
                                 </div>
                             </div>
@@ -499,6 +584,17 @@ async def serve_dashboard():
                                     ${{acc.enabled ? '啟用中' : '已暫停'}}
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- 獨立 Agent 成長策略使命與排程 -->
+                        <div class="text-[11px] bg-indigo-950/30 border border-indigo-900/40 p-2.5 rounded-xl space-y-1.5">
+                            <div class="flex items-center justify-between text-indigo-400 font-bold text-[10px]">
+                                <span>🎯 獨立 AI Agent 成長使命：</span>
+                                <div>${{scheduleBadge}}</div>
+                            </div>
+                            <p class="text-indigo-200 line-clamp-2 leading-relaxed">
+                                ${{escapeHtml(acc.strategy_prompt || '目標是吸取最多粉絲關注，優先挑選該領域最有料、最好笑之即時爆文。')}}
+                            </p>
                         </div>
 
                         <!-- 參數詳細資訊 -->
@@ -622,51 +718,63 @@ async def serve_dashboard():
                 `).join('');
             }}
 
-            function handleTargetPlatformChange(targetVal, defaultSourceVal) {{
+            function handleTargetPlatformChange(targetVal) {{
                 const target = targetVal || document.getElementById('acc-target-platform').value;
-                const sourceSelect = document.getElementById('acc-source-platform');
                 const labelSession = document.getElementById('label-session-cookie');
-                const hintSession = document.getElementById('hint-session-tool');
+                const lblThreads = document.getElementById('lbl-source-threads');
+                const chkThreads = document.getElementById('src-threads');
 
                 if (target === 'Facebook') {{
                     labelSession.innerText = '🎯 該帳號專屬 Facebook【發布貼文】Cookie (JSON)*';
-                    hintSession.innerText = '貼上 Cookie-Editor 匯出的 JSON 陣列或小工具 Cookie';
-                    // 跨平台互斥原則：發布至 Facebook 時，來源可為 Reddit、Threads、X、巴哈姆特
-                    sourceSelect.innerHTML = `
-                        <option value="Reddit">Reddit (歐美即時熱區)</option>
-                        <option value="Threads">Threads (Meta 即時爆串)</option>
-                        <option value="X">X / Twitter (全球即時快訊)</option>
-                        <option value="巴哈姆特">巴哈姆特哈啦板 (台灣最大遊戲社群)</option>
-                    `;
+                    if (lblThreads) lblThreads.classList.remove('hidden');
                 }} else {{
                     labelSession.innerText = '🎯 該帳號專屬 Threads【發布貼文】Cookie (JSON)*';
-                    hintSession.innerText = '貼上 Cookie-Editor 匯出的 JSON 陣列或小工具 Cookie';
-                    // 跨平台互斥原則：發布至 Threads 時，來源不可為 Threads
-                    sourceSelect.innerHTML = `
-                        <option value="Reddit">Reddit (歐美即時熱區)</option>
-                        <option value="X">X / Twitter (全球即時快訊)</option>
-                        <option value="巴哈姆特">巴哈姆特哈啦板 (台灣最大遊戲社群)</option>
-                    `;
+                    if (lblThreads) lblThreads.classList.add('hidden');
+                    if (chkThreads) chkThreads.checked = false;
                 }}
+            }}
 
-                if (defaultSourceVal) {{
-                    sourceSelect.value = defaultSourceVal;
+            function updateScheduleFields() {{
+                const schedType = document.querySelector('input[name="schedule_type"]:checked')?.value || 'interval';
+                const fixedBox = document.getElementById('sched-fixed-box');
+                const intervalBox = document.getElementById('sched-interval-box');
+                if (schedType === 'fixed_times') {{
+                    fixedBox.classList.remove('hidden');
+                    intervalBox.classList.add('hidden');
+                }} else if (schedType === 'interval') {{
+                    fixedBox.classList.add('hidden');
+                    intervalBox.classList.remove('hidden');
+                }} else {{
+                    fixedBox.classList.add('hidden');
+                    intervalBox.classList.add('hidden');
                 }}
             }}
 
             function openAddAccountModal() {{
-                document.getElementById('modal-account-title').innerText = '➕ 新增社群帳號工作台';
+                document.getElementById('modal-account-title').innerText = '➕ 新增獨立 AI Agent 帳號工作台';
                 document.getElementById('acc-id').value = '';
                 document.getElementById('acc-name').value = '';
                 document.getElementById('acc-game').value = '';
                 document.getElementById('acc-subreddit').value = '';
                 document.getElementById('acc-tags').value = '';
+                document.getElementById('acc-strategy').value = '目標是最大化粉絲與關注度，優先挑選該領域最有料、最好笑之即時爆文。';
                 document.getElementById('acc-upvotes').value = '100';
                 document.getElementById('acc-session').value = '';
                 document.getElementById('acc-enabled').checked = true;
                 document.getElementById('acc-target-platform').value = 'Threads';
                 document.getElementById('acc-discovery-mode').value = 'rising';
-                handleTargetPlatformChange('Threads', 'Reddit');
+
+                document.getElementById('src-baha').checked = true;
+                document.getElementById('src-reddit').checked = true;
+                document.getElementById('src-x').checked = true;
+                document.getElementById('src-threads').checked = false;
+
+                document.getElementById('sched-interval').checked = true;
+                document.getElementById('acc-interval-minutes').value = '180';
+                document.getElementById('acc-fixed-times').value = '12:30, 18:30, 22:00';
+                updateScheduleFields();
+
+                handleTargetPlatformChange('Threads');
                 populateRegionsSelect("台灣 (繁體中文)");
                 document.getElementById('modal-account').classList.remove('hidden');
             }}
@@ -675,23 +783,38 @@ async def serve_dashboard():
                 const acc = (currentData?.accounts || []).find(a => a.id === accId);
                 if (!acc) return;
 
-                document.getElementById('modal-account-title').innerText = '⚙️ 編輯社群帳號工作台';
+                document.getElementById('modal-account-title').innerText = '⚙️ 編輯獨立 AI Agent 帳號工作台';
                 document.getElementById('acc-id').value = acc.id;
                 document.getElementById('acc-name').value = acc.name || '';
                 document.getElementById('acc-game').value = acc.game_name || '';
                 document.getElementById('acc-subreddit').value = acc.subreddit || '';
                 document.getElementById('acc-tags').value = acc.custom_tags || '';
+                document.getElementById('acc-strategy').value = acc.strategy_prompt || '';
                 document.getElementById('acc-upvotes').value = acc.min_upvotes || '100';
                 document.getElementById('acc-enabled').checked = acc.enabled !== false;
                 
                 const targetPlat = acc.target_platform || 'Threads';
                 document.getElementById('acc-target-platform').value = targetPlat;
                 document.getElementById('acc-discovery-mode').value = acc.discovery_mode || 'rising';
-                handleTargetPlatformChange(targetPlat, acc.source_platform || 'Reddit');
+                
+                const sources = acc.source_platforms || [acc.source_platform || 'Reddit'];
+                document.getElementById('src-baha').checked = sources.includes('巴哈姆特');
+                document.getElementById('src-reddit').checked = sources.includes('Reddit');
+                document.getElementById('src-x').checked = sources.includes('X');
+                document.getElementById('src-threads').checked = sources.includes('Threads');
 
+                const schedType = acc.schedule_type || 'interval';
+                if (schedType === 'fixed_times') document.getElementById('sched-fixed').checked = true;
+                else if (schedType === 'manual') document.getElementById('sched-manual').checked = true;
+                else document.getElementById('sched-interval').checked = true;
+
+                document.getElementById('acc-fixed-times').value = acc.fixed_times || '12:30, 18:30, 22:00';
+                document.getElementById('acc-interval-minutes').value = acc.interval_minutes || 180;
+                updateScheduleFields();
+
+                handleTargetPlatformChange(targetPlat);
                 populateRegionsSelect(acc.target_region || "台灣 (繁體中文)");
 
-                // 異步填入現有 Session
                 fetch(`/api/accounts/${{accId}}/session`).then(r => r.json()).then(d => {{
                     document.getElementById('acc-session').value = d.session || '';
                 }});
@@ -707,11 +830,28 @@ async def serve_dashboard():
                 e.preventDefault();
                 const form = document.getElementById('form-account');
                 const formData = new FormData(form);
+
+                const selectedSources = [];
+                form.querySelectorAll('input[name="source_platforms"]:checked').forEach(cb => {{
+                    selectedSources.push(cb.value);
+                }});
+                if (selectedSources.length === 0) {{
+                    alert("請至少勾選一個來源監控雷達平台！");
+                    return;
+                }}
+
+                const schedType = form.querySelector('input[name="schedule_type"]:checked')?.value || 'interval';
+
                 const payload = {{
                     id: formData.get('id') || undefined,
                     name: formData.get('name'),
                     target_platform: formData.get('target_platform') || 'Threads',
-                    source_platform: formData.get('source_platform') || 'Reddit',
+                    source_platforms: selectedSources,
+                    source_platform: selectedSources[0],
+                    strategy_prompt: formData.get('strategy_prompt') || '',
+                    schedule_type: schedType,
+                    fixed_times: formData.get('fixed_times') || '12:30, 18:30, 22:00',
+                    interval_minutes: parseInt(formData.get('interval_minutes') || '180', 10),
                     discovery_mode: formData.get('discovery_mode') || 'rising',
                     target_region: formData.get('target_region'),
                     game_name: formData.get('game_name'),

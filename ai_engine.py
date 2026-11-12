@@ -104,3 +104,87 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
             raise Exception(f"AI 中轉站請求失敗 [HTTP {res.status_code}]: {res.text}")
 
     raise Exception(f"所有候選模型均失敗，最後錯誤: {last_error}")
+
+def select_best_post_material(candidates: list, strategy_prompt: str, game_name: str, config: dict) -> dict:
+    """
+    AI 智慧爆款選品器 (Material Curator):
+    從多個平台（Reddit、X、巴哈姆特等）收集的候選爆文中，依據該帳號的營運使命（獲取最多粉絲與關注度），
+    客觀挑選出最有料、最好笑、最吸睛或最具流量爆發潛力的單一候選貼文。
+    注意：僅做選材決策，絕不篡改候選貼文本身的素材、圖片、影片或原文內容！
+    """
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        return candidates[0]
+
+    base_url = (os.getenv("AI_BASE_URL") or config.get("AI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key = os.getenv("AI_API_KEY") or config.get("AI_API_KEY", "")
+    primary_model = config.get("AI_MODEL", "gemini-2.5-flash")
+
+    # 候選清單概況
+    candidates_brief = []
+    for idx, c in enumerate(candidates):
+        brief = (
+            f"【候選 {idx}】(ID: {c['id']})\n"
+            f"- 來源平台: {c.get('source_platform', '未知')}\n"
+            f"- 互動讚數: {c.get('upvotes', 0)}\n"
+            f"- 媒體類型: {c.get('media_type', 'TEXT')}\n"
+            f"- 標題/主旨: {c.get('title', '')[:80]}\n"
+            f"- 內容片段: {c.get('full_content', '')[:200]}..."
+        )
+        candidates_brief.append(brief)
+    
+    briefs_text = "\n\n".join(candidates_brief)
+
+    curator_prompt = f"""
+你是一位身價百萬的頂級社群營運操盤手與流量總監。
+【帳號核心終極目標】：在【{game_name}】領域中取得最多的粉絲、讚數與社群關注度。
+【該帳號專屬營運策略】：{strategy_prompt or '優先挑選最有料、最好笑、最具傳播力、最有共鳴感的爆款內容'}
+
+以下是從各平台即時掃描收集到的 {len(candidates)} 篇候選爆文：
+{briefs_text}
+
+【評選任務】：
+請綜合分析這幾篇貼文的「話題性、爆笑程度、吸睛度、圖片/影片傳播力、粉絲互動意願」，從中選出最符合上述策略、最容易在社群爆發的唯一【最佳候選】。
+
+【回傳格式要求】：
+你必須且僅能以 JSON 格式回傳，格式如下：
+{{
+  "selected_index": 0,
+  "reason": "挑選理由簡述（例如：這張迷因圖非常切合近期遊戲痛點，笑點強烈且互動讚數飆升快）"
+}}
+"""
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        url = f"{base_url}/chat/completions"
+        payload = {
+            "model": primary_model,
+            "messages": [
+                {"role": "user", "content": curator_prompt.strip()}
+            ],
+            "temperature": 0.3
+        }
+        res = requests.post(url, headers=headers, json=payload, timeout=30)
+        if res.status_code == 200:
+            content = res.json()["choices"][0]["message"]["content"]
+            import json, re
+            match = re.search(r"\{.*\}", content, re.DOTALL)
+            if match:
+                parsed = json.loads(match.group(0))
+                idx = int(parsed.get("selected_index", 0))
+                reason = parsed.get("reason", "AI 評選為最佳爆款素材")
+                if 0 <= idx < len(candidates):
+                    chosen = candidates[idx]
+                    chosen["curation_reason"] = reason
+                    print(f"🎯 [AI 選材決策] 選中候選 {idx} ({chosen['id']})：{reason}")
+                    return chosen
+    except Exception as e:
+        print(f"⚠️ [AI 選材評估] 呼叫逾時或異常 ({e})，自動採用讚數最高之候選貼文")
+
+    candidates.sort(key=lambda x: x.get("upvotes", 0), reverse=True)
+    return candidates[0]

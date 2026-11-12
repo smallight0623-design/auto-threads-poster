@@ -218,13 +218,98 @@ def save_global_settings(settings):
     data["global_settings"].update(settings)
     save_data(data)
 
+def compute_next_run(acc: dict) -> str:
+    """計算該帳號下一次自動執行的時間字串 (YYYY-MM-DD HH:MM:SS)"""
+    schedule_type = acc.get("schedule_type", "interval")
+    now = datetime.datetime.now()
+
+    if schedule_type == "manual":
+        return ""
+    
+    if schedule_type == "interval":
+        mins = int(acc.get("interval_minutes") or 180)
+        next_dt = now + datetime.timedelta(minutes=mins)
+        return next_dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    if schedule_type == "fixed_times":
+        raw_times = acc.get("fixed_times", "12:30, 18:30, 22:00")
+        parts = [t.strip() for t in raw_times.replace("，", ",").split(",") if t.strip()]
+        
+        candidates = []
+        for p in parts:
+            try:
+                h, m = map(int, p.split(":"))
+                dt_today = now.replace(hour=h, minute=m, second=0, microsecond=0)
+                if dt_today > now:
+                    candidates.append(dt_today)
+                else:
+                    candidates.append(dt_today + datetime.timedelta(days=1))
+            except Exception:
+                continue
+        
+        if candidates:
+            candidates.sort()
+            return candidates[0].strftime("%Y-%m-%d %H:%M:%S")
+        
+        return (now + datetime.timedelta(hours=3)).strftime("%Y-%m-%d %H:%M:%S")
+
+    return ""
+
+def get_due_accounts() -> list:
+    """找出目前所有已啟用且排程時間已到達的帳號"""
+    accounts = get_accounts()
+    due = []
+    now = datetime.datetime.now()
+    for acc in accounts:
+        if not acc.get("enabled", True):
+            continue
+        if acc.get("schedule_type") == "manual":
+            continue
+        next_run_str = acc.get("next_run")
+        if not next_run_str:
+            continue
+        try:
+            next_run_dt = datetime.datetime.strptime(next_run_str, "%Y-%m-%d %H:%M:%S")
+            if now >= next_run_dt:
+                due.append(acc)
+        except Exception:
+            continue
+    return due
+
+def mark_account_run_completed(acc_id: str):
+    """更新帳號最後執行時間與推算下一次排程時間"""
+    data = load_data()
+    for acc in data.get("accounts", []):
+        if acc["id"] == acc_id:
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            acc["last_run"] = now_str
+            acc["next_run"] = compute_next_run(acc)
+            break
+    save_data(data)
+
 def get_accounts():
     data = load_data()
     accounts = data.get("accounts", [])
+    updated = False
     for acc in accounts:
         acc.setdefault("target_platform", "Threads")
-        acc.setdefault("source_platform", "Reddit")
+        if "source_platforms" not in acc:
+            old_src = acc.get("source_platform", "Reddit")
+            acc["source_platforms"] = [old_src] if old_src else ["Reddit"]
+            updated = True
+        
         acc.setdefault("discovery_mode", "rising")
+        acc.setdefault("strategy_prompt", "目標是最大化粉絲與關注度，優先挑選該領域最有料、最好笑、最具社群傳播力的即時爆文。")
+        acc.setdefault("schedule_type", "interval")
+        acc.setdefault("interval_minutes", 180)
+        acc.setdefault("fixed_times", "12:30, 18:30, 22:00")
+        acc.setdefault("last_run", "")
+        if not acc.get("next_run") and acc.get("schedule_type") != "manual":
+            acc["next_run"] = compute_next_run(acc)
+            updated = True
+
+    if updated:
+        save_data(data)
     return accounts
 
 def get_account(acc_id):
@@ -254,6 +339,16 @@ def save_account(account_data, session_data_str=None):
         normalized_str = normalize_cookie_json(session_data_str)
         with open(os.path.join(acc_dir, "session.json"), "w", encoding="utf-8") as f:
             f.write(normalized_str)
+
+    # 規格化多來源平台與排程
+    if "source_platforms" in account_data:
+        if isinstance(account_data["source_platforms"], str):
+            account_data["source_platforms"] = [account_data["source_platforms"]]
+        if account_data["source_platforms"]:
+            account_data["source_platform"] = account_data["source_platforms"][0]
+    
+    # 動態計算下一次執行時間
+    account_data["next_run"] = compute_next_run(account_data)
 
     if is_new:
         accounts.append(account_data)
