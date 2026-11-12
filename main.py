@@ -1,7 +1,6 @@
 import os
 import sys
-import json
-import traceback
+import argparse
 import datetime
 import asyncio
 
@@ -16,121 +15,110 @@ from reddit_scraper import fetch_top_reddit_posts
 from ai_engine import call_ai_proxy
 from media_handler import download_media
 from threads_playwright import post_to_threads
+import account_manager
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(BASE_DIR, "config.json") if os.path.exists(os.path.join(BASE_DIR, "config.json")) else os.path.join(BASE_DIR, "config.example.json")
-HISTORY_FILE = os.path.join(BASE_DIR, "posted_ids.json")
-ERROR_LOG_FILE = os.path.join(BASE_DIR, "logs", "latest_error.json")
-STATUS_FILE = os.path.join(BASE_DIR, "logs", "current_status.json")
+async def run_for_account(acc_id: str):
+    """專門為指定的社群帳號工作台執行一次搬運與發布"""
+    account = account_manager.get_account(acc_id)
+    if not account:
+        print(f"❌ 找不到帳號 ID: {acc_id}")
+        return False
 
-def update_status(step: str, message: str, state: str = "RUNNING"):
-    """更新即時執行狀態，供主控台動態輪詢顯示"""
-    os.makedirs("logs", exist_ok=True)
-    payload = {
-        "state": state,
-        "step": step,
-        "message": message,
-        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    acc_name = account.get("name", acc_id)
+    print(f"\n==================================================")
+    print(f"🚀 開始執行帳號工作台：【{acc_name}】 (ID: {acc_id})")
+    print(f"==================================================")
+
+    account_manager.update_account_status(acc_id, "初始化", "正在檢查帳號 Session 與工作台設定...")
+
+    session_path = account_manager.get_account_session_path(acc_id)
+    if not session_path:
+        err = Exception("此工作台尚未設定或匯入 Threads Cookie Session，請先在主控台貼入 Session！")
+        account_manager.record_account_error(acc_id, "Session 檢查", err)
+        return False
+
+    global_settings = account_manager.get_global_settings()
+    ai_config = {
+        "AI_BASE_URL": global_settings.get("AI_BASE_URL"),
+        "AI_API_KEY": global_settings.get("AI_API_KEY"),
+        "AI_MODEL": global_settings.get("AI_MODEL"),
+        "TARGET_REGION": account.get("target_region", "台灣 (繁體中文)"),
+        "GAME_NAME": account.get("game_name", "遊戲")
     }
-    with open(STATUS_FILE, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
-    print(f"[{state}] {step}: {message}")
 
-def record_error(step: str, err: Exception):
-    """將錯誤原因、步驟與呼叫堆疊完整記錄至日誌檔，供主控台讀取與一鍵複製"""
-    os.makedirs("logs", exist_ok=True)
-    error_payload = {
-        "status": "FAILED",
-        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "failed_step": step,
-        "error_message": str(err),
-        "traceback": traceback.format_exc()
-    }
-    with open(ERROR_LOG_FILE, "w", encoding="utf-8") as f:
-        json.dump(error_payload, f, indent=2, ensure_ascii=False)
-    
-    update_status(step, f"執行失敗: {str(err)}", state="FAILED")
-    print(f"\n❌ 錯誤已捕捉並記錄至主控台：[{step}] {str(err)}")
-
-async def main():
-    update_status("初始化", "讀取設定檔與去重紀錄...")
-    if not os.path.exists(CONFIG_FILE):
-        record_error("設定讀取", FileNotFoundError(f"找不到 {CONFIG_FILE} 設定檔"))
-        return
-
-    with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-        config = json.load(f)
-
-    subreddit = config.get("SUBREDDIT", "MonsterHunter")
-    min_upvotes = int(config.get("MIN_UPVOTES", 100))
+    subreddit = account.get("subreddit", "MonsterHunter")
+    min_upvotes = int(account.get("min_upvotes", 100))
 
     # 1. 爬蟲監控階段
     try:
-        update_status("抓取熱門貼文", f"透過 Playwright 掃描 r/{subreddit} 熱門貼文 (門檻 {min_upvotes} 讚)...")
+        account_manager.update_account_status(acc_id, "抓取熱門貼文", f"透過 Playwright 掃描 r/{subreddit} 熱門貼文 (門檻 {min_upvotes} 讚)...")
         posts = await fetch_top_reddit_posts(subreddit, min_upvotes=min_upvotes)
     except Exception as e:
-        record_error("來源平台爬取階段 (Reddit Scraper)", e)
-        return
+        account_manager.record_account_error(acc_id, "來源平台爬取階段 (Reddit Scraper)", e)
+        return False
 
-    # 讀取去重紀錄
-    history = []
-    if os.path.exists(HISTORY_FILE):
-        try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                history = json.load(f)
-        except Exception:
-            history = []
-
-    # 篩選未曾發布過的最新熱門貼文
+    # 2. 去重檢查
+    history = account_manager.get_account_history(acc_id)
     candidate = next((p for p in posts if p["id"] not in history), None)
     if not candidate:
-        update_status("完成", "目前無符合門檻的新熱門貼文需要發布。", state="SUCCESS")
-        return
+        account_manager.update_account_status(acc_id, "完成", "目前無符合門檻的新熱門貼文需要發布。", state="SUCCESS")
+        return True
 
-    update_status("鎖定目標", f"鎖定熱門貼文：[{candidate['id']}] {candidate['title'][:40]}... (👍 {candidate['upvotes']})")
+    account_manager.update_account_status(acc_id, "鎖定目標", f"鎖定熱門貼文：[{candidate['id']}] {candidate['title'][:40]}... (👍 {candidate['upvotes']})")
 
-    # 2. AI 中轉站翻譯與遊戲名詞對齊階段
+    # 3. AI 中轉站翻譯階段
     try:
-        update_status("AI 在地化翻譯", f"傳送至 AI 中轉站，目標地區：【{config.get('TARGET_REGION')}】...")
-        localized_text = call_ai_proxy(candidate["full_content"], config)
+        account_manager.update_account_status(acc_id, "AI 在地化翻譯", f"傳送至 AI 中轉站，目標地區：【{account.get('target_region')}】...")
+        localized_text = call_ai_proxy(candidate["full_content"], ai_config)
     except Exception as e:
-        record_error("AI 中轉站翻譯階段 (AI Brain Proxy)", e)
-        return
+        account_manager.record_account_error(acc_id, "AI 中轉站翻譯階段 (AI Brain Proxy)", e)
+        return False
 
-    # 3. 媒體下載與壓制階段
+    # 4. 媒體下載階段
     media_path = None
     if candidate["media_type"] in ["IMAGE", "VIDEO"]:
         try:
-            update_status("媒體處理", f"偵測到 {candidate['media_type']} 媒體，下載並轉碼...")
+            account_manager.update_account_status(acc_id, "媒體處理", f"偵測到 {candidate['media_type']} 媒體，下載並轉碼...")
             media_path = download_media(candidate["media_type"], candidate["media_url"], candidate["id"])
         except Exception as e:
-            record_error("媒體下載與音影合成階段 (Media Downloader)", e)
+            account_manager.record_account_error(acc_id, "媒體下載與音影合成階段 (Media Downloader)", e)
+            return False
+
+    # 5. Playwright 發布階段
+    try:
+        account_manager.update_account_status(acc_id, "Threads 發布", "啟動 Playwright 載入此帳號專屬 Session 並自動發布至 Threads...")
+        await post_to_threads(localized_text, media_path, session_file=session_path)
+    except Exception as e:
+        account_manager.record_account_error(acc_id, "Playwright 自動發布階段 (Threads Publisher)", e)
+        return False
+
+    # 成功寫入去重歷史
+    account_manager.add_account_history(acc_id, candidate["id"])
+    account_manager.update_account_status(acc_id, "發布成功", f"貼文 [{candidate['id']}] 已順利同步至 Threads！", state="SUCCESS")
+    print(f"🎉 帳號【{acc_name}】任務圓滿完成！")
+    return True
+
+async def main():
+    parser = argparse.ArgumentParser(description="多帳號熱文自動搬運系統")
+    parser.add_argument("--account", type=str, help="指定單一帳號 ID 執行發布")
+    parser.add_argument("--all", action="store_true", help="依序執行所有啟用的帳號工作台")
+    args = parser.parse_args()
+
+    if args.account:
+        await run_for_account(args.account)
+    else:
+        # 預設執行所有已啟用的帳號
+        accounts = account_manager.get_accounts()
+        enabled_accounts = [a for a in accounts if a.get("enabled", True)]
+        
+        if not enabled_accounts:
+            print("目前沒有已啟用的帳號工作台需要執行。")
             return
 
-    # 4. Playwright 自動發布階段
-    try:
-        update_status("Threads 發布", "啟動 Playwright 載入 Session 並自動發布至 Threads...")
-        await post_to_threads(localized_text, media_path)
-    except Exception as e:
-        record_error("Playwright 自動發布階段 (Threads Publisher)", e)
-        return
-
-    # 發布成功：寫入去重歷史紀錄
-    history.append(candidate["id"])
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=2, ensure_ascii=False)
-
-    # 標記主控台為正常
-    os.makedirs("logs", exist_ok=True)
-    with open(ERROR_LOG_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "status": "SUCCESS",
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "message": f"成功發布貼文 [{candidate['id']}] 至 Threads"
-        }, f, indent=2, ensure_ascii=False)
-
-    update_status("發布成功", f"貼文 [{candidate['id']}] 已順利同步至 Threads！", state="SUCCESS")
-    print("🎉 全流程執行完畢，貼文已成功發布！")
+        print(f"共發現 {len(enabled_accounts)} 個已啟用的帳號工作台，開始批次排隊執行...")
+        for acc in enabled_accounts:
+            await run_for_account(acc["id"])
+            await asyncio.sleep(3)
 
 if __name__ == "__main__":
     asyncio.run(main())

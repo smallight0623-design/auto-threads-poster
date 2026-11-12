@@ -1,0 +1,20 @@
+{
+  "global_settings": {
+    "AI_BASE_URL": "https://api.relayrouter.ai/v1",
+    "AI_API_KEY": "",
+    "AI_MODEL": "gemini-2.5-flash"
+  },
+  "accounts": [
+    {
+      "id": "acc_primary",
+      "name": "dinosaur.56467484 (魔物獵人)",
+      "enabled": true,
+      "target_region": "台灣 (繁體中文)",
+      "game_name": "Monster Hunter Wilds",
+      "source_platform": "Reddit",
+      "subreddit": "MonsterHunter",
+      "min_upvotes": 100,
+      "created_at": "2026-11-12 14:00:00"
+    }
+  ]
+}
