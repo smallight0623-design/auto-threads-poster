@@ -9,9 +9,14 @@ env/
 
 # Sensitive user credentials & session (MUST NOT BE COMMITTED)
 threads_session.json
+facebook_session.json
+x_session.json
 *.session.json
 session.json
 accounts/**/session.json
+accounts/**/history.json
+accounts/**/status.json
+accounts/**/error.json
 accounts/accounts.json
 config.json
 

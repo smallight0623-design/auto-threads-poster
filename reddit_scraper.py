@@ -9,12 +9,16 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-async def fetch_top_reddit_posts(subreddit: str, min_upvotes: int = 100, limit: int = 20):
+async def fetch_top_reddit_posts(subreddit: str, min_upvotes: int = 100, limit: int = 20, sort_type: str = "rising"):
     """
     透過 Playwright 無痕模式採集 Reddit 熱門貼文。
     可 100% 繞過 Reddit 針對 Python requests 的 Cloudflare/網絡安全 403 阻擋。
+    支援 sort_type:
+      - 'rising': 剛爆發潛力文（建立時間僅 1~2 小時內，發現時間最短）
+      - 'hot': 成熟熱門文
     """
-    url = f"https://www.reddit.com/r/{subreddit}/hot/"
+    clean_sort = "rising" if sort_type.lower() == "rising" else "hot"
+    url = f"https://www.reddit.com/r/{subreddit}/{clean_sort}/"
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(

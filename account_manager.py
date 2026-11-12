@@ -127,7 +127,12 @@ def save_global_settings(settings):
 
 def get_accounts():
     data = load_data()
-    return data.get("accounts", [])
+    accounts = data.get("accounts", [])
+    for acc in accounts:
+        acc.setdefault("target_platform", "Threads")
+        acc.setdefault("source_platform", "Reddit")
+        acc.setdefault("discovery_mode", "rising")
+    return accounts
 
 def get_account(acc_id):
     for acc in get_accounts():

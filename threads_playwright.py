@@ -101,13 +101,38 @@ async def post_to_threads(text: str, media_file_path: str = None, session_file: 
         dialog = page.locator("div[role='dialog']").first
         await dialog.wait_for(state="visible", timeout=12000)
 
-        # 定位輸入框並填入文案
+        # 智慧解析內文與主題標籤 (Hashtags)
+        import re
+        tags = re.findall(r'#([^\s#]+)', text)
+        body_text = re.sub(r'(?:^|\n)\s*(?:#[^\s#]+\s*)+$', '', text).strip()
+        if not body_text:
+            body_text = text
+
+        # 定位輸入框並填入主內文
         editor = dialog.locator("div[contenteditable='true']").first
         await editor.wait_for(state="visible", timeout=8000)
         await editor.click()
-        await editor.fill(text)
-        print("文案已輸入完畢！")
+        await editor.fill(body_text)
+        print("主內文已填入！")
         await asyncio.sleep(1)
+
+        # 若含有主題標籤，透過實體鍵盤事件觸發 Threads 原生主題標籤 (Topic Tag Chip)
+        if tags:
+            primary_tag = tags[0]
+            print(f"正在透過鍵盤事件注入 Threads 官方主題標籤：#{primary_tag}")
+            await page.keyboard.press("End")
+            await page.keyboard.press("Enter")
+            await page.keyboard.type(f"#{primary_tag}", delay=80)
+            await page.wait_for_timeout(800)
+            # 按下 Enter 讓 Threads 官方選單自動鎖定並轉為藍色標籤
+            await page.keyboard.press("Enter")
+            await page.wait_for_timeout(500)
+
+            # 若有其他標籤，以標準空白間隔輸入
+            for extra_tag in tags[1:]:
+                await page.keyboard.type(f" #{extra_tag} ")
+                await page.wait_for_timeout(300)
+            print("主題標籤已成功轉化為官方 Topic 標記！")
 
         # 若有媒體檔案，注入本地檔案
         if media_file_path and os.path.exists(media_file_path):

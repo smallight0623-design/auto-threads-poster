@@ -22,6 +22,7 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
     target_region = config.get("TARGET_REGION", "台灣 (繁體中文)")
     game_name = config.get("GAME_NAME", "遊戲")
     primary_model = config.get("AI_MODEL", "gemini-2.5-flash")
+    custom_tags = config.get("CUSTOM_TAGS", "").strip()
 
     # 候選模型重試清單
     candidate_models = [primary_model]
@@ -29,12 +30,20 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
         if fallback not in candidate_models:
             candidate_models.append(fallback)
 
+    if custom_tags:
+        hashtag_instruction = f"""4. 【主題標籤（Hashtags）】：
+   - Threads 與 FB 演算法極度看重主題標籤！請在文案最末尾另起一行，務必附上以下指定的主題標籤：
+     {custom_tags}"""
+    else:
+        hashtag_instruction = f"""4. 【演算法爆款主題標籤（Hashtags）】：
+   - Threads 與 FB 演算法極度看重主題標籤！請在文案最末尾另起一行，依據【{game_name}】與【{target_region}】，自動精準附上 2~3 個該遊戲在該地區最熱門的搜尋主題標籤（例如：#魔物獵人旅人 #魔物獵人 等），最大化擴散觸及率。"""
+
     system_prompt = f"""
-你是一位全球頂級的跨國遊戲在地化翻譯專家。
-【任務目標】：將國外遊戲社群的原貼文 100% 忠實翻譯至目標地區的語言。
+你是一位全球頂級的跨國社群與遊戲在地化翻譯專家。
+【任務目標】：將國外社群的原貼文 100% 忠實翻譯至目標地區的語言，進行跨平台熱文無痕呈現。
 
 【關鍵參數】：
-- 目標遊戲：{game_name}
+- 目標遊戲/主題：{game_name}
 - 目標地區/語言：{target_region}
 
 【核心翻譯守則（嚴格執行）】：
@@ -43,12 +52,18 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
    - 嚴格保留原作者的所有情緒、語氣與語感（例如憤怒、吐槽、激動、諷刺或冷靜）。
    - 嚴禁擅自改寫、總結、修飾或添加任何原作者沒說的話（例如「筆者認為」、「大家好」、「這是一篇搬運」等客套廢話一律不准出現）。
 
-2. 【地區語言與專有名詞極致對齊】：
+2. 【嚴格不標作者與來源】：
+   - 嚴禁標註原作者 ID、帳號名稱、或來源網站（例如嚴禁出現「作者：xxx」、「轉自 Reddit/Threads」、「Source:」等文字）。
+   - 純粹以 1:1 匿名社群分享內容直接呈現。
+
+3. 【地區語言與專有名詞極致對齊】：
    - 譯文必須符合【{target_region}】當地玩家日常最自然的母語表達習慣（例如目標為台灣時，必須使用台灣道地繁體中文，嚴禁大陸用語；目標為越南時，使用自然越南語）。
    - 文中涉及【{game_name}】的所有專有名詞（包括角色名、技能、道具、裝備、遊戲機制、官方公告術語、社群通用黑話），必須精確替換為該遊戲在【{target_region}】官方伺服器/官方在地化版本的標準譯名。
 
-3. 【輸出規格】：
-   - 直接輸出最終翻譯完成的純文案內容，不要有任何多餘的引言或解釋。
+{hashtag_instruction}
+
+5. 【輸出規格】：
+   - 直接輸出最終翻譯完成的純文案內容（含末尾標籤），不要有任何多餘的引言、前綴或解釋。
 """
 
     headers = {

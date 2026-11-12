@@ -130,10 +130,10 @@ async def serve_dashboard():
             <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-gray-800 pb-5 gap-4">
                 <div>
                     <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-                        🚀 Threads 矩陣社群多帳號自動搬運主控台
+                        🚀 Threads & Facebook 跨平台矩陣搬運主控台
                     </h1>
                     <p class="text-xs text-gray-400 mt-1">
-                        每組 Cookie 獨立工作台 ‧ 各帳號獨立地區與遊戲詞庫 ‧ 支援單一或批次點火發布
+                        跨平台資訊差自動發掘 ‧ 發現時間縮短至 1~2 小時潛力爆文 ‧ 100% 格式語氣照抄在地化 ‧ 零作者標註
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -201,39 +201,75 @@ async def serve_dashboard():
 
                     <div>
                         <label class="block text-gray-300 font-medium mb-1">帳號自訂名稱 / 代號（辨識用）*</label>
-                        <input id="acc-name" name="name" required placeholder="例如：@my_threads_tw 或 dinosaur.56467484" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
+                        <input id="acc-name" name="name" required placeholder="例如：@my_threads_tw 或 FB遊戲粉絲團" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-gray-300 font-medium mb-1">🎯 目標發布社群 (Target Platform)*</label>
+                            <select id="acc-target-platform" name="target_platform" onchange="handleTargetPlatformChange()" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
+                                <option value="Threads">🧵 Threads (台灣/全球高速擴散)</option>
+                                <option value="Facebook">📘 Facebook (粉專/社團廣泛受眾)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 font-medium mb-1">📡 來源監控雷達 (跨平台資訊差)*</label>
+                            <select id="acc-source-platform" name="source_platform" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
+                                <option value="Reddit">Reddit (歐美即時熱區)</option>
+                                <option value="X">X / Twitter (全球即時快訊)</option>
+                                <option value="巴哈姆特">巴哈姆特哈啦板 (台灣最大遊戲社群)</option>
+                                <option value="Threads">Threads (Meta 即時爆串)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-gray-300 font-medium mb-1">⏱️ 發現時效模式 (Discovery Latency)*</label>
+                            <select id="acc-discovery-mode" name="discovery_mode" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
+                                <option value="rising">⚡ 剛爆發潛力榜 (Rising - 發現時間最短，約 1~2 小時)</option>
+                                <option value="hot">🔥 成熟熱門榜 (Hot - 經典高讚熱門)</option>
+                            </select>
+                        </div>
                         <div>
                             <label class="block text-gray-300 font-medium mb-1">目標地區與語言 (受眾)*</label>
                             <select id="acc-region" name="target_region" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
                                 <!-- 動態填入地區 -->
                             </select>
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-gray-300 font-medium mb-1">特定遊戲名稱 (專有名詞對齊)*</label>
                             <input id="acc-game" name="game_name" required placeholder="例如：Monster Hunter Wilds / 原神" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 font-medium mb-1">監控板塊 / 關鍵字 (Subreddit)*</label>
+                            <input id="acc-subreddit" name="subreddit" required placeholder="例如：MonsterHunter" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-gray-300 font-medium mb-1">監控 Subreddit 板塊*</label>
-                            <input id="acc-subreddit" name="subreddit" required placeholder="例如：MonsterHunter" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
+                            <label class="block text-gray-300 font-medium mb-1">最低熱門讚數 (Min Likes/Upvotes)*</label>
+                            <input type="number" id="acc-upvotes" name="min_upvotes" required value="100" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
                         </div>
                         <div>
-                            <label class="block text-gray-300 font-medium mb-1">最低熱門讚數 (Upvotes)*</label>
-                            <input type="number" id="acc-upvotes" name="min_upvotes" required value="100" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-gray-300 font-medium">🏷️ 爆款主題標籤 (Hashtags)</label>
+                                <span class="text-indigo-400 text-[10px]">✨ 提升演算法推播</span>
+                            </div>
+                            <input id="acc-tags" name="custom_tags" placeholder="例如：#魔物獵人旅人 (留空AI自動生成)" class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-sm text-gray-100 focus:border-indigo-500 focus:outline-none">
                         </div>
                     </div>
 
                     <div>
                         <div class="flex items-center justify-between mb-1">
-                            <label class="text-gray-300 font-medium">該帳號專屬 Threads Cookie Session (JSON)</label>
-                            <span class="text-gray-500 text-[10px]">貼入 login_local.py 產生的內容</span>
+                            <label id="label-session-cookie" class="text-gray-300 font-medium">該帳號專屬 Cookie Session (JSON)</label>
+                            <span id="hint-session-tool" class="text-gray-500 text-[10px]">執行桌面小工具自動複製貼上</span>
                         </div>
-                        <textarea id="acc-session" name="session_data" rows="4" placeholder='{{"cookies": [...], "origins": [...]}}' class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-300 focus:border-amber-500 focus:outline-none"></textarea>
+                        <textarea id="acc-session" name="session_data" rows="3" placeholder='{{"cookies": [...], "origins": [...]}}' class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-300 focus:border-amber-500 focus:outline-none"></textarea>
                     </div>
 
                     <div class="flex items-center gap-2 pt-1">
@@ -348,21 +384,30 @@ async def serve_dashboard():
                     ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">✅ Session 已就緒</span>`
                     : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800">⚠️ 缺少 Session</span>`;
 
+                const isFacebook = (acc.target_platform || 'Threads').toLowerCase() === 'facebook';
+                const platformBadge = isFacebook 
+                    ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 font-bold flex items-center gap-1">📘 Facebook</span>`
+                    : `<span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-bold flex items-center gap-1">🧵 Threads</span>`;
+
+                const sourceBadge = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700">📡 來源: ${{escapeHtml(acc.source_platform || 'Reddit')}} (${{acc.discovery_mode === 'rising' ? '⚡潛力速報' : '🔥熱門'}})</span>`;
+
                 return `
                     <div class="bg-gray-900 border ${{isFailed ? 'border-red-900/60 shadow-lg shadow-red-950/20' : (isRunning ? 'border-indigo-600 shadow-lg shadow-indigo-950/30' : 'border-gray-800')}} rounded-2xl p-5 space-y-4 transition-all">
                         <!-- 卡片頂部 -->
                         <div class="flex items-start justify-between gap-3 border-b border-gray-800/80 pb-3">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-700 to-purple-600 flex items-center justify-center font-bold text-white text-sm shadow-md">
+                                <div class="w-9 h-9 rounded-xl ${{isFacebook ? 'bg-gradient-to-tr from-blue-700 to-indigo-600' : 'bg-gradient-to-tr from-indigo-700 to-purple-600'}} flex items-center justify-center font-bold text-white text-sm shadow-md">
                                     ${{acc.name.charAt(0).toUpperCase()}}
                                 </div>
                                 <div>
                                     <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
                                         <span>${{escapeHtml(acc.name)}}</span>
                                     </h3>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="text-[10px] text-gray-400">ID: <code class="text-gray-300">${{acc.id}}</code></span>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                        <span class="text-[10px] text-gray-400 font-mono">${{acc.id}}</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-indigo-300 font-medium">${{acc.target_region}}</span>
+                                        ${{platformBadge}}
+                                        ${{sourceBadge}}
                                     </div>
                                 </div>
                             </div>
@@ -380,9 +425,20 @@ async def serve_dashboard():
                                 <span class="font-medium text-white truncate block mt-0.5">${{escapeHtml(acc.game_name)}}</span>
                             </div>
                             <div>
-                                <span class="text-gray-500 block text-[11px]">監控板塊 (Subreddit)</span>
-                                <span class="font-medium text-white block mt-0.5">r/${{escapeHtml(acc.subreddit)}} (≥${{acc.min_upvotes}}讚)</span>
+                                <span class="text-gray-500 block text-[11px]">監控來源關鍵字/板塊</span>
+                                <span class="font-medium text-white block mt-0.5">${{escapeHtml(acc.subreddit || acc.game_name)}} (≥${{acc.min_upvotes}}讚)</span>
                             </div>
+                            ${{acc.custom_tags ? `
+                                <div class="col-span-2 text-[11px] text-indigo-300 font-mono flex items-center gap-1.5 pt-1 border-t border-gray-800/40">
+                                    <span class="text-gray-400">🏷️ 標籤：</span>
+                                    <span class="truncate font-semibold">${{escapeHtml(acc.custom_tags)}}</span>
+                                </div>
+                            ` : `
+                                <div class="col-span-2 text-[11px] text-gray-400 font-mono flex items-center gap-1.5 pt-1 border-t border-gray-800/40">
+                                    <span>🏷️ 標籤：</span>
+                                    <span class="text-gray-400">🤖 AI 依遊戲自動生成最佳爆款標籤</span>
+                                </div>
+                            `}}
                             <div class="col-span-2 flex items-center justify-between pt-1 border-t border-gray-800/40">
                                 <div class="flex items-center gap-2">
                                     ${{sessionBadge}}
@@ -418,7 +474,7 @@ async def serve_dashboard():
                         <!-- 卡片底部動作按鈕 -->
                         <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-gray-800/80">
                             <div class="flex items-center gap-2">
-                                <button onclick="triggerAccount('${{acc.id}}')" ${{isRunning ? 'disabled' : ''}} class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1">
+                                <button onclick="triggerAccount('${{acc.id}}', this)" ${{isRunning ? 'disabled' : ''}} class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm flex items-center gap-1">
                                     <span>⚡ 點火此帳號</span>
                                 </button>
                                 <button onclick="copyAccountSession('${{acc.id}}', this)" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 px-2.5 py-1.5 rounded-lg text-xs transition">
@@ -483,15 +539,51 @@ async def serve_dashboard():
                 `).join('');
             }}
 
+            function handleTargetPlatformChange(targetVal, defaultSourceVal) {{
+                const target = targetVal || document.getElementById('acc-target-platform').value;
+                const sourceSelect = document.getElementById('acc-source-platform');
+                const labelSession = document.getElementById('label-session-cookie');
+                const hintSession = document.getElementById('hint-session-tool');
+
+                if (target === 'Facebook') {{
+                    labelSession.innerText = '該帳號專屬 Facebook Cookie Session (JSON)*';
+                    hintSession.innerText = '執行桌面【取得 Facebook 登入 Cookie】小工具後按 Ctrl+V 貼上';
+                    // 跨平台互斥原則：發布至 Facebook 時，來源可為 Reddit、Threads、X、巴哈姆特
+                    sourceSelect.innerHTML = `
+                        <option value="Reddit">Reddit (歐美即時熱區)</option>
+                        <option value="Threads">Threads (Meta 即時爆串)</option>
+                        <option value="X">X / Twitter (全球即時快訊)</option>
+                        <option value="巴哈姆特">巴哈姆特哈啦板 (台灣最大遊戲社群)</option>
+                    `;
+                }} else {{
+                    labelSession.innerText = '該帳號專屬 Threads Cookie Session (JSON)*';
+                    hintSession.innerText = '執行桌面【取得 Threads 登入 Cookie】小工具後按 Ctrl+V 貼上';
+                    // 跨平台互斥原則：發布至 Threads 時，來源不可為 Threads
+                    sourceSelect.innerHTML = `
+                        <option value="Reddit">Reddit (歐美即時熱區)</option>
+                        <option value="X">X / Twitter (全球即時快訊)</option>
+                        <option value="巴哈姆特">巴哈姆特哈啦板 (台灣最大遊戲社群)</option>
+                    `;
+                }}
+
+                if (defaultSourceVal) {{
+                    sourceSelect.value = defaultSourceVal;
+                }}
+            }}
+
             function openAddAccountModal() {{
                 document.getElementById('modal-account-title').innerText = '➕ 新增社群帳號工作台';
                 document.getElementById('acc-id').value = '';
                 document.getElementById('acc-name').value = '';
                 document.getElementById('acc-game').value = '';
                 document.getElementById('acc-subreddit').value = '';
+                document.getElementById('acc-tags').value = '';
                 document.getElementById('acc-upvotes').value = '100';
                 document.getElementById('acc-session').value = '';
                 document.getElementById('acc-enabled').checked = true;
+                document.getElementById('acc-target-platform').value = 'Threads';
+                document.getElementById('acc-discovery-mode').value = 'rising';
+                handleTargetPlatformChange('Threads', 'Reddit');
                 populateRegionsSelect("台灣 (繁體中文)");
                 document.getElementById('modal-account').classList.remove('hidden');
             }}
@@ -505,8 +597,15 @@ async def serve_dashboard():
                 document.getElementById('acc-name').value = acc.name || '';
                 document.getElementById('acc-game').value = acc.game_name || '';
                 document.getElementById('acc-subreddit').value = acc.subreddit || '';
+                document.getElementById('acc-tags').value = acc.custom_tags || '';
                 document.getElementById('acc-upvotes').value = acc.min_upvotes || '100';
                 document.getElementById('acc-enabled').checked = acc.enabled !== false;
+                
+                const targetPlat = acc.target_platform || 'Threads';
+                document.getElementById('acc-target-platform').value = targetPlat;
+                document.getElementById('acc-discovery-mode').value = acc.discovery_mode || 'rising';
+                handleTargetPlatformChange(targetPlat, acc.source_platform || 'Reddit');
+
                 populateRegionsSelect(acc.target_region || "台灣 (繁體中文)");
 
                 // 異步填入現有 Session
@@ -528,9 +627,13 @@ async def serve_dashboard():
                 const payload = {{
                     id: formData.get('id') || undefined,
                     name: formData.get('name'),
+                    target_platform: formData.get('target_platform') || 'Threads',
+                    source_platform: formData.get('source_platform') || 'Reddit',
+                    discovery_mode: formData.get('discovery_mode') || 'rising',
                     target_region: formData.get('target_region'),
                     game_name: formData.get('game_name'),
                     subreddit: formData.get('subreddit'),
+                    custom_tags: formData.get('custom_tags') || '',
                     min_upvotes: parseInt(formData.get('min_upvotes') || '100', 10),
                     enabled: formData.get('enabled') === 'on',
                     session_data: formData.get('session_data') || undefined
@@ -559,21 +662,33 @@ async def serve_dashboard():
 
             async function deleteAccount(accId, rawName) {{
                 const name = decodeURIComponent(rawName);
-                if (confirm(`確定要刪除帳號工作台【${{name}}】嗎？\n此操作將刪除此帳號的專屬設定與 Session。`)) {{
+                if (confirm("確定要刪除帳號工作台【" + name + "】嗎？\\n此操作將刪除此帳號的專屬設定與 Session。")) {{
                     await fetch(`/api/accounts/${{accId}}/delete`, {{ method: 'POST' }});
                     fetchDashboardData();
                 }}
             }}
 
-            async function triggerAccount(accId) {{
+            async function triggerAccount(accId, btn) {{
+                if (btn) {{
+                    btn.disabled = true;
+                    btn.innerText = '⏳ 啟動中...';
+                }}
                 await fetch(`/api/accounts/${{accId}}/trigger`, {{ method: 'POST' }});
-                fetchDashboardData();
+                setTimeout(fetchDashboardData, 1000);
             }}
 
             async function triggerAllAccounts() {{
-                if (confirm("確定要一鍵點火所有已啟用的帳號工作台嗎？\n系統將排隊依序執行每個帳號的搬運與發布任務。")) {{
+                const btn = document.getElementById('btn-trigger-all');
+                if (btn) {{
+                    btn.disabled = true;
+                    btn.innerText = '⏳ 排隊點火中...';
+                }}
+                if (confirm("確定要一鍵點火所有已啟用的帳號工作台嗎？\\n系統將排隊依序執行每個帳號的搬運與發布任務。")) {{
                     await fetch('/api/trigger-all', {{ method: 'POST' }});
-                    fetchDashboardData();
+                    setTimeout(fetchDashboardData, 1000);
+                }} else if (btn) {{
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>⚡ 一鍵點火所有啟用帳號</span>';
                 }}
             }}
 
