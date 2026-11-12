@@ -25,6 +25,8 @@ config.json
 # Local temporary media and logs
 downloads/
 logs/
+analytics.json
+accounts/**/analytics.json
 *.png
 *.jpg
 *.jpeg

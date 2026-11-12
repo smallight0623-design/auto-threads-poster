@@ -24,23 +24,42 @@ async def startup_event():
     asyncio.create_task(auto_scheduler_daemon())
 
 async def auto_scheduler_daemon():
-    """24/7 背景排程巡航守護進程：每 30 秒自動檢測所有工作台的下次發布時間，時間到自動點火"""
+    """24/7 背景排程巡航守護進程：支援常規定時巡航與破裂級爆款自主提前插隊"""
     await asyncio.sleep(3)
     print("🕒 [Auto Scheduler] 24/7 自動巡航排程守護進程已啟動！")
+    loop_count = 0
     while True:
         try:
+            # 1. 常規排程檢測 (每 30 秒)
             due_accounts = account_manager.get_due_accounts()
             for acc in due_accounts:
                 acc_id = acc["id"]
                 acc_name = acc.get("name", acc_id)
-                print(f"⏰ [Auto Scheduler] 帳號【{acc_name}】排程時間到 ({acc.get('next_run')})，自動點火發布！")
+                print(f"⏰ [Auto Scheduler] 帳號【{acc_name}】排程時間到 ({acc.get('next_run')})，常規自動點火！")
                 account_manager.mark_account_run_completed(acc_id)
                 env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
                 subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc_id], cwd=BASE_DIR, env=env)
                 await asyncio.sleep(2)
+
+            # 2. 破裂級爆款雷達插隊檢測 (每 15 分鐘 = 30次輪詢)
+            loop_count += 1
+            if loop_count >= 30:
+                loop_count = 0
+                all_accs = account_manager.get_accounts()
+                for acc in all_accs:
+                    if acc.get("enabled", True) and account_manager.is_fast_track_allowed(acc["id"]):
+                        env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+                        subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc["id"], "--fast-track"], cwd=BASE_DIR, env=env)
+                        await asyncio.sleep(2)
+
         except Exception as e:
             print(f"⚠️ [Auto Scheduler Error] {e}")
         await asyncio.sleep(30)
+
+@app.get("/api/analytics")
+async def get_analytics_api():
+    """回傳矩陣營運情報簡報數據"""
+    return JSONResponse(account_manager.get_analytics_summary())
 
 REGIONS = [
     "台灣 (繁體中文)",
@@ -179,6 +198,9 @@ async def serve_dashboard():
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
+                    <button onclick="openAnalyticsModal()" class="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-amber-600/30 flex items-center gap-1.5">
+                        <span>📊 矩陣營運情報簡報</span>
+                    </button>
                     <button onclick="openGlobalCookiesModal()" class="bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-sky-600/30 flex items-center gap-1.5">
                         <span>🔑 爬蟲授權管理 (X / FB 爬文)</span>
                     </button>
@@ -314,6 +336,30 @@ async def serve_dashboard():
                         <div id="sched-interval-box">
                             <label class="text-[11px] text-gray-400 block mb-1">巡航間隔時間 (分鐘)：</label>
                             <input type="number" id="acc-interval-minutes" name="interval_minutes" value="180" min="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-200">
+                        </div>
+                    </div>
+
+                    <!-- 破裂級爆款自主插隊設定 -->
+                    <div class="bg-amber-950/20 border border-amber-900/40 p-3 rounded-xl space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="acc-enable-fast-track" name="enable_fast_track" class="rounded bg-gray-950 border-gray-700 text-amber-500 focus:ring-0" checked>
+                                <span class="text-xs font-bold text-amber-300">🚨 破裂級爆款自主插隊 (搶吃第一波流量紅利)</span>
+                            </label>
+                            <span class="text-[10px] text-amber-400/80">打破常規排程提前點火</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <label class="block text-gray-400 text-[11px] mb-1">觸發爆款門檻 (讚數 / Likes)*</label>
+                                <input type="number" id="acc-fast-track-min-upvotes" name="fast_track_min_upvotes" value="300" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-200">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-[11px] mb-1">最低安全冷卻間隔 (防封號保護)*</label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="acc-cooldown-minutes" name="cooldown_minutes" value="45" min="15" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-200">
+                                    <span class="text-xs text-gray-400 whitespace-nowrap">分鐘</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -476,6 +522,72 @@ async def serve_dashboard():
             </div>
         </div>
 
+        <!-- =================== Modal 4: 矩陣營運情報與 AI 決策簡報 =================== -->
+        <div id="modal-analytics" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-900 border border-gray-700 w-full max-w-4xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <span>📊 跨社群矩陣營運情報與 AI 決策簡報</span>
+                    </h3>
+                    <button onclick="closeAnalyticsModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
+                </div>
+
+                <!-- 關鍵指標卡片 -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-gray-950/80 border border-gray-800 p-3.5 rounded-xl">
+                        <span class="text-[11px] text-gray-400 block">全矩陣搬運總篇數</span>
+                        <span id="analytics-total-posts" class="text-2xl font-bold text-white mt-1 block">0</span>
+                    </div>
+                    <div class="bg-gray-950/80 border border-amber-900/40 p-3.5 rounded-xl">
+                        <span class="text-[11px] text-amber-300 block">🚨 破裂爆款自主插隊</span>
+                        <span id="analytics-fast-track-count" class="text-2xl font-bold text-amber-400 mt-1 block">0</span>
+                    </div>
+                    <div class="bg-gray-950/80 border border-gray-800 p-3.5 rounded-xl">
+                        <span class="text-[11px] text-gray-400 block">情報來源分佈</span>
+                        <div id="analytics-sources-breakdown" class="flex flex-wrap gap-1 mt-1.5 text-[11px]">--</div>
+                    </div>
+                    <div class="bg-gray-950/80 border border-gray-800 p-3.5 rounded-xl">
+                        <span class="text-[11px] text-gray-400 block">24H 活躍時段</span>
+                        <span id="analytics-peak-hour" class="text-xs font-mono font-bold text-indigo-300 mt-2 block">統計中...</span>
+                    </div>
+                </div>
+
+                <!-- AI 選材決策與發布紀錄明細 -->
+                <div class="space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-gray-300 flex items-center gap-1.5">
+                            <span>🧠 最近 AI 選材與發布決策紀錄 (最新 20 筆)</span>
+                        </h4>
+                        <span class="text-[10px] text-gray-500">透明回溯 AI 評選理由與各來源熱度</span>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-gray-800">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-950 text-gray-400 text-[11px] border-b border-gray-800">
+                                <tr>
+                                    <th class="p-2.5 font-medium">時間</th>
+                                    <th class="p-2.5 font-medium">帳號工作台</th>
+                                    <th class="p-2.5 font-medium">來源平台</th>
+                                    <th class="p-2.5 font-medium">候選貼文標題 / 讚數</th>
+                                    <th class="p-2.5 font-medium">發布模式</th>
+                                    <th class="p-2.5 font-medium">🎯 AI 選材決策理由</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analytics-table-body" class="divide-y divide-gray-800 text-gray-300 text-[11px]">
+                                <tr>
+                                    <td colspan="6" class="p-6 text-center text-gray-500">尚無營運數據記錄</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-gray-800">
+                    <button type="button" onclick="closeAnalyticsModal()" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-xs">關閉情報簡報</button>
+                </div>
+            </div>
+        </div>
+
         <script>
             const AVAILABLE_REGIONS = {regions_json};
             let currentData = null;
@@ -559,6 +671,11 @@ async def serve_dashboard():
                     scheduleBadge = `<span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700 font-semibold">⏰ 下次: ${{timePart}} (${{countdownDesc}})</span>`;
                 }}
 
+                let fastTrackBadge = '';
+                if (acc.enable_fast_track !== false) {{
+                    fastTrackBadge = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800/60 font-medium" title="若發現≥${{acc.fast_track_min_upvotes || 300}}讚爆款將自動插隊發布">⚡ 爆款插隊 (≥${{acc.fast_track_min_upvotes || 300}}讚)</span>`;
+                }}
+
                 return `
                     <div class="bg-gray-900 border ${{isFailed ? 'border-red-900/60 shadow-lg shadow-red-950/20' : (isRunning ? 'border-indigo-600 shadow-lg shadow-indigo-950/30' : 'border-gray-800')}} rounded-2xl p-5 space-y-4 transition-all">
                         <!-- 卡片頂部 -->
@@ -590,7 +707,7 @@ async def serve_dashboard():
                         <div class="text-[11px] bg-indigo-950/30 border border-indigo-900/40 p-2.5 rounded-xl space-y-1.5">
                             <div class="flex items-center justify-between text-indigo-400 font-bold text-[10px]">
                                 <span>🎯 獨立 AI Agent 成長使命：</span>
-                                <div>${{scheduleBadge}}</div>
+                                <div class="flex flex-wrap items-center gap-1.5">${{scheduleBadge}} ${{fastTrackBadge}}</div>
                             </div>
                             <p class="text-indigo-200 line-clamp-2 leading-relaxed">
                                 ${{escapeHtml(acc.strategy_prompt || '目標是吸取最多粉絲關注，優先挑選該領域最有料、最好笑之即時爆文。')}}
@@ -774,6 +891,10 @@ async def serve_dashboard():
                 document.getElementById('acc-fixed-times').value = '12:30, 18:30, 22:00';
                 updateScheduleFields();
 
+                document.getElementById('acc-enable-fast-track').checked = true;
+                document.getElementById('acc-fast-track-min-upvotes').value = '300';
+                document.getElementById('acc-cooldown-minutes').value = '45';
+
                 handleTargetPlatformChange('Threads');
                 populateRegionsSelect("台灣 (繁體中文)");
                 document.getElementById('modal-account').classList.remove('hidden');
@@ -811,6 +932,10 @@ async def serve_dashboard():
                 document.getElementById('acc-fixed-times').value = acc.fixed_times || '12:30, 18:30, 22:00';
                 document.getElementById('acc-interval-minutes').value = acc.interval_minutes || 180;
                 updateScheduleFields();
+
+                document.getElementById('acc-enable-fast-track').checked = acc.enable_fast_track !== false;
+                document.getElementById('acc-fast-track-min-upvotes').value = acc.fast_track_min_upvotes || 300;
+                document.getElementById('acc-cooldown-minutes').value = acc.cooldown_minutes || 45;
 
                 handleTargetPlatformChange(targetPlat);
                 populateRegionsSelect(acc.target_region || "台灣 (繁體中文)");
@@ -858,6 +983,9 @@ async def serve_dashboard():
                     subreddit: formData.get('subreddit'),
                     custom_tags: formData.get('custom_tags') || '',
                     min_upvotes: parseInt(formData.get('min_upvotes') || '100', 10),
+                    enable_fast_track: formData.get('enable_fast_track') === 'on',
+                    fast_track_min_upvotes: parseInt(formData.get('fast_track_min_upvotes') || '300', 10),
+                    cooldown_minutes: parseInt(formData.get('cooldown_minutes') || '45', 10),
                     enabled: formData.get('enabled') === 'on',
                     session_data: formData.get('session_data') || undefined
                 }};
@@ -1025,6 +1153,72 @@ async def serve_dashboard():
                 }} catch (e) {{
                     alert("儲存請求失敗: " + e);
                 }}
+            }}
+
+            // 矩陣營運情報簡報 Modal
+            async function openAnalyticsModal() {{
+                try {{
+                    const res = await fetch('/api/analytics');
+                    const d = await res.json();
+
+                    document.getElementById('analytics-total-posts').innerText = d.total_posts || 0;
+                    document.getElementById('analytics-fast-track-count').innerText = d.fast_track_count || 0;
+
+                    // 來源分佈標籤
+                    const srcBreakdown = document.getElementById('analytics-sources-breakdown');
+                    const platforms = Object.entries(d.platform_breakdown || {{}});
+                    if (platforms.length === 0) {{
+                        srcBreakdown.innerHTML = '<span class="text-gray-500">無數據</span>';
+                    }} else {{
+                        srcBreakdown.innerHTML = platforms.map(([k, v]) => `
+                            <span class="px-1.5 py-0.5 rounded bg-gray-800 text-sky-300 font-mono">${{escapeHtml(k)}}: ${{v}}</span>
+                        `).join('');
+                    }}
+
+                    // 峰值時段
+                    const hours = Object.entries(d.hour_breakdown || {{}});
+                    if (hours.length > 0) {{
+                        hours.sort((a, b) => b[1] - a[1]);
+                        document.getElementById('analytics-peak-hour').innerText = `${{hours[0][0]}}:00 (共 ${{hours[0][1]}} 篇)`;
+                    }} else {{
+                        document.getElementById('analytics-peak-hour').innerText = '暫無';
+                    }}
+
+                    // 最近紀錄表格
+                    const tbody = document.getElementById('analytics-table-body');
+                    const logs = d.recent_logs || [];
+                    if (logs.length === 0) {{
+                        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-500">尚無營運數據記錄。系統定時巡航或手動點火成功後將自動記入！</td></tr>`;
+                    }} else {{
+                        tbody.innerHTML = logs.map(item => `
+                            <tr class="hover:bg-gray-950/50">
+                                <td class="p-2.5 font-mono text-gray-400 whitespace-nowrap">${{item.logged_at || ''}}</td>
+                                <td class="p-2.5 font-medium text-white">${{escapeHtml(item.acc_name || item.acc_id)}}</td>
+                                <td class="p-2.5"><span class="px-1.5 py-0.5 rounded bg-gray-800 text-sky-300 font-mono">${{escapeHtml(item.source_platform || '')}}</span></td>
+                                <td class="p-2.5 max-w-[200px]">
+                                    <div class="truncate font-medium text-gray-200" title="${{escapeHtml(item.title || '')}}">${{escapeHtml(item.title || item.post_id || '')}}</div>
+                                    <div class="text-[10px] text-amber-400 font-mono">👍 ${{item.upvotes || 0}} 讚</div>
+                                </td>
+                                <td class="p-2.5 whitespace-nowrap">
+                                    ${{item.is_fast_track 
+                                        ? '<span class="px-2 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-800 font-bold text-[10px]">🚨 自主插隊</span>' 
+                                        : '<span class="px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 text-[10px]">🕒 常規定時</span>'}}
+                                </td>
+                                <td class="p-2.5 text-gray-400 max-w-[240px] text-[11px] leading-relaxed">
+                                    ${{escapeHtml(item.curation_reason || 'AI 綜合評選為最有料爆款')}}
+                                </td>
+                            </tr>
+                        `).join('');
+                    }}
+
+                    document.getElementById('modal-analytics').classList.remove('hidden');
+                }} catch (e) {{
+                    alert("載入營運情報失敗: " + e);
+                }}
+            }}
+
+            function closeAnalyticsModal() {{
+                document.getElementById('modal-analytics').classList.add('hidden');
             }}
 
             // 啟動與自動輪詢 (每 2.5 秒)

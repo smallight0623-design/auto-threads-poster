@@ -15,6 +15,90 @@ if sys.platform == "win32":
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ACCOUNTS_DIR = os.path.join(BASE_DIR, "accounts")
 ACCOUNTS_CONFIG_FILE = os.path.join(ACCOUNTS_DIR, "accounts.json")
+ANALYTICS_FILE = os.path.join(BASE_DIR, "analytics.json")
+
+def is_fast_track_allowed(acc_id: str) -> bool:
+    """檢查該帳號是否具備破裂級爆款插隊資格（必須開啟且已過安全冷卻期）"""
+    acc = get_account(acc_id)
+    if not acc or not acc.get("enabled", True):
+        return False
+    if not acc.get("enable_fast_track", True):
+        return False
+    
+    last_run_str = acc.get("last_run", "")
+    if not last_run_str:
+        return True
+    
+    try:
+        last_dt = datetime.datetime.strptime(last_run_str, "%Y-%m-%d %H:%M:%S")
+        cooldown = int(acc.get("cooldown_minutes") or 45)
+        diff_mins = (datetime.datetime.now() - last_dt).total_seconds() / 60
+        return diff_mins >= cooldown
+    except Exception:
+        return True
+
+def log_post_analytics(acc_id: str, entry: dict):
+    """記錄發布成效與決策情報至全域與個別帳號數據庫"""
+    entry["logged_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    entry["hour"] = datetime.datetime.now().hour
+
+    acc_dir = os.path.join(ACCOUNTS_DIR, acc_id)
+    os.makedirs(acc_dir, exist_ok=True)
+    acc_analytics_file = os.path.join(acc_dir, "analytics.json")
+    acc_history = []
+    if os.path.exists(acc_analytics_file):
+        try:
+            with open(acc_analytics_file, "r", encoding="utf-8") as f:
+                acc_history = json.load(f)
+        except Exception:
+            pass
+    acc_history.append(entry)
+    with open(acc_analytics_file, "w", encoding="utf-8") as f:
+        json.dump(acc_history, f, indent=2, ensure_ascii=False)
+
+    all_history = []
+    if os.path.exists(ANALYTICS_FILE):
+        try:
+            with open(ANALYTICS_FILE, "r", encoding="utf-8") as f:
+                all_history = json.load(f)
+        except Exception:
+            pass
+    all_history.append(entry)
+    with open(ANALYTICS_FILE, "w", encoding="utf-8") as f:
+        json.dump(all_history, f, indent=2, ensure_ascii=False)
+
+def get_analytics_summary() -> dict:
+    """彙總全矩陣營運與發布情報統計"""
+    history = []
+    if os.path.exists(ANALYTICS_FILE):
+        try:
+            with open(ANALYTICS_FILE, "r", encoding="utf-8") as f:
+                history = json.load(f)
+        except Exception:
+            pass
+    
+    total_posts = len(history)
+    platform_breakdown = {}
+    hour_breakdown = {}
+    fast_track_count = 0
+
+    for item in history:
+        src = item.get("source_platform", "未知")
+        platform_breakdown[src] = platform_breakdown.get(src, 0) + 1
+        
+        hr = item.get("hour", 0)
+        hour_breakdown[hr] = hour_breakdown.get(hr, 0) + 1
+
+        if item.get("is_fast_track"):
+            fast_track_count += 1
+
+    return {
+        "total_posts": total_posts,
+        "platform_breakdown": platform_breakdown,
+        "hour_breakdown": hour_breakdown,
+        "fast_track_count": fast_track_count,
+        "recent_logs": history[-20:][::-1]
+    }
 
 DEFAULT_GLOBAL = {
     "AI_BASE_URL": "https://api.relayrouter.ai/v1",
@@ -303,6 +387,9 @@ def get_accounts():
         acc.setdefault("schedule_type", "interval")
         acc.setdefault("interval_minutes", 180)
         acc.setdefault("fixed_times", "12:30, 18:30, 22:00")
+        acc.setdefault("enable_fast_track", True)
+        acc.setdefault("fast_track_min_upvotes", 300)
+        acc.setdefault("cooldown_minutes", 45)
         acc.setdefault("last_run", "")
         if not acc.get("next_run") and acc.get("schedule_type") != "manual":
             acc["next_run"] = compute_next_run(acc)
