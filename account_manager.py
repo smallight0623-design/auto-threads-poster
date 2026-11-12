@@ -310,6 +310,70 @@ def approve_discovered_milestone(acc_id: str, disc_id: str) -> bool:
         return True
     return False
 
+# ==============================================================================
+# 🧬 真人玩家人設 (Human Persona) 與每週防過度擬合覆盤 (Weekly Reflection)
+# ==============================================================================
+
+def get_account_persona(acc_id: str) -> dict:
+    """獲取指定帳號的玩家真人人設設定"""
+    acc = get_account(acc_id)
+    if not acc:
+        return {}
+    default_identity = "每天上班摸魚的大劍老獵犬" if "魔物" in acc.get("name", "") else "嘴硬心軟的排位排骨仔小編"
+    default_catch = "假單已經送出去了" if "魔物" in acc.get("name", "") else "誰又在排位搞事"
+    return acc.get("persona", {
+        "identity": default_identity,
+        "tone_style": "幽默、自嘲、熱血、愛用玩家社群黑話與生活感",
+        "catchphrase": default_catch,
+        "current_bio": ""
+    })
+
+def save_account_persona(acc_id: str, persona_data: dict):
+    """保存玩家真人人設設定"""
+    data = load_data()
+    for acc in data.get("accounts", []):
+        if acc["id"] == acc_id:
+            if "persona" not in acc:
+                acc["persona"] = {}
+            acc["persona"].update(persona_data)
+            break
+    save_data(data)
+
+def update_account_bio(acc_id: str, new_bio: str):
+    """更新帳號當前已同步之 Bio"""
+    data = load_data()
+    for acc in data.get("accounts", []):
+        if acc["id"] == acc_id:
+            if "persona" not in acc:
+                acc["persona"] = {}
+            acc["persona"]["current_bio"] = new_bio
+            break
+    save_data(data)
+
+def get_account_reflections(acc_id: str) -> list:
+    """獲取指定帳號的 AI 覆盤歷史筆記"""
+    acc = get_account(acc_id)
+    if not acc:
+        return []
+    return acc.get("reflections", [])
+
+def add_account_reflection(acc_id: str, reflection_data: dict):
+    """記錄一次 AI 週覆盤反思筆記，並更新微調後的策略提示詞"""
+    data = load_data()
+    reflection_data["id"] = f"refl_{uuid.uuid4().hex[:8]}"
+    reflection_data["created_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    for acc in data.get("accounts", []):
+        if acc["id"] == acc_id:
+            if "reflections" not in acc:
+                acc["reflections"] = []
+            acc["reflections"].append(reflection_data)
+            # 若覆盤有微調策略，自動套用至帳號的 strategy_prompt
+            if reflection_data.get("tuned_strategy"):
+                acc["strategy_prompt"] = reflection_data["tuned_strategy"]
+            break
+    save_data(data)
+
 DEFAULT_GLOBAL = {
     "AI_BASE_URL": "https://api.relayrouter.ai/v1",
     "AI_API_KEY": "",
@@ -603,6 +667,14 @@ def get_accounts():
         acc.setdefault("last_run", "")
         acc.setdefault("milestones", [])
         acc["campaign_status"] = get_account_campaign_status(acc)
+        acc.setdefault("persona", {
+            "identity": "每天上班摸魚的大劍老獵犬" if "魔物" in acc.get("name", "") else "嘴硬心軟的排位排骨仔小編",
+            "tone_style": "幽默、自嘲、熱血、愛用玩家社群黑話與生活感",
+            "catchphrase": "假單已經送出去了" if "魔物" in acc.get("name", "") else "誰又在排位搞事",
+            "current_bio": ""
+        })
+        acc.setdefault("reflections", [])
+        acc.setdefault("exploration_rate", 0.2)
         if not acc.get("next_run") and acc.get("schedule_type") != "manual":
             acc["next_run"] = compute_next_run(acc)
             updated = True

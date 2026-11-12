@@ -169,3 +169,89 @@ async def post_to_threads(text: str, media_file_path: str = None, session_file: 
             await asyncio.sleep(6)
 
         await browser.close()
+
+async def update_threads_bio(new_bio: str, session_file: str = "threads_session.json") -> bool:
+    """
+    透過 Playwright 自動更新 Threads 個人檔案簡介 (Bio)
+    """
+    if not os.path.exists(session_file):
+        raise Exception(f"找不到 Session 檔案: {session_file}")
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-blink-features=AutomationControlled",
+                "--disable-dev-shm-usage"
+            ]
+        )
+        context = await browser.new_context(
+            storage_state=session_file,
+            viewport={"width": 1280, "height": 900},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        )
+        page = await context.new_page()
+
+        try:
+            print("[Threads Bio Updater] 正在前往 Threads 個人主頁...")
+            await page.goto("https://www.threads.net/", wait_until="domcontentloaded")
+            await asyncio.sleep(3)
+
+            # 點擊左下角個人頭貼/個人檔案連結進入個人首頁
+            profile_link = page.locator("a[href*='/@']").first
+            if await profile_link.is_visible():
+                await profile_link.click()
+                await asyncio.sleep(3)
+
+            # 尋找 "Edit profile" 或 "編輯個人檔案"
+            edit_btn = page.get_by_role("button", name="Edit profile").or_(
+                page.locator("button:has-text('編輯個人檔案')")
+            ).or_(
+                page.locator("div[role='button']:has-text('Edit profile')")
+            ).or_(
+                page.locator("div[role='button']:has-text('編輯個人檔案')")
+            ).first
+
+            if await edit_btn.is_visible():
+                await edit_btn.click()
+                await asyncio.sleep(1.5)
+
+                # 尋找 Bio 輸入框
+                bio_input = page.locator("textarea").or_(
+                    page.locator("input[placeholder*='Bio']")
+                ).or_(
+                    page.locator("div[contenteditable='true']")
+                ).first
+
+                if await bio_input.is_visible():
+                    await bio_input.click()
+                    await page.keyboard.press("Control+A")
+                    await page.keyboard.press("Backspace")
+                    await page.keyboard.type(new_bio, delay=20)
+                    await asyncio.sleep(1)
+
+                    # 尋找 "Done" 或 "完成" 按鈕
+                    done_btn = page.get_by_role("button", name="Done").or_(
+                        page.locator("button:has-text('完成')")
+                    ).or_(
+                        page.locator("div[role='button']:has-text('Done')")
+                    ).or_(
+                        page.locator("div[role='button']:has-text('完成')")
+                    ).first
+
+                    if await done_btn.is_visible():
+                        await done_btn.click()
+                        await asyncio.sleep(3)
+                        print(f"✅ [Threads Bio Updater] 成功更新 Bio：{new_bio}")
+                        await browser.close()
+                        return True
+
+            print("⚠️ [Threads Bio Updater] 未能找到編輯簡介輸入框或按鈕。")
+            await browser.close()
+            return False
+        except Exception as e:
+            print(f"⚠️ [Threads Bio Updater] 執行異常: {e}")
+            await browser.close()
+            return False

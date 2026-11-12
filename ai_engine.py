@@ -278,3 +278,172 @@ def detect_future_events(raw_posts: list, game_name: str, config: dict) -> list:
     except Exception as e:
         print(f"[Event Discovery] 嗅探異常: {e}")
     return []
+
+def generate_human_persona_bio(game_name: str, persona: dict, campaign_status: dict, config: dict) -> str:
+    """
+    真人化生活感 Bio 生成器：
+    徹底擺脫「搬運工/情報站/行銷號」的冰冷口吻，
+    以「熱愛該遊戲、有生活感、有情緒、偶爾自嘲」的真實玩家同行者視角，
+    並將當前戰役大作的倒數節奏（例如已請好假等測試）自然融入自我介紹中。
+    """
+    base_url = (os.getenv("AI_BASE_URL") or config.get("AI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key = os.getenv("AI_API_KEY") or config.get("AI_API_KEY", "")
+    primary_model = config.get("AI_MODEL", "gemini-2.5-flash")
+
+    identity = persona.get("identity", "每天上班摸魚的狂熱玩家")
+    tone_style = persona.get("tone_style", "幽默、自嘲、熱血、愛用玩家社群黑話與生活感")
+    catchphrase = persona.get("catchphrase", "假單已經送出去了")
+
+    # 戰役情境注入
+    camp_ctx = "目前處於日常狩獵與排位常態，持續抓全網最好笑與最頂高光。"
+    if campaign_status and campaign_status.get("phase") != "CRUISE":
+        m = campaign_status.get("milestone", {})
+        m_title = m.get("title", "")
+        phase = campaign_status.get("phase")
+        if phase == "WARMUP":
+            days = campaign_status.get("days_diff", 0)
+            camp_ctx = f"距離重大事件【{m_title}】倒數僅剩 {days} 天！你處於極度興奮狀態（例如已經跟老闆請好假、準備熬夜開荒、每天都在算日子）。"
+        elif phase == "LAUNCH_DAY":
+            camp_ctx = f"今日是重大事件【{m_title}】的正式發售/解鎖引爆日！今晚不用睡了，正全速開荒中。"
+        elif phase == "AFTERMATH":
+            days = campaign_status.get("days_since", 1)
+            camp_ctx = f"【{m_title}】剛上線第 {days} 天，深陷開荒深水區，正在測試各種逃課流派與避坑。"
+
+    prompt = f"""
+你是一位身價百萬的頂級社群人設架構師。請為一位在 Threads/Facebook 上的【{game_name}】狂熱玩家撰寫一段簡短、極度有靈魂且「完全像真人」的個人簡介（Bio）。
+
+【玩家真人人設設定】：
+- 核心身分：{identity}
+- 說話口氣風格：{tone_style}
+- 個人特色口癖/常掛嘴邊的話：{catchphrase}
+- 當前生活情境與大作戰役：{camp_ctx}
+
+【極致要求（不可違背）】：
+1. 必須 100% 像活生生的人類玩家，散發真誠熱愛、自嘲與生活感（例如：上班摸魚、假單已送、被隊友氣到中風、手殘貓車）。
+2. 嚴格禁止出現任何機器人、行銷號或搬運工辭藻（嚴禁出現：情報站、彙整、轉載、搬運、機器人、最新資訊、分享好康、基地的字眼）。
+3. 保持簡潔有力（長度約 45 ~ 85 個字，2~3 句以內），自然點綴 2~3 個 Emoji。
+4. 直接輸出最終 Bio 文案，絕不要任何額外解釋或 Markdown 引號。
+"""
+    try:
+        url = f"{base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        res = requests.post(url, headers=headers, json={
+            "model": primary_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.7
+        }, timeout=15)
+        if res.status_code == 200:
+            c = res.json()["choices"][0]["message"]["content"].strip()
+            # 清理可能的開場白前言 (例如「以下是...」或「出爐：」)
+            lines = [l.strip() for l in c.split("\n") if l.strip()]
+            if len(lines) > 1 and any(k in lines[0] for k in ["出爐", "以下是", "打造", "為你", "Bio：", "簡介："]):
+                c = "\n".join(lines[1:]).strip()
+            # 清理可能的引號
+            c = c.strip('"').strip("'").strip("「").strip("」").strip()
+            return c
+    except Exception as e:
+        print(f"[Persona Bio] 生成失敗: {e}")
+    
+    return f"🎮 {identity} ｜ 專抓全網最頂高光與極限翻車 ｜ 獵友隨時來聊 🍺"
+
+def run_weekly_reflection(acc_id: str, posts_history: list, current_strategy: str, persona: dict, campaign_status: dict, config: dict) -> dict:
+    """
+    AI 每週營運覆盤與防過度擬合演算法 (Anti-Overfitting Weekly Reflection Engine)：
+    1. 統計歷史貼文成效，評估各形式（短影音 vs 圖片 vs 文字）之勝率
+    2. 導入 Epsilon-Greedy (80/20 探索與利用)：80% 保留成熟題材 + 20% 強制探索未知創新
+    3. 過濾倖存者偏差與防同質化審美疲勞
+    4. 輸出覆盤反思報告、微調後的 strategy_prompt、以及最新戰役 Bio
+    """
+    base_url = (os.getenv("AI_BASE_URL") or config.get("AI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
+    api_key = os.getenv("AI_API_KEY") or config.get("AI_API_KEY", "")
+    primary_model = config.get("AI_MODEL", "gemini-2.5-flash")
+    game_name = config.get("GAME_NAME", "遊戲")
+
+    # 1. 數據統計概況
+    total_samples = len(posts_history)
+    video_posts = [p for p in posts_history if p.get("media_type") == "VIDEO"]
+    image_posts = [p for p in posts_history if p.get("media_type") == "IMAGE"]
+    text_posts = [p for p in posts_history if p.get("media_type") == "TEXT"]
+
+    def avg_upvotes(sublist):
+        if not sublist:
+            return 0
+        return round(sum(p.get("upvotes", 0) for p in sublist) / len(sublist), 1)
+
+    sorted_posts = sorted(posts_history, key=lambda x: x.get("upvotes", 0), reverse=True)
+    top_3 = sorted_posts[:3]
+    bottom_3 = sorted_posts[-3:] if len(sorted_posts) >= 3 else []
+
+    top_str = "\n".join([f"- [{p.get('source_platform')}] {p.get('title', '')[:40]}... (👍 {p.get('upvotes')} 讚, 形式: {p.get('media_type')})" for p in top_3])
+    bottom_str = "\n".join([f"- [{p.get('source_platform')}] {p.get('title', '')[:40]}... (👍 {p.get('upvotes')} 讚, 形式: {p.get('media_type')})" for p in bottom_3])
+
+    camp_str = campaign_status.get("badge_text", "常規巡航") if campaign_status else "常規巡航"
+
+    prompt = f"""
+你是一位兼具「量化對沖基金研究員思維」與「社群流量操盤手」的頂級 AI 策略總監。
+請針對社群帳號【{game_name}】進行深入的【每週營運覆盤與防過度擬合反思 (Weekly Reflection)】。
+
+【歷史數據摘要】：
+- 總樣本貼文數：{total_samples} 篇
+- 短影音 (VIDEO)：{len(video_posts)} 篇，平均互動：{avg_upvotes(video_posts)}
+- 圖文 (IMAGE)：{len(image_posts)} 篇，平均互動：{avg_upvotes(image_posts)}
+- 純文字 (TEXT)：{len(text_posts)} 篇，平均互動：{avg_upvotes(text_posts)}
+- 當前戰役階段：{camp_str}
+- 當前營運策略：{current_strategy}
+
+【成效最頂尖前 3 篇】：
+{top_str or '無'}
+
+【成效較平淡後 3 篇】：
+{bottom_str or '無'}
+
+【核心反思準則（嚴格執行防過度擬合）】：
+1. 【杜絕單一指標過度擬合】：絕不能因為某張搞笑梗圖拿到高讚，就得出「以後全部只發迷因」的幼稚結論。擴散型資產（梗圖/短影音）負責拉新，權威型資產（深度配裝/官方機制解析）負責建立忠誠度與留存，兩者不可偏廢。
+2. 【80/20 探索與利用 (Epsilon-Greedy)】：
+   - 80% 利用（Exploitation）：保留歷史驗證勝率最高的話題（如短影音翻車高光、核心前瞻情報）。
+   - 20% 強制探索（Exploration）：明確規劃 20% 的試驗配額，去測試冷門新領域、小眾玩法討論或深度故事彩蛋，防止受眾審美疲勞。
+3. 【倖存者偏差過濾】：分析高讚貼文是否屬於不可複製的偶發事件。
+4. 【微調策略提示詞】：在保持帳號核心護城河的前提下，給出微調後的全新 `tuned_strategy`。
+
+【輸出規範】：
+必須且僅能以 JSON 格式回傳，格式如下：
+{{
+  "insight_summary": "150字左右的本週發布數據洞察與成效對比分析",
+  "anti_overfitting_notes": "150字左右的防過度擬合分析，明確點出 80% 核心基石與 20% 探索試驗方向",
+  "tuned_strategy": "微調後的帳號營運策略提示詞（約 60~100 字，供下週選材使用）"
+}}
+"""
+    try:
+        url = f"{base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        res = requests.post(url, headers=headers, json={
+            "model": primary_model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.3
+        }, timeout=25)
+        if res.status_code == 200:
+            import json, re
+            c = res.json()["choices"][0]["message"]["content"]
+            match = re.search(r"\{.*\}", c, re.DOTALL)
+            if match:
+                data = json.loads(match.group(0))
+                # 順便生成配合當前戰役的最新 Bio
+                data["recommended_bio"] = generate_human_persona_bio(game_name, persona, campaign_status, config)
+                return data
+    except Exception as e:
+        print(f"[Weekly Reflection] 覆盤執行異常: {e}")
+
+    # Fallback
+    fallback_bio = generate_human_persona_bio(game_name, persona, campaign_status, config)
+    return {
+        "insight_summary": f"本週累計分析 {total_samples} 篇貼文數據。短影音與熱門圖文互動表現良好，受眾對即時情報敏感度高。",
+        "anti_overfitting_notes": "實施 80/20 探索利用策略：80% 鎖定高讚短片與核心前瞻，保留 20% 份額探索冷門配裝與玩家討論，防止審美疲勞。",
+        "tuned_strategy": current_strategy or "優先挑選最有料、最好笑、最具社群傳播力的即時爆文，並保留20%探索冷門硬核機制。",
+        "recommended_bio": fallback_bio
+    }
