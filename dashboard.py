@@ -161,6 +161,41 @@ async def trigger_all_api():
     subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--all"], cwd=BASE_DIR, env=env)
     return JSONResponse({"status": "triggered_all"})
 
+@app.get("/api/accounts/{acc_id}/milestones")
+async def get_milestones_api(acc_id: str):
+    """獲取指定帳號的重大事件日曆、當前戰役狀態與 AI 探測候選"""
+    milestones = account_manager.get_account_milestones(acc_id)
+    campaign_status = account_manager.get_account_campaign_status(acc_id)
+    discovered = account_manager.get_discovered_milestones(acc_id)
+    return JSONResponse({
+        "milestones": milestones,
+        "campaign_status": campaign_status,
+        "discovered": discovered
+    })
+
+@app.post("/api/accounts/{acc_id}/milestones/save")
+async def save_milestone_api(acc_id: str, request: Request):
+    data = await request.json()
+    saved = account_manager.add_or_update_milestone(acc_id, data)
+    return JSONResponse({"status": "success", "milestone": saved})
+
+@app.post("/api/accounts/{acc_id}/milestones/delete")
+async def delete_milestone_api(acc_id: str, request: Request):
+    data = await request.json()
+    m_id = data.get("id")
+    if m_id:
+        account_manager.delete_milestone(acc_id, m_id)
+    return JSONResponse({"status": "success"})
+
+@app.post("/api/accounts/{acc_id}/milestones/approve-discovered")
+async def approve_discovered_api(acc_id: str, request: Request):
+    data = await request.json()
+    disc_id = data.get("id")
+    if disc_id:
+        success = account_manager.approve_discovered_milestone(acc_id, disc_id)
+        return JSONResponse({"status": "success" if success else "error"})
+    return JSONResponse({"status": "error", "message": "缺少事件 ID"}, status_code=400)
+
 @app.get("/", response_class=HTMLResponse)
 async def serve_dashboard():
     regions_json = json.dumps(REGIONS, ensure_ascii=False)
@@ -296,6 +331,10 @@ async def serve_dashboard():
                                 <label class="flex items-center gap-1.5 bg-gray-950 border border-gray-800 px-2 py-1.5 rounded-lg cursor-pointer hover:border-gray-700">
                                     <input type="checkbox" name="source_platforms" value="X" id="src-x" class="rounded bg-gray-900 border-gray-700 text-indigo-500">
                                     <span class="text-[11px]">𝕏 (Twitter)</span>
+                                </label>
+                                <label class="flex items-center gap-1.5 bg-gray-950 border border-gray-800 px-2 py-1.5 rounded-lg cursor-pointer hover:border-gray-700">
+                                    <input type="checkbox" name="source_platforms" value="Twitch" id="src-twitch" class="rounded bg-gray-900 border-gray-700 text-indigo-500">
+                                    <span class="text-[11px] text-purple-300">🟣 Twitch (短片)</span>
                                 </label>
                                 <label id="lbl-source-threads" class="hidden items-center gap-1.5 bg-gray-950 border border-gray-800 px-2 py-1.5 rounded-lg cursor-pointer hover:border-gray-700">
                                     <input type="checkbox" name="source_platforms" value="Threads" id="src-threads" class="rounded bg-gray-900 border-gray-700 text-indigo-500">
@@ -588,6 +627,96 @@ async def serve_dashboard():
             </div>
         </div>
 
+        <!-- =================== Modal 5: 未來重大事件日曆與戰役模式 =================== -->
+        <div id="modal-milestones" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-900 border border-gray-700 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">📅</span>
+                        <div>
+                            <h3 id="milestones-modal-acc-title" class="text-base font-bold text-white flex items-center gap-2">
+                                <span>作戰行事曆與重大事件 (Milestones)</span>
+                            </h3>
+                            <p class="text-[11px] text-gray-400">超前佈署重大發售日、測試、更新；AI 依據倒數天數自主切換「預熱 $\to$ 引爆 $\to$ 餘波」選材策略</p>
+                        </div>
+                    </div>
+                    <button onclick="closeMilestonesModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
+                </div>
+
+                <!-- 當前活躍戰役狀態 Banner -->
+                <div id="milestones-active-banner" class="p-3.5 rounded-xl border flex items-center justify-between text-xs">
+                    <!-- 動態渲染 -->
+                </div>
+
+                <!-- 已安排的重大事件清單 -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-gray-200 flex items-center gap-1.5">
+                            <span>🎯 現有戰役事件清單</span>
+                        </h4>
+                        <span class="text-[10px] text-gray-500">按目標日期排序</span>
+                    </div>
+                    <div id="milestones-list-container" class="space-y-2">
+                        <!-- 動態渲染事件卡片 -->
+                    </div>
+                </div>
+
+                <!-- AI 自動探測到的未來大事候選 (一葉知秋) -->
+                <div id="milestones-discovered-box" class="space-y-2.5 pt-2 border-t border-gray-800/80">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                            <span>✨ AI 貼文雷達探測到之未來大事線索 (一葉知秋)</span>
+                        </h4>
+                        <span class="text-[10px] text-purple-400/80">自動從 X / Reddit / 媒體推文中嗅探到的時間點</span>
+                    </div>
+                    <div id="milestones-discovered-container" class="space-y-2">
+                        <div class="text-xs text-gray-500 p-3 bg-gray-950/60 rounded-xl border border-gray-800 text-center">
+                            目前尚未探測到新的未確認事件線索。當來源雷達抓到包含發售日/公測日爆文時將自動在此推薦！
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 新增重大事件表單 -->
+                <div class="bg-gray-950/80 border border-gray-800 p-4 rounded-xl space-y-3 text-xs">
+                    <h4 class="font-bold text-white flex items-center gap-1.5">
+                        <span>➕ 手動加入未來重大事件 (如 GTA6 上市 / DLC 公開測試)</span>
+                    </h4>
+                    <form id="form-new-milestone" onsubmit="handleNewMilestoneSubmit(event)" class="space-y-3">
+                        <input type="hidden" id="mile-acc-id" value="">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div class="sm:col-span-2">
+                                <label class="block text-gray-400 text-[11px] mb-1">事件名稱 / 旗艦大作主題*</label>
+                                <input id="mile-title" required placeholder="例如：《GTA 6》PS平台預載與全球上市" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-100 focus:border-amber-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-[11px] mb-1">目標發生日期 (YYYY-MM-DD)*</label>
+                                <input type="date" id="mile-target-date" required class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-100 focus:border-amber-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-gray-400 text-[11px] mb-1">關聯關鍵字 (逗號分隔)</label>
+                                <input id="mile-keywords" placeholder="例如：GTA, GTA6, Rockstar, PlayStation" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-100 focus:border-amber-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-gray-400 text-[11px] mb-1">事件備註 / 期望流量方向</label>
+                                <input id="mile-notes" placeholder="例如：全球矚目超級大作，提前一週瘋狂搬運規格與捏臉" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-100 focus:border-amber-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="flex justify-end pt-1">
+                            <button type="submit" class="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-md shadow-amber-900/30">
+                                📌 儲存並加入戰役行事曆
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-gray-800">
+                    <button type="button" onclick="closeMilestonesModal()" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-xs">關閉視窗</button>
+                </div>
+            </div>
+        </div>
+
         <script>
             const AVAILABLE_REGIONS = {regions_json};
             let currentData = null;
@@ -676,6 +805,24 @@ async def serve_dashboard():
                     fastTrackBadge = `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800/60 font-medium" title="若發現≥${{acc.fast_track_min_upvotes || 300}}讚爆款將自動插隊發布">⚡ 爆款插隊 (≥${{acc.fast_track_min_upvotes || 300}}讚)</span>`;
                 }}
 
+                const camp = acc.campaign_status || {{ phase: 'CRUISE', badge_text: '⚡ 常規巡航', badge_color: 'indigo' }};
+                let campBadgeClass = 'bg-indigo-950/40 text-indigo-300 border-indigo-800/40';
+                if (camp.phase === 'WARMUP') {{
+                    campBadgeClass = 'bg-amber-950/70 text-amber-300 border-amber-600/80 animate-pulse font-bold';
+                }} else if (camp.phase === 'LAUNCH_DAY') {{
+                    campBadgeClass = 'bg-red-950/70 text-red-300 border-red-500 font-extrabold animate-bounce';
+                }} else if (camp.phase === 'AFTERMATH') {{
+                    campBadgeClass = 'bg-emerald-950/60 text-emerald-300 border-emerald-600/80 font-semibold';
+                }} else if (camp.badge_color === 'sky') {{
+                    campBadgeClass = 'bg-sky-950/50 text-sky-300 border-sky-800/60 font-medium';
+                }}
+                const campaignBanner = `
+                    <div class="flex items-center justify-between text-[11px] px-3 py-1.5 rounded-xl border ${{campBadgeClass}}">
+                        <span class="flex items-center gap-1.5">${{escapeHtml(camp.badge_text)}}</span>
+                        <button onclick="openMilestonesModal('${{acc.id}}')" class="text-[10px] text-gray-400 hover:text-white underline cursor-pointer">📅 大事記</button>
+                    </div>
+                `;
+
                 return `
                     <div class="bg-gray-900 border ${{isFailed ? 'border-red-900/60 shadow-lg shadow-red-950/20' : (isRunning ? 'border-indigo-600 shadow-lg shadow-indigo-950/30' : 'border-gray-800')}} rounded-2xl p-5 space-y-4 transition-all">
                         <!-- 卡片頂部 -->
@@ -702,6 +849,9 @@ async def serve_dashboard():
                                 </button>
                             </div>
                         </div>
+
+                        <!-- 戰役重大事件 Banner -->
+                        ${{campaignBanner}}
 
                         <!-- 獨立 Agent 成長策略使命與排程 -->
                         <div class="text-[11px] bg-indigo-950/30 border border-indigo-900/40 p-2.5 rounded-xl space-y-1.5">
@@ -775,6 +925,9 @@ async def serve_dashboard():
                                 </button>
                                 <button onclick="copyAccountSession('${{acc.id}}', this)" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 px-2.5 py-1.5 rounded-lg text-xs transition">
                                     <span>📋 複製 Session</span>
+                                </button>
+                                <button onclick="openMilestonesModal('${{acc.id}}')" class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+                                    <span>📅 戰役大事記</span>
                                 </button>
                             </div>
                             <div class="flex items-center gap-1.5">
@@ -884,6 +1037,7 @@ async def serve_dashboard():
                 document.getElementById('src-baha').checked = true;
                 document.getElementById('src-reddit').checked = true;
                 document.getElementById('src-x').checked = true;
+                document.getElementById('src-twitch').checked = true;
                 document.getElementById('src-threads').checked = false;
 
                 document.getElementById('sched-interval').checked = true;
@@ -922,6 +1076,7 @@ async def serve_dashboard():
                 document.getElementById('src-baha').checked = sources.includes('巴哈姆特');
                 document.getElementById('src-reddit').checked = sources.includes('Reddit');
                 document.getElementById('src-x').checked = sources.includes('X');
+                document.getElementById('src-twitch').checked = sources.includes('Twitch');
                 document.getElementById('src-threads').checked = sources.includes('Threads');
 
                 const schedType = acc.schedule_type || 'interval';
@@ -1219,6 +1374,170 @@ async def serve_dashboard():
 
             function closeAnalyticsModal() {{
                 document.getElementById('modal-analytics').classList.add('hidden');
+            }}
+
+            // =================== 戰役重大事件日曆 Modal ===================
+            let currentMilestonesAccId = null;
+
+            async function openMilestonesModal(accId) {{
+                currentMilestonesAccId = accId;
+                const acc = (currentData?.accounts || []).find(a => a.id === accId);
+                const accName = acc ? acc.name : accId;
+                document.getElementById('milestones-modal-acc-title').innerText = `📅 【${{escapeHtml(accName)}}】戰役行事曆與重大事件`;
+                document.getElementById('mile-acc-id').value = accId;
+
+                try {{
+                    const res = await fetch(`/api/accounts/${{accId}}/milestones`);
+                    const d = await res.json();
+                    renderMilestonesModalContent(d);
+                    document.getElementById('modal-milestones').classList.remove('hidden');
+                }} catch (e) {{
+                    alert("載入戰役事件日曆失敗: " + e);
+                }}
+            }}
+
+            function closeMilestonesModal() {{
+                document.getElementById('modal-milestones').classList.add('hidden');
+            }}
+
+            function renderMilestonesModalContent(data) {{
+                const camp = data.campaign_status || {{ phase: 'CRUISE', badge_text: '⚡ 常規巡航' }};
+                const bannerEl = document.getElementById('milestones-active-banner');
+
+                let bannerStyle = 'bg-indigo-950/40 border-indigo-800 text-indigo-300';
+                let phaseDesc = '無緊急大作事件，維持常態爆文巡航掃描。';
+                if (camp.phase === 'WARMUP') {{
+                    bannerStyle = 'bg-amber-950/70 border-amber-500 text-amber-200 animate-pulse';
+                    phaseDesc = '🔥 預熱衝刺期生效中！AI 自動加權優先挑選該大作之預告、規格、試玩與倒數爆文。';
+                }} else if (camp.phase === 'LAUNCH_DAY') {{
+                    bannerStyle = 'bg-red-950/80 border-red-500 text-red-200 font-bold';
+                    phaseDesc = '🚨 正式引爆日！全網流量年度高峰，AI 優先鎖定首發實機體驗與初見神操作！';
+                }} else if (camp.phase === 'AFTERMATH') {{
+                    bannerStyle = 'bg-emerald-950/60 border-emerald-500 text-emerald-200';
+                    phaseDesc = '📈 餘波收割期！AI 轉向鎖定逃課配裝、新手避坑、深度彩蛋與翻車笑點。';
+                }}
+
+                bannerEl.className = `p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2 ${{bannerStyle}}`;
+                bannerEl.innerHTML = `
+                    <div>
+                        <div class="font-bold text-sm">${{escapeHtml(camp.badge_text)}}</div>
+                        <div class="text-[11px] opacity-90 mt-0.5">${{phaseDesc}}</div>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded bg-black/40 border border-white/20 whitespace-nowrap">階段：${{camp.phase}}</span>
+                `;
+
+                // 渲染現有事件
+                const listEl = document.getElementById('milestones-list-container');
+                const milestones = data.milestones || [];
+                if (milestones.length === 0) {{
+                    listEl.innerHTML = `<div class="text-xs text-gray-500 p-4 bg-gray-950/50 rounded-xl border border-gray-800 text-center">目前尚未排定任何未來重大事件。請在下方新增如《GTA 6》上市或新 DLC 測試！</div>`;
+                }} else {{
+                    listEl.innerHTML = milestones.map(m => `
+                        <div class="bg-gray-950 border border-gray-800 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
+                            <div class="space-y-1">
+                                <div class="font-bold text-white flex items-center gap-2">
+                                    <span>${{escapeHtml(m.title)}}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-mono">📅 ${{m.target_date}}</span>
+                                </div>
+                                ${{m.notes ? `<p class="text-[11px] text-gray-400">${{escapeHtml(m.notes)}}</p>` : ''}}
+                                ${{m.keywords && m.keywords.length > 0 ? `
+                                    <div class="flex flex-wrap gap-1 pt-0.5">
+                                        ${{m.keywords.map(k => `<span class="text-[9px] px-1.5 py-0.5 rounded bg-gray-900 text-gray-400">#${{escapeHtml(k)}}</span>`).join('')}}
+                                    </div>
+                                ` : ''}}
+                            </div>
+                            <button onclick="deleteMilestone('${{m.id}}')" class="text-gray-500 hover:text-red-400 px-2 py-1 text-xs transition">
+                                🗑️ 刪除
+                            </button>
+                        </div>
+                    `).join('');
+                }}
+
+                // 渲染 AI 探測候選
+                const discEl = document.getElementById('milestones-discovered-container');
+                const discovered = data.discovered || [];
+                if (discovered.length === 0) {{
+                    discEl.innerHTML = `<div class="text-xs text-gray-500 p-3 bg-gray-950/60 rounded-xl border border-gray-800 text-center">目前無待採納線索。AI 每次掃描貼文若探測到發售日或測試情報將自動在此推薦！</div>`;
+                }} else {{
+                    discEl.innerHTML = discovered.map(d => `
+                        <div class="bg-purple-950/30 border border-purple-900/50 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
+                            <div class="space-y-0.5">
+                                <div class="font-bold text-purple-200 flex items-center gap-2">
+                                    <span>💡 ${{escapeHtml(d.title)}}</span>
+                                    <span class="text-[10px] text-purple-400 font-mono">預計：${{d.target_date}}</span>
+                                </div>
+                                <div class="text-[10px] text-gray-400 truncate max-w-md">來源線索：${{escapeHtml(d.source_title || '')}}</div>
+                            </div>
+                            <button onclick="approveDiscoveredMilestone('${{d.id}}')" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs whitespace-nowrap shadow-sm transition">
+                                ✅ 採納加入戰役
+                            </button>
+                        </div>
+                    `).join('');
+                }}
+            }}
+
+            async function handleNewMilestoneSubmit(e) {{
+                e.preventDefault();
+                const accId = document.getElementById('mile-acc-id').value;
+                const kwStr = document.getElementById('mile-keywords').value;
+                const kwList = kwStr.split(/[,，]/).map(k => k.trim()).filter(k => k);
+
+                const payload = {{
+                    title: document.getElementById('mile-title').value.trim(),
+                    target_date: document.getElementById('mile-target-date').value,
+                    keywords: kwList,
+                    notes: document.getElementById('mile-notes').value.trim(),
+                    auto_discovered: false
+                }};
+
+                try {{
+                    const res = await fetch(`/api/accounts/${{accId}}/milestones/save`, {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify(payload)
+                    }});
+                    const d = await res.json();
+                    if (d.status === 'success') {{
+                        document.getElementById('mile-title').value = '';
+                        document.getElementById('mile-keywords').value = '';
+                        document.getElementById('mile-notes').value = '';
+                        openMilestonesModal(accId);
+                        fetchDashboardData();
+                    }}
+                }} catch (err) {{
+                    alert("新增事件失敗: " + err);
+                }}
+            }}
+
+            async function deleteMilestone(mId) {{
+                if (!confirm("確定要刪除此重大事件嗎？")) return;
+                const accId = currentMilestonesAccId;
+                try {{
+                    await fetch(`/api/accounts/${{accId}}/milestones/delete`, {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ id: mId }})
+                    }});
+                    openMilestonesModal(accId);
+                    fetchDashboardData();
+                }} catch (err) {{
+                    alert("刪除事件失敗: " + err);
+                }}
+            }}
+
+            async function approveDiscoveredMilestone(discId) {{
+                const accId = currentMilestonesAccId;
+                try {{
+                    await fetch(`/api/accounts/${{accId}}/milestones/approve-discovered`, {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ id: discId }})
+                    }});
+                    openMilestonesModal(accId);
+                    fetchDashboardData();
+                }} catch (err) {{
+                    alert("採納事件失敗: " + err);
+                }}
             }}
 
             // 啟動與自動輪詢 (每 2.5 秒)

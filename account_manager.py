@@ -100,6 +100,216 @@ def get_analytics_summary() -> dict:
         "recent_logs": history[-20:][::-1]
     }
 
+# ==============================================================================
+# 📅 未來重大事件日曆 (Milestone Anticipator) 與戰役生命週期引擎
+# ==============================================================================
+
+def get_account_milestones(acc_id: str) -> list:
+    """獲取指定帳號的重大事件日曆"""
+    acc = get_account(acc_id)
+    if not acc:
+        return []
+    return acc.get("milestones", [])
+
+def save_account_milestones(acc_id: str, milestones: list):
+    """持久化重大事件至帳號設定"""
+    data = load_data()
+    for acc in data.get("accounts", []):
+        if acc["id"] == acc_id:
+            acc["milestones"] = milestones
+            break
+    save_data(data)
+
+def add_or_update_milestone(acc_id: str, m_data: dict) -> dict:
+    """新增或更新帳號的未來重大事件"""
+    milestones = get_account_milestones(acc_id)
+    m_id = m_data.get("id")
+    if not m_id:
+        m_id = f"mile_{uuid.uuid4().hex[:8]}"
+        m_data["id"] = m_id
+        m_data["created_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        milestones.append(m_data)
+    else:
+        found = False
+        for idx, m in enumerate(milestones):
+            if m["id"] == m_id:
+                milestones[idx].update(m_data)
+                found = True
+                break
+        if not found:
+            milestones.append(m_data)
+    save_account_milestones(acc_id, milestones)
+    return m_data
+
+def delete_milestone(acc_id: str, m_id: str):
+    """刪除指定重大事件"""
+    milestones = get_account_milestones(acc_id)
+    milestones = [m for m in milestones if m.get("id") != m_id]
+    save_account_milestones(acc_id, milestones)
+
+def get_account_campaign_status(acc_or_id) -> dict:
+    """
+    計算該帳號當前處於哪一個戰役生命週期階段：
+    - 預熱期 (WARMUP): 距離目標重大事件 1 ~ 14 天 (倒數期待期)
+    - 引爆日 (LAUNCH_DAY): 距離目標事件 <= 24 小時 (首發狂熱期)
+    - 餘波期 (AFTERMATH): 事件發生後 1 ~ 14 天 (開荒攻略與避坑期)
+    - 常規巡航 (CRUISE): 目前無緊迫重大事件
+    """
+    if isinstance(acc_or_id, dict):
+        milestones = acc_or_id.get("milestones", [])
+    else:
+        acc = get_account(acc_or_id)
+        milestones = acc.get("milestones", []) if acc else []
+
+    if not milestones:
+        return {
+            "phase": "CRUISE",
+            "milestone": None,
+            "days_diff": 999,
+            "badge_text": "⚡ 常規巡航",
+            "badge_color": "indigo"
+        }
+
+    now = datetime.datetime.now()
+    today = now.date()
+    
+    parsed_milestones = []
+    for m in milestones:
+        t_str = m.get("target_date", "")
+        if not t_str:
+            continue
+        try:
+            t_date = datetime.datetime.strptime(t_str.split()[0], "%Y-%m-%d").date()
+            diff_days = (t_date - today).days
+            parsed_milestones.append((diff_days, t_date, m))
+        except Exception:
+            continue
+
+    if not parsed_milestones:
+        return {
+            "phase": "CRUISE",
+            "milestone": None,
+            "days_diff": 999,
+            "badge_text": "⚡ 常規巡航",
+            "badge_color": "indigo"
+        }
+
+    # 1. 判定引爆日 (當天)
+    for diff, t_date, m in parsed_milestones:
+        if diff == 0:
+            return {
+                "phase": "LAUNCH_DAY",
+                "milestone": m,
+                "days_diff": 0,
+                "badge_text": f"🚨 引爆日：{m.get('title', '大事件')} (首發狂熱)",
+                "badge_color": "red"
+            }
+
+    # 2. 判定即將到來的預熱期 (0 < diff <= 14 天)
+    upcoming = [(diff, t_date, m) for diff, t_date, m in parsed_milestones if 0 < diff <= 14]
+    if upcoming:
+        upcoming.sort(key=lambda x: x[0])
+        diff, t_date, m = upcoming[0]
+        return {
+            "phase": "WARMUP",
+            "milestone": m,
+            "days_diff": diff,
+            "badge_text": f"🔥 預熱期：{m.get('title', '大事件')} (倒數 {diff} 天)",
+            "badge_color": "amber"
+        }
+
+    # 3. 判定剛發生不久的餘波收割期 (-14 <= diff < 0)
+    recent = [(diff, t_date, m) for diff, t_date, m in parsed_milestones if -14 <= diff < 0]
+    if recent:
+        recent.sort(key=lambda x: x[0], reverse=True)
+        diff, t_date, m = recent[0]
+        days_since = abs(diff)
+        return {
+            "phase": "AFTERMATH",
+            "milestone": m,
+            "days_diff": diff,
+            "days_since": days_since,
+            "badge_text": f"📈 餘波期：{m.get('title', '大事件')} (上線第 {days_since} 天)",
+            "badge_color": "emerald"
+        }
+
+    # 4. 遠期重大事件 (diff > 14 天)
+    future = [(diff, t_date, m) for diff, t_date, m in parsed_milestones if diff > 14]
+    if future:
+        future.sort(key=lambda x: x[0])
+        diff, t_date, m = future[0]
+        return {
+            "phase": "CRUISE",
+            "milestone": m,
+            "days_diff": diff,
+            "badge_text": f"📅 鎖定未來大作：{m.get('title', '大事件')} ({diff} 天後)",
+            "badge_color": "sky"
+        }
+
+    return {
+        "phase": "CRUISE",
+        "milestone": None,
+        "days_diff": 999,
+        "badge_text": "⚡ 常規巡航",
+        "badge_color": "indigo"
+    }
+
+def get_discovered_milestones(acc_id: str) -> list:
+    """取得 AI 從貼文雷達探測到但尚未採納的未來事件候選庫"""
+    acc_dir = os.path.join(ACCOUNTS_DIR, acc_id)
+    fpath = os.path.join(acc_dir, "discovered_milestones.json")
+    if os.path.exists(fpath):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return []
+
+def add_discovered_milestone(acc_id: str, discovery: dict):
+    """AI 自動記錄在貼文中探測到的未來重大時間線索"""
+    acc_dir = os.path.join(ACCOUNTS_DIR, acc_id)
+    os.makedirs(acc_dir, exist_ok=True)
+    fpath = os.path.join(acc_dir, "discovered_milestones.json")
+    existing = get_discovered_milestones(acc_id)
+    
+    # 避免重複標題與日期
+    for e in existing:
+        if e.get("title") == discovery.get("title") and e.get("target_date") == discovery.get("target_date"):
+            return
+            
+    discovery["id"] = f"disc_{uuid.uuid4().hex[:8]}"
+    discovery["discovered_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    existing.append(discovery)
+    with open(fpath, "w", encoding="utf-8") as f:
+        json.dump(existing, f, indent=2, ensure_ascii=False)
+
+def approve_discovered_milestone(acc_id: str, disc_id: str) -> bool:
+    """使用者在儀表板一鍵將 AI 探測到的重大事件加入作戰行事曆"""
+    acc_dir = os.path.join(ACCOUNTS_DIR, acc_id)
+    fpath = os.path.join(acc_dir, "discovered_milestones.json")
+    existing = get_discovered_milestones(acc_id)
+    target = None
+    remaining = []
+    for e in existing:
+        if e.get("id") == disc_id:
+            target = e
+        else:
+            remaining.append(e)
+            
+    if target:
+        with open(fpath, "w", encoding="utf-8") as f:
+            json.dump(remaining, f, indent=2, ensure_ascii=False)
+        add_or_update_milestone(acc_id, {
+            "title": target.get("title"),
+            "target_date": target.get("target_date"),
+            "keywords": target.get("keywords", []),
+            "notes": f"由 AI 從貼文 [{target.get('source_title', '')[:30]}] 自動探測發現並採納",
+            "auto_discovered": True
+        })
+        return True
+    return False
+
 DEFAULT_GLOBAL = {
     "AI_BASE_URL": "https://api.relayrouter.ai/v1",
     "AI_API_KEY": "",
@@ -391,6 +601,8 @@ def get_accounts():
         acc.setdefault("fast_track_min_upvotes", 300)
         acc.setdefault("cooldown_minutes", 45)
         acc.setdefault("last_run", "")
+        acc.setdefault("milestones", [])
+        acc["campaign_status"] = get_account_campaign_status(acc)
         if not acc.get("next_run") and acc.get("schedule_type") != "manual":
             acc["next_run"] = compute_next_run(acc)
             updated = True

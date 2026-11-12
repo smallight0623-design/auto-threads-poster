@@ -15,7 +15,8 @@ from reddit_scraper import fetch_top_reddit_posts
 from threads_scraper import fetch_top_threads_posts
 from x_scraper import fetch_top_x_tweets
 from bahamut_scraper import fetch_top_bahamut_posts
-from ai_engine import call_ai_proxy, select_best_post_material
+from twitch_scraper import fetch_top_twitch_clips
+from ai_engine import call_ai_proxy, select_best_post_material, detect_future_events
 from media_handler import download_media
 from threads_playwright import post_to_threads
 from facebook_playwright import post_to_facebook
@@ -102,6 +103,9 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
             elif "巴哈" in src_name or "bahamut" in src_name.lower():
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描巴哈姆特哈啦板 [{game_name}] 本土爆文 (門檻 {min_upvotes} GP)...")
                 p_list = await fetch_top_bahamut_posts(subreddit or game_name, min_gp=min_upvotes)
+            elif "twitch" in src_name.lower():
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Twitch 熱門短片 [{game_name}] (門檻 {min_upvotes} 觀看)...")
+                p_list = fetch_top_twitch_clips(game_name, min_views=min_upvotes)
             else: # 預設 Reddit
                 mode_desc = "潛力榜 (Rising)" if discovery_mode == "rising" else "熱門榜 (Hot)"
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Reddit r/{subreddit} {mode_desc} (門檻 {min_upvotes} 讚)...")
@@ -112,6 +116,15 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
                 raw_posts.append(p)
         except Exception as e:
             print(f"[{acc_id}] 來源平台 {src_name} 抓取警告: {e}")
+
+    # 一葉知秋：AI 背景嗅探未來重大事件時間線索
+    try:
+        discovered_events = detect_future_events(raw_posts, game_name, ai_config)
+        for disc in discovered_events:
+            account_manager.add_discovered_milestone(acc_id, disc)
+            print(f"💡 [{acc_id}][Event Horizon] 探測到未來重大事件線索：【{disc.get('title')}】({disc.get('target_date')})")
+    except Exception as e:
+        pass
 
     # 2. 去重檢查與破裂級爆款過濾
     history = account_manager.get_account_history(acc_id)
@@ -130,10 +143,14 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
         account_manager.mark_account_run_completed(acc_id)
         return True
 
-    # 3. AI 流量總監智慧「選材評估」階段 (從候選池中挑出最有料、最好笑的爆款)
+    # 3. 戰役階段分析與 AI 流量總監智慧「選材評估」階段
+    campaign_status = account_manager.get_account_campaign_status(acc_id)
+    if campaign_status and campaign_status.get("phase") != "CRUISE":
+        print(f"🎯 [{acc_id}] 戰役階段生效：{campaign_status.get('badge_text')}")
+
     if len(available_candidates) > 1:
-        account_manager.update_account_status(acc_id, "AI 選材評估", f"AI 流量總監正在從 {len(available_candidates)} 篇多平台候選文中評選最有料爆款...")
-        candidate = select_best_post_material(available_candidates, strategy_prompt, game_name, ai_config)
+        account_manager.update_account_status(acc_id, "AI 選材評估", f"AI 流量總監正在依據戰役策略評選最佳爆款 ({len(available_candidates)} 篇候選)...")
+        candidate = select_best_post_material(available_candidates, strategy_prompt, game_name, ai_config, campaign_status=campaign_status)
     else:
         candidate = available_candidates[0]
 
@@ -187,7 +204,8 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
         "upvotes": candidate.get("upvotes", 0),
         "media_type": candidate.get("media_type", "TEXT"),
         "curation_reason": candidate.get("curation_reason", ""),
-        "is_fast_track": is_fast_track
+        "is_fast_track": is_fast_track,
+        "campaign_phase": campaign_status.get("phase", "CRUISE")
     })
     account_manager.mark_account_run_completed(acc_id)
     track_badge = " [🚨爆款自主插隊]" if is_fast_track else ""
