@@ -25,6 +25,99 @@ DEFAULT_GLOBAL = {
 def ensure_accounts_dir():
     os.makedirs(ACCOUNTS_DIR, exist_ok=True)
 
+def normalize_cookie_json(raw_str: str) -> str:
+    """
+    規格化 Cookie 字串：
+    支援 Cookie-Editor 擴充套件匯出的 JSON 陣列、Playwright Storage State 格式，
+    自動轉換為 Playwright 所需的 {"cookies": [...], "origins": []} 結構。
+    """
+    if not raw_str or not raw_str.strip():
+        return ""
+    
+    clean_str = raw_str.strip()
+    try:
+        data = json.loads(clean_str)
+        if isinstance(data, list):
+            normalized_cookies = []
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+                cookie = {
+                    "name": item.get("name", ""),
+                    "value": item.get("value", ""),
+                    "domain": item.get("domain", ""),
+                    "path": item.get("path", "/"),
+                    "httpOnly": bool(item.get("httpOnly", False)),
+                    "secure": bool(item.get("secure", False)),
+                }
+                same_site = item.get("sameSite")
+                if same_site:
+                    s = str(same_site).lower()
+                    if "no_restriction" in s or "none" in s:
+                        cookie["sameSite"] = "None"
+                    elif "lax" in s:
+                        cookie["sameSite"] = "Lax"
+                    elif "strict" in s:
+                        cookie["sameSite"] = "Strict"
+                if "expirationDate" in item and item["expirationDate"]:
+                    try:
+                        cookie["expires"] = int(item["expirationDate"])
+                    except Exception:
+                        pass
+                normalized_cookies.append(cookie)
+            return json.dumps({"cookies": normalized_cookies, "origins": []}, indent=2, ensure_ascii=False)
+        elif isinstance(data, dict):
+            if "cookies" in data and isinstance(data["cookies"], list):
+                data.setdefault("origins", [])
+                return json.dumps(data, indent=2, ensure_ascii=False)
+    except Exception:
+        pass
+    
+    return clean_str
+
+def get_global_cookie(platform: str) -> dict:
+    """獲取全域爬蟲憑證狀態"""
+    filename = "x_session.json" if platform == "x" else "facebook_scraper_session.json"
+    target_path = os.path.join(BASE_DIR, filename)
+    
+    # 針對 facebook_scraper，若無專用檔但有 facebook_session.json，也可相容檢視
+    if platform == "facebook_scraper" and not os.path.exists(target_path):
+        fb_default = os.path.join(BASE_DIR, "facebook_session.json")
+        if os.path.exists(fb_default):
+            target_path = fb_default
+
+    if os.path.exists(target_path):
+        try:
+            with open(target_path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+                data = json.loads(content)
+                cookies = data.get("cookies", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+                return {
+                    "has_session": True,
+                    "cookies_count": len(cookies),
+                    "length": len(content),
+                    "content": content
+                }
+        except Exception:
+            return {"has_session": True, "cookies_count": 0, "length": 0, "content": ""}
+    return {"has_session": False, "cookies_count": 0, "length": 0, "content": ""}
+
+def save_global_cookie(platform: str, cookie_data_str: str) -> bool:
+    """儲存並規格化全域爬蟲憑證"""
+    normalized = normalize_cookie_json(cookie_data_str)
+    filename = "x_session.json" if platform == "x" else "facebook_scraper_session.json"
+    target_path = os.path.join(BASE_DIR, filename)
+    with open(target_path, "w", encoding="utf-8") as f:
+        f.write(normalized)
+    
+    # 若是 fb scraper 且根目錄沒有 facebook_session.json，同步備份一份
+    if platform == "facebook_scraper":
+        fb_default = os.path.join(BASE_DIR, "facebook_session.json")
+        if not os.path.exists(fb_default):
+            with open(fb_default, "w", encoding="utf-8") as f:
+                f.write(normalized)
+    return True
+
 def load_data():
     ensure_accounts_dir()
     if not os.path.exists(ACCOUNTS_CONFIG_FILE):
@@ -156,10 +249,11 @@ def save_account(account_data, session_data_str=None):
     acc_dir = os.path.join(ACCOUNTS_DIR, acc_id)
     os.makedirs(acc_dir, exist_ok=True)
 
-    # 儲存 Session 檔案
+    # 儲存 Session 檔案 (自動規格化)
     if session_data_str and session_data_str.strip():
+        normalized_str = normalize_cookie_json(session_data_str)
         with open(os.path.join(acc_dir, "session.json"), "w", encoding="utf-8") as f:
-            f.write(session_data_str.strip())
+            f.write(normalized_str)
 
     if is_new:
         accounts.append(account_data)

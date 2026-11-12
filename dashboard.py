@@ -60,6 +60,24 @@ async def save_global_settings_api(request: Request):
     account_manager.save_global_settings(data)
     return JSONResponse({"status": "success", "message": "全域 AI 設定已儲存"})
 
+@app.get("/api/global-cookies")
+async def get_global_cookies_api():
+    return JSONResponse({
+        "x": account_manager.get_global_cookie("x"),
+        "facebook_scraper": account_manager.get_global_cookie("facebook_scraper")
+    })
+
+@app.post("/api/global-cookies/save")
+async def save_global_cookie_api(request: Request):
+    data = await request.json()
+    platform = data.get("platform")
+    cookie_data = data.get("cookie_data", "")
+    if platform in ["x", "facebook_scraper"]:
+        account_manager.save_global_cookie(platform, cookie_data)
+        plat_label = "X (Twitter)" if platform == "x" else "Facebook 爬文"
+        return JSONResponse({"status": "success", "message": f"{plat_label} 爬蟲 Cookie 已成功儲存！"})
+    return JSONResponse({"status": "error", "message": "未知的平台代碼"}, status_code=400)
+
 @app.post("/api/accounts/save")
 async def save_account_api(request: Request):
     payload = await request.json()
@@ -137,6 +155,9 @@ async def serve_dashboard():
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
+                    <button onclick="openGlobalCookiesModal()" class="bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-sky-600/30 flex items-center gap-1.5">
+                        <span>🔑 爬蟲授權管理 (X / FB 爬文)</span>
+                    </button>
                     <button onclick="openGlobalSettingsModal()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
                         <span>🧠 AI 中轉大腦設定</span>
                     </button>
@@ -266,10 +287,13 @@ async def serve_dashboard():
 
                     <div>
                         <div class="flex items-center justify-between mb-1">
-                            <label id="label-session-cookie" class="text-gray-300 font-medium">該帳號專屬 Cookie Session (JSON)</label>
-                            <span id="hint-session-tool" class="text-gray-500 text-[10px]">執行桌面小工具自動複製貼上</span>
+                            <label id="label-session-cookie" class="text-gray-300 font-medium">🎯 該帳號專屬【發布貼文】Cookie Session (JSON)</label>
+                            <div class="flex items-center gap-2">
+                                <span id="hint-session-tool" class="text-gray-500 text-[10px]">支援 Cookie-Editor 陣列或 Playwright 格式</span>
+                                <button type="button" onclick="pasteToElement('acc-session')" class="text-[10px] bg-indigo-900/60 hover:bg-indigo-700 text-indigo-200 px-2 py-0.5 rounded border border-indigo-500/40 transition">📋 一鍵從剪貼簿貼上</button>
+                            </div>
                         </div>
-                        <textarea id="acc-session" name="session_data" rows="3" placeholder='{{"cookies": [...], "origins": [...]}}' class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-300 focus:border-amber-500 focus:outline-none"></textarea>
+                        <textarea id="acc-session" name="session_data" rows="3" placeholder='貼上 Cookie-Editor 匯出的 JSON 陣列 [...] 或 Playwright 格式 {{"cookies": [...]}}' class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2 text-xs font-mono text-gray-300 focus:border-amber-500 focus:outline-none"></textarea>
                     </div>
 
                     <div class="flex items-center gap-2 pt-1">
@@ -317,6 +341,65 @@ async def serve_dashboard():
                         <button type="submit" class="px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-lg shadow-purple-600/30">儲存 AI 設定</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- =================== Modal 3: 全局來源爬蟲 Cookie 管理 =================== -->
+        <div id="modal-global-cookies" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-900 border border-gray-700 w-full max-w-2xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <span>🔑 全局來源爬蟲 Cookie 管理 (X / FB 爬文)</span>
+                    </h3>
+                    <button onclick="closeGlobalCookiesModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
+                </div>
+
+                <div class="bg-blue-950/40 border border-blue-900/50 p-3 rounded-xl text-xs text-blue-200 leading-relaxed">
+                    💡 <strong>爬蟲 Cookie 分流機制</strong>：
+                    當工作台需要從 <strong>X (Twitter)</strong> 或 <strong>Facebook (社團/粉專)</strong> 爬取即時爆文時，使用此處設定的憑證。<br>
+                    支援 <strong>Cookie-Editor 匯出的 JSON 陣列</strong> (<code>[...]</code>) 或 Playwright 格式，系統將<strong>自動識別轉換</strong>！
+                </div>
+
+                <!-- X (Twitter) 爬蟲 Cookie -->
+                <div class="bg-gray-950/80 border border-gray-800 p-4 rounded-xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-sky-400 flex items-center gap-1.5">
+                                <span>𝕏</span> X (Twitter) 爬蟲 Cookie
+                            </span>
+                            <span id="badge-x-cookie-status" class="text-[10px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700">檢測中...</span>
+                        </div>
+                        <button type="button" onclick="pasteToElement('global-x-cookie')" class="text-xs bg-sky-950/80 hover:bg-sky-800 text-sky-300 px-2.5 py-1 rounded-lg border border-sky-700/50 transition">📋 一鍵從剪貼簿貼上</button>
+                    </div>
+                    <textarea id="global-x-cookie" rows="3" placeholder='在此貼上 X 的 Cookie（Cookie-Editor JSON 陣列或 Playwright 格式）...' class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs font-mono text-gray-300 focus:border-sky-500 focus:outline-none"></textarea>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="saveGlobalCookie('x')" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-lg transition shadow-md shadow-sky-900/30">💾 儲存 X 爬蟲 Cookie</button>
+                    </div>
+                </div>
+
+                <!-- Facebook 爬文專用 Cookie -->
+                <div class="bg-gray-950/80 border border-gray-800 p-4 rounded-xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-blue-400 flex items-center gap-1.5">
+                                <span>📘</span> Facebook 爬文專用 Cookie
+                            </span>
+                            <span id="badge-fb-cookie-status" class="text-[10px] px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 border border-gray-700">檢測中...</span>
+                        </div>
+                        <button type="button" onclick="pasteToElement('global-fb-scraper-cookie')" class="text-xs bg-blue-950/80 hover:bg-blue-800 text-blue-300 px-2.5 py-1 rounded-lg border border-blue-700/50 transition">📋 一鍵從剪貼簿貼上</button>
+                    </div>
+                    <p class="text-[11px] text-gray-500">
+                        🛡️ 建議使用專門用來看文/爬文的 Facebook 小號 Cookie，與主要發文的 Facebook 帳號徹底分流，確保發文主號安全。
+                    </p>
+                    <textarea id="global-fb-scraper-cookie" rows="3" placeholder='在此貼上 Facebook 爬文小號的 Cookie...' class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs font-mono text-gray-300 focus:border-blue-500 focus:outline-none"></textarea>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="saveGlobalCookie('facebook_scraper')" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition shadow-md shadow-blue-900/30">💾 儲存 FB 爬文 Cookie</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-gray-800">
+                    <button type="button" onclick="closeGlobalCookiesModal()" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-xs">關閉視窗</button>
+                </div>
             </div>
         </div>
 
@@ -546,8 +629,8 @@ async def serve_dashboard():
                 const hintSession = document.getElementById('hint-session-tool');
 
                 if (target === 'Facebook') {{
-                    labelSession.innerText = '該帳號專屬 Facebook Cookie Session (JSON)*';
-                    hintSession.innerText = '執行桌面【取得 Facebook 登入 Cookie】小工具後按 Ctrl+V 貼上';
+                    labelSession.innerText = '🎯 該帳號專屬 Facebook【發布貼文】Cookie (JSON)*';
+                    hintSession.innerText = '貼上 Cookie-Editor 匯出的 JSON 陣列或小工具 Cookie';
                     // 跨平台互斥原則：發布至 Facebook 時，來源可為 Reddit、Threads、X、巴哈姆特
                     sourceSelect.innerHTML = `
                         <option value="Reddit">Reddit (歐美即時熱區)</option>
@@ -556,8 +639,8 @@ async def serve_dashboard():
                         <option value="巴哈姆特">巴哈姆特哈啦板 (台灣最大遊戲社群)</option>
                     `;
                 }} else {{
-                    labelSession.innerText = '該帳號專屬 Threads Cookie Session (JSON)*';
-                    hintSession.innerText = '執行桌面【取得 Threads 登入 Cookie】小工具後按 Ctrl+V 貼上';
+                    labelSession.innerText = '🎯 該帳號專屬 Threads【發布貼文】Cookie (JSON)*';
+                    hintSession.innerText = '貼上 Cookie-Editor 匯出的 JSON 陣列或小工具 Cookie';
                     // 跨平台互斥原則：發布至 Threads 時，來源不可為 Threads
                     sourceSelect.innerHTML = `
                         <option value="Reddit">Reddit (歐美即時熱區)</option>
@@ -724,6 +807,83 @@ async def serve_dashboard():
                     alert("全域 AI 設定已成功更新！");
                 }} catch (err) {{
                     alert("儲存 AI 設定失敗: " + err);
+                }}
+            }}
+
+            // 來源爬蟲 Cookie 管理 (X / FB 爬文)
+            async function pasteToElement(elemId) {{
+                try {{
+                    const text = await navigator.clipboard.readText();
+                    if (text) {{
+                        document.getElementById(elemId).value = text;
+                    }} else {{
+                        alert("剪貼簿目前為空！");
+                    }}
+                }} catch (e) {{
+                    alert("請手動在文字框內按 Ctrl+V 貼上 Cookie。");
+                }}
+            }}
+
+            async function openGlobalCookiesModal() {{
+                try {{
+                    const res = await fetch('/api/global-cookies');
+                    const d = await res.json();
+                    
+                    const xBadge = document.getElementById('badge-x-cookie-status');
+                    const xArea = document.getElementById('global-x-cookie');
+                    if (d.x && d.x.has_session) {{
+                        xBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700 font-semibold';
+                        xBadge.innerText = `✅ 已配置 (${{d.x.cookies_count}} 筆 Cookie)`;
+                        xArea.value = d.x.content || '';
+                    }} else {{
+                        xBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-700 font-semibold';
+                        xBadge.innerText = '⚠️ 尚未設定';
+                        xArea.value = '';
+                    }}
+
+                    const fbBadge = document.getElementById('badge-fb-cookie-status');
+                    const fbArea = document.getElementById('global-fb-scraper-cookie');
+                    if (d.facebook_scraper && d.facebook_scraper.has_session) {{
+                        fbBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-700 font-semibold';
+                        fbBadge.innerText = `✅ 已配置 (${{d.facebook_scraper.cookies_count}} 筆 Cookie)`;
+                        fbArea.value = d.facebook_scraper.content || '';
+                    }} else {{
+                        fbBadge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-700 font-semibold';
+                        fbBadge.innerText = '⚠️ 尚未設定';
+                        fbArea.value = '';
+                    }}
+
+                    document.getElementById('modal-global-cookies').classList.remove('hidden');
+                }} catch (e) {{
+                    alert("載入爬蟲 Cookie 設定失敗: " + e);
+                }}
+            }}
+
+            function closeGlobalCookiesModal() {{
+                document.getElementById('modal-global-cookies').classList.add('hidden');
+            }}
+
+            async function saveGlobalCookie(platform) {{
+                const elemId = platform === 'x' ? 'global-x-cookie' : 'global-fb-scraper-cookie';
+                const val = document.getElementById(elemId).value.trim();
+                if (!val) {{
+                    if (!confirm("確定要清空此平台的爬蟲 Cookie 嗎？")) return;
+                }}
+                try {{
+                    const res = await fetch('/api/global-cookies/save', {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ platform: platform, cookie_data: val }})
+                    }});
+                    const d = await res.json();
+                    if (d.status === 'success') {{
+                        alert(d.message || "已儲存！");
+                        openGlobalCookiesModal();
+                    }} else {{
+                        alert("儲存失敗: " + (d.message || "未知錯誤"));
+                    }}
+                }} catch (e) {{
+                    alert("儲存請求失敗: " + e);
                 }}
             }}
 
