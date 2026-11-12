@@ -47,7 +47,11 @@ async def fetch_top_x_tweets(query: str, min_likes: int = 50, session_file: str 
 
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=25000)
-            await page.wait_for_timeout(3500)
+            try:
+                await page.wait_for_selector("article[data-testid='tweet']", timeout=12000)
+            except Exception:
+                pass
+            await page.wait_for_timeout(2000)
         except Exception as e:
             await browser.close()
             raise Exception(f"無法載入 X (Twitter) 搜尋頁面: {str(e)}")
