@@ -678,7 +678,7 @@ def get_accounts():
         acc.setdefault("discovery_mode", "rising")
         acc.setdefault("strategy_prompt", "目標是最大化粉絲與關注度，優先挑選該領域最有料、最好笑、最具社群傳播力的即時爆文。")
         acc.setdefault("schedule_type", "interval")
-        acc.setdefault("interval_minutes", 180)
+        acc.setdefault("interval_minutes", 95)
         acc.setdefault("fixed_times", "12:30, 18:30, 22:00")
         acc.setdefault("enable_fast_track", True)
         acc.setdefault("fast_track_min_upvotes", 300)
@@ -697,7 +697,7 @@ def get_accounts():
         acc.setdefault("bio_update_time", "09:00")
         acc.setdefault("bio_last_updated_date", "")
         acc.setdefault("comment_agent_enabled", True)
-        acc.setdefault("comment_daily_limit", 10)
+        acc.setdefault("comment_daily_limit", 15)
         acc.setdefault("comment_single_limit", 2)
         default_kws = ["魔物獵人", "MHWilds", "荒野"] if "魔物" in acc.get("name", "") else ["傳說對決", "AOV"]
         acc.setdefault("comment_keywords", default_kws)

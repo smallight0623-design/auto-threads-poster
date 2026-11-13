@@ -433,49 +433,53 @@ def run_weekly_reflection(acc_id: str, posts_history: list, current_strategy: st
         "recommended_bio": fallback_bio
     }
 
-def generate_witty_comment(post_text: str, author: str, game_name: str, persona: dict, config: dict) -> str:
+def generate_witty_comment(post_text: str, author: str, game_name: str, persona: dict, config: dict, golden_quotes: list = None) -> str:
     """
-    Threads 24H 獲客海巡神回覆生成器：
-    以「熱愛該遊戲、有生活感、幽默自嘲、懂社群黑話」的真實玩家同行者視角，
-    針對當前 Threads 熱門貼文生成 1~2 句中肯、幽默、高互動的神回覆，
-    絕不帶官方或行銷號味道，零廣告、零求追蹤，靠真實魅力與共鳴吸引路人點進主頁。
+    Threads 24H 獲客海巡神回覆生成器 (V2 靈動版)：
+    1. 支援實戰高讚金句庫 (Golden Quotes) 檢索與情境照抄/微調
+    2. 字數極致精煉 (8~22 字)，節奏極快，角度刁鑽
+    3. 徹底剔除「口癖硬塞（假單/坐牢）」的機械復讀感
     """
     base_url = (os.getenv("AI_BASE_URL") or config.get("AI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
     api_key = os.getenv("AI_API_KEY") or config.get("AI_API_KEY", "")
     primary_model = config.get("AI_MODEL", "gemini-2.5-flash")
 
-    identity = persona.get("identity", "每天上班摸魚的大劍老獵犬")
-    tone_style = persona.get("tone_style", "幽默、自嘲、熱血、愛用玩家社群黑話與生活感")
-    catchphrase = persona.get("catchphrase", "假單已經送出去了")
+    identity = persona.get("identity", "資深玩家")
+    tone_style = persona.get("tone_style", "幽默、自嘲、懂社群黑話、神回覆高手")
+
+    quote_section = ""
+    if golden_quotes:
+        import random
+        sampled = random.sample(golden_quotes, min(len(golden_quotes), 4))
+        q_lines = [f"- [情境：{q.get('scenario')}] ➔ 「{q.get('quote')}」" for q in sampled]
+        quote_section = f"""
+【Threads 實戰破千讚神回覆庫（若情境符合可直接照抄或微調，若不符合請學習其短句幽默語感）】：
+{chr(10).join(q_lines)}
+"""
 
     prompt = f"""
-你是一位身在台灣社群的資深硬核玩家，同時也是一位在 Threads 上充滿幽默感與生活感的熱門神回覆高手（海巡神隊友）。
-請針對以下這篇 Threads 貼文，以「熱愛該遊戲的同行者」視角，寫出一句極度中肯、好笑或溫暖的神回覆（Comment）。
-
-【你的玩家真人人設】：
-- 核心身分：{identity}
-- 說話口吻風格：{tone_style}
-- 常用口癖/生活情境：{catchphrase}
-- 正在玩的遊戲：{game_name}
+你是一位身在台灣 Threads 的頂級「神回覆」玩家高手。
+請針對以下這篇 Threads 貼文，以「熱愛【{game_name}】的同行者」視角，留下一句極度好笑、中肯吐槽或直擊靈魂的神回覆。
 
 【原貼文資訊】：
 - 原作者：@{author}
 - 原文內容：
 \"\"\"{post_text}\"\"\"
-
-【回覆指導原則（嚴格遵守）】：
-1. 【長度精煉】：僅需 1 ~ 2 句話（總字數 25 ~ 55 字以內），節奏俐落，絕不拖泥帶水。
-2. 【台灣玩家黑話與共鳴】：使用極為道地的台灣玩家流行用語（如：貓車、開荒、坐牢、逃課、這我、笑死、太狠了、吸口仙氣、有料、心態崩了、真香）。
-3. 【高情商同行互動】：
-   - 若對方是新手求問：給出犀利幽默但又真正有幫助的資深建言，讓人會心一笑。
-   - 若對方在抱怨/受苦：同理自嘲（例如「剛玩打40分鐘是正常受苦體驗，習慣就成癮了」）。
-   - 若對方在徵隊友/分享高光：熱血共鳴或幽默開玩笑。
-4. 【四個絕對禁止（死罪）】：
-   - 嚴禁任何「求關注、求追蹤、看我主頁、點讚、我是小編」等廣告/公關行銷字眼。
-   - 嚴禁以「哈哈」、「嗨！」、「哈囉！」、「你好！」開頭。
-   - 嚴禁像 AI 客服般禮貌寒暄或說大道理。
-   - 嚴禁使用中國大陸網路用語（如：給力、牛逼、老鐵、視頻、絕絕子）。
-5. 【輸出要求】：直接輸出最終留言字句，不要有引號或任何多餘文字。
+{quote_section}
+【神回覆黃金鐵律（嚴格執行）】：
+1. 【極短精煉，絕不囉嗦】：字數嚴格控制在 8 ~ 22 個字以內！一句話點破盲點或接梗，多一個字都是廢話。
+2. 【嚴格禁止機械復讀口癖】：
+   - 絕對禁止在每篇留言都提到「假單送出去了」、「坐牢」、「貓車」。只有在對方剛好在聊請假或翻車時才能提，不要像機器人一樣硬塞！
+3. 【情境精準匹配】：
+   - 若金句庫中有高契合度的回覆，優先「直接照抄」或「微調一兩個字」使用！
+   - 若對方發問：一句超中肯大實話回答（例如「你朋友玩哪款你就玩哪款」）。
+   - 若對方抱怨/崩潰：一句高級毒舌吐槽或「這我」。
+   - 若對方分享帥圖/高光：一句刁鑽讚美或羨慕。
+4. 【死罪紅線】：
+   - 嚴禁求追蹤、看主頁、求讚、我是小編。
+   - 嚴禁「哈哈」、「嗨！」、「哈囉！」、「你好！」開頭。
+   - 嚴禁大陸用語（視頻、老鐵、給力、牛逼）。
+5. 【輸出要求】：直接輸出最終神回覆（單句），不要引號、不要多餘解釋。
 """
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -486,7 +490,7 @@ def generate_witty_comment(post_text: str, author: str, game_name: str, persona:
         "messages": [
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.75
+        "temperature": 0.8
     }
     try:
         res = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=15)
@@ -497,5 +501,5 @@ def generate_witty_comment(post_text: str, author: str, game_name: str, persona:
     except Exception as e:
         print(f"[Witty Comment] 生成失敗: {e}")
 
-    return f"老獵友路過推一把，大劍蓄力斬隨時待命支援！ 🗡️"
+    return f"這我，建議直接開躺比較快。"
 

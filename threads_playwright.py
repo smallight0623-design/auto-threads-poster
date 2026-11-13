@@ -237,54 +237,70 @@ async def update_threads_bio(new_bio: str, session_file: str = "threads_session.
                 await edit_btn.click()
                 await asyncio.sleep(2)
 
-                # 點擊 Bio 欄位進入 Edit bio 子視窗
-                clicked_bio = await page.evaluate('''() => {
-                    const dialog = document.querySelector('div[role="dialog"]') || document.body;
-                    const allElements = Array.from(dialog.querySelectorAll('div, span'));
-                    for (const el of allElements) {
-                        if (el.children.length === 0 && (el.innerText.trim() === 'Bio' || el.innerText.trim() === '簡介' || el.innerText.trim() === '+ Write bio' || el.innerText.trim() === '+ 寫下簡介')) {
-                            const row = el.closest('div[class*="x"]') || el.parentElement;
-                            if (row) {
-                                row.click();
+                # 尋找並點擊 Bio 欄位進入 Edit bio 子視窗
+                bio_row = page.locator("text='+ Write bio'").or_(
+                    page.locator("text='寫下簡介'")
+                ).or_(
+                    page.locator("div[role='dialog'] div:has-text('Bio')")
+                ).or_(
+                    page.locator("text='Bio'")
+                ).first
+
+                if await bio_row.is_visible():
+                    try:
+                        await bio_row.click(force=True, timeout=3000)
+                    except Exception:
+                        pass
+                else:
+                    await page.evaluate('''() => {
+                        const dialog = document.querySelector('div[role="dialog"]') || document.body;
+                        const allElements = Array.from(dialog.querySelectorAll('div, span'));
+                        for (const el of allElements) {
+                            if (el.innerText.trim().includes('Bio') || el.innerText.trim().includes('簡介')) {
+                                el.click();
                                 return true;
                             }
                         }
-                    }
-                    return false;
-                }''')
-
-                if not clicked_bio:
-                    bio_fallback = page.locator("text='+ Write bio'").or_(
-                        page.locator("text='寫下簡介'")
-                    ).or_(
-                        page.locator("text='Bio'")
-                    ).first
-                    if await bio_fallback.is_visible():
-                        await bio_fallback.click()
+                        return false;
+                    }''')
 
                 await asyncio.sleep(1.5)
 
                 # 尋找 Edit bio 子視窗的 textarea
-                textarea = page.locator("textarea").first
+                textarea = page.locator("textarea[placeholder*='bio' i]").or_(page.locator("textarea")).first
+                try:
+                    await textarea.wait_for(state="visible", timeout=5000)
+                except Exception:
+                    pass
+
                 if await textarea.is_visible():
+                    await textarea.click(force=True)
+                    await page.keyboard.press("Control+A")
+                    await page.keyboard.press("Backspace")
                     await textarea.fill(new_bio)
                     await asyncio.sleep(1)
 
-                    # 點擊 Edit bio 的 Done
+                    # 點擊 Edit bio 的 Done / 完成
                     done_btns = await page.locator("text='Done'").or_(page.locator("text='完成'")).all()
                     for d in reversed(done_btns):
                         if await d.is_visible():
-                            await d.click()
-                            await asyncio.sleep(1.5)
-                            break
+                            try:
+                                await d.click(force=True, timeout=3000)
+                                await asyncio.sleep(1.5)
+                                break
+                            except Exception:
+                                pass
 
-                    # 點擊 Edit profile modal 最下方的 Done
+                    # 點擊 Edit profile modal 最下方的 Done / 完成
                     final_done = await page.locator("text='Done'").or_(page.locator("text='完成'")).all()
                     for d in reversed(final_done):
                         if await d.is_visible():
-                            await d.click()
-                            await asyncio.sleep(2.5)
-                            break
+                            try:
+                                await d.click(force=True, timeout=3000)
+                                await asyncio.sleep(2.5)
+                                break
+                            except Exception:
+                                pass
 
                     print(f"✅ [Threads Bio Updater] 成功更新 Bio：{new_bio}")
                     await browser.close()

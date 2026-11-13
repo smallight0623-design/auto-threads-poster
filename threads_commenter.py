@@ -364,13 +364,19 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
 
                     print(f"\n💡 [海巡選題選中] @{p_author}: {p_text[:60]}...")
                     
-                    # 生成神回覆
+                    # 載入實戰高讚金句庫作 Few-shot 或微調照抄參考
+                    import threads_learner
+                    kb = threads_learner.load_knowledge_base(acc_id)
+                    golden_quotes = kb.get("golden_comments", [])
+
+                    # 生成神回覆 (V2 靈動版)
                     witty_reply = ai_engine.generate_witty_comment(
                         post_text=p_text,
                         author=p_author,
                         game_name=game_name,
                         persona=persona,
-                        config=global_cfg
+                        config=global_cfg,
+                        golden_quotes=golden_quotes
                     )
                     print(f"💬 [AI 神回覆預覽]: {witty_reply}")
 

@@ -18,6 +18,8 @@ import datetime
 import account_manager
 import ai_engine
 import threads_commenter
+import threads_learner
+import threads_metrics_scraper
 
 app = FastAPI(title="Threads 矩陣多帳號自動發布主控台")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -85,26 +87,42 @@ async def auto_scheduler_daemon():
 
             # 3. 破裂級爆款雷達插隊檢測 (每 15 分鐘 = 30次輪詢)
             loop_count += 1
-            if loop_count >= 30:
-                loop_count = 0
+            if loop_count % 30 == 0:
                 for acc in all_accs:
                     if acc.get("enabled", True) and account_manager.is_fast_track_allowed(acc["id"]):
                         env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
                         subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc["id"], "--fast-track"], cwd=BASE_DIR, env=env)
                         await asyncio.sleep(2)
 
-            # 4. Threads 獲客海巡留言巡邏 (每 45 分鐘 = 90 次輪詢，或依定時檢測)
+            # 4. Threads 獲客海巡留言巡邏 (每 45 分鐘 = 90 次輪詢)
             if loop_count % 90 == 0:
                 for acc in all_accs:
                     if acc.get("enabled", True) and acc.get("comment_agent_enabled", True) and acc.get("target_platform", "Threads").lower() == "threads":
                         try:
                             t_count = threads_commenter.get_today_comment_count(acc["id"])
-                            d_limit = int(acc.get("comment_daily_limit") or 10)
+                            d_limit = int(acc.get("comment_daily_limit") or 15)
                             if t_count < d_limit:
                                 print(f"💬 [Comment Scheduler] 帳號【{acc.get('name')}】啟動定期海巡獲客巡邏 (今日進度 {t_count}/{d_limit})...")
                                 asyncio.create_task(threads_commenter.run_threads_patrol_async(acc["id"], max_comments=int(acc.get("comment_single_limit") or 2)))
                         except Exception as ce:
                             print(f"⚠️ [Comment Scheduler] 海巡異常: {ce}")
+
+            # 5. Threads 每日自主偷師與金句庫提煉 (每日凌晨或定期執行)
+            for acc in all_accs:
+                if acc.get("enabled", True) and acc.get("target_platform", "Threads").lower() == "threads":
+                    last_learn = acc.get("last_threads_learn_date", "")
+                    if last_learn != today_date and now_hm in ["02:30", "03:00", "04:00"]:
+                        acc["last_threads_learn_date"] = today_date
+                        account_manager.save_account(acc)
+                        print(f"🧠 [Threads Learner Scheduler] 帳號【{acc.get('name')}】啟動每日爆款偷師巡邏...")
+                        asyncio.create_task(threads_learner.run_daily_threads_learning(acc["id"]))
+
+            # 6. 每 2~3 天個人主頁貼文真實成效巡檢 (讚/留言/轉發/小飛機)
+            if loop_count % 2880 == 180:  # 每 24 小時檢測一次
+                for acc in all_accs:
+                    if acc.get("enabled", True) and acc.get("target_platform", "Threads").lower() == "threads":
+                        print(f"📊 [Metrics Scraper Scheduler] 帳號【{acc.get('name')}】執行貼文真實成效數據抓取...")
+                        asyncio.create_task(threads_metrics_scraper.scrape_profile_posts_metrics(acc["id"]))
 
         except Exception as e:
             print(f"⚠️ [Auto Scheduler Error] {e}")
@@ -367,20 +385,25 @@ async def run_reflection_api(acc_id: str):
 
 @app.get("/api/accounts/{acc_id}/comments")
 async def get_account_comments_api(acc_id: str):
-    """取得帳號的海巡留言設定與近期記錄"""
+    """取得帳號的海巡留言設定、近期記錄與爆款偷師金句庫數據"""
     acc = account_manager.get_account(acc_id)
     if not acc:
         return JSONResponse({"status": "error", "message": "帳號不存在"}, status_code=404)
     history = threads_commenter.load_comment_history(acc_id)
     today_count = threads_commenter.get_today_comment_count(acc_id)
+    kb = threads_learner.load_knowledge_base(acc_id)
+    golden_quotes = kb.get("golden_comments", [])
+    topic_seeds = kb.get("viral_topic_seeds", [])
     return JSONResponse({
         "status": "success",
         "comment_agent_enabled": acc.get("comment_agent_enabled", True),
-        "comment_daily_limit": int(acc.get("comment_daily_limit") or 10),
+        "comment_daily_limit": int(acc.get("comment_daily_limit") or 15),
         "comment_single_limit": int(acc.get("comment_single_limit") or 2),
         "comment_keywords": acc.get("comment_keywords", []),
         "last_comment_time": acc.get("last_comment_time", ""),
         "today_count": today_count,
+        "golden_quotes_count": len(golden_quotes),
+        "topic_seeds_count": len(topic_seeds),
         "history": history[-30:][::-1]
     })
 
@@ -403,6 +426,44 @@ async def trigger_account_comments_patrol_api(acc_id: str):
         return JSONResponse(res)
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+@app.post("/api/accounts/{acc_id}/learn")
+async def trigger_threads_learn_api(acc_id: str):
+    """手動觸發 Threads 爆款偷師學習與金句庫提煉"""
+    acc = account_manager.get_account(acc_id)
+    if not acc:
+        return JSONResponse({"status": "error", "message": "帳號不存在"}, status_code=404)
+    try:
+        res = await threads_learner.run_daily_threads_learning(acc_id)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+@app.post("/api/accounts/{acc_id}/scrape-metrics")
+async def trigger_threads_metrics_scrape_api(acc_id: str):
+    """手動觸發個人主頁貼文真實成效數據抓取 (讚數、留言、轉發、小飛機、瀏覽量)"""
+    acc = account_manager.get_account(acc_id)
+    if not acc:
+        return JSONResponse({"status": "error", "message": "帳號不存在"}, status_code=404)
+    try:
+        res = await threads_metrics_scraper.scrape_profile_posts_metrics(acc_id)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
+@app.get("/api/accounts/{acc_id}/metrics")
+async def get_threads_metrics_api(acc_id: str):
+    """取得個人主頁貼文真實成效數據與金句庫數據"""
+    acc = account_manager.get_account(acc_id)
+    if not acc:
+        return JSONResponse({"status": "error", "message": "帳號不存在"}, status_code=404)
+    metrics_data = threads_metrics_scraper.load_metrics(acc_id)
+    kb = threads_learner.load_knowledge_base(acc_id)
+    return JSONResponse({
+        "status": "success",
+        "metrics": metrics_data,
+        "knowledge_base": kb
+    })
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -1031,12 +1092,12 @@ async def serve_dashboard():
                 </div>
 
                 <!-- 狀態儀表橫條 -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
                         <span class="text-gray-400 block text-[11px]">今日海巡留言進度</span>
                         <div class="flex items-baseline gap-1 mt-1">
                             <span id="comment-today-count" class="text-lg font-extrabold text-emerald-400">0</span>
-                            <span id="comment-today-limit" class="text-xs text-gray-500">/ 10 則上限</span>
+                            <span id="comment-today-limit" class="text-xs text-gray-500">/ 15 則上限</span>
                         </div>
                     </div>
                     <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
@@ -1044,6 +1105,15 @@ async def serve_dashboard():
                         <div class="mt-1 flex items-center gap-1.5">
                             <span id="comment-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span id="comment-status-text" class="font-bold text-emerald-300">守護巡航中</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
+                        <span class="text-gray-400 block text-[11px]">🧠 Threads 爆款偷師庫</span>
+                        <div class="mt-1 flex items-baseline gap-1">
+                            <span id="comment-quotes-count" class="text-lg font-extrabold text-purple-400">0</span>
+                            <span class="text-xs text-gray-400">條金句 · </span>
+                            <span id="comment-seeds-count" class="text-xs font-bold text-indigo-400">0</span>
+                            <span class="text-[10px] text-gray-500">個話題</span>
                         </div>
                     </div>
                     <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
@@ -1061,9 +1131,15 @@ async def serve_dashboard():
                                 啟用 24H Threads 留言區海巡自動獲客
                             </label>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="triggerManualPatrol()" id="btn-manual-patrol" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-3.5 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1.5">
-                                <span>⚡ 立即執行一次海巡留言</span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" onclick="triggerManualPatrol()" id="btn-manual-patrol" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1">
+                                <span>⚡ 立即海巡留言</span>
+                            </button>
+                            <button type="button" onclick="triggerThreadsLearn()" id="btn-threads-learn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1">
+                                <span>🧠 啟動 Threads 自主偷師</span>
+                            </button>
+                            <button type="button" onclick="triggerScrapeMetrics()" id="btn-scrape-metrics" class="bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1">
+                                <span>📊 抓取個人主頁成效</span>
                             </button>
                             <button type="button" onclick="saveCommentAgentSettings()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-700 transition">
                                 💾 儲存設定
@@ -1079,7 +1155,7 @@ async def serve_dashboard():
                         </div>
                         <div class="space-y-1">
                             <label class="font-bold text-gray-300 block">每日安全上限：</label>
-                            <input type="number" id="input-comment-daily-limit" value="10" min="1" max="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-emerald-300 focus:border-emerald-500 focus:outline-none font-mono">
+                            <input type="number" id="input-comment-daily-limit" value="15" min="1" max="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-emerald-300 focus:border-emerald-500 focus:outline-none font-mono">
                             <span class="text-[10px] text-gray-500">保護帳號防範平台封控 (建議 5~15 則)</span>
                         </div>
                     </div>
@@ -1204,12 +1280,7 @@ async def serve_dashboard():
                 }} else if (camp.badge_color === 'sky') {{
                     campBadgeClass = 'bg-sky-950/50 text-sky-300 border-sky-800/60 font-medium';
                 }}
-                const campaignBanner = `
-                    <div class="flex items-center justify-between text-[11px] px-3 py-1.5 rounded-xl border ${{campBadgeClass}}">
-                        <span class="flex items-center gap-1.5">${{escapeHtml(camp.badge_text)}}</span>
-                        <button onclick="openMilestonesModal('${{acc.id}}')" class="text-[10px] text-gray-400 hover:text-white underline cursor-pointer">📅 大事記</button>
-                    </div>
-                `;
+                const campaignBanner = '';
 
                 return `
                     <div class="bg-gray-900 border ${{isFailed ? 'border-red-900/60 shadow-lg shadow-red-950/20' : (isRunning ? 'border-indigo-600 shadow-lg shadow-indigo-950/30' : 'border-gray-800')}} rounded-2xl p-5 space-y-4 transition-all">
@@ -1318,9 +1389,6 @@ async def serve_dashboard():
                                 </button>
                                 <button onclick="copyAccountSession('${{acc.id}}', this)" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 px-2.5 py-1.5 rounded-lg text-xs transition">
                                     <span>📋 複製 Session</span>
-                                </button>
-                                <button onclick="openMilestonesModal('${{acc.id}}')" class="bg-amber-950/60 hover:bg-amber-900 text-amber-300 border border-amber-800/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1">
-                                    <span>📅 戰役大事記</span>
                                 </button>
                                 <button onclick="openPersonaModal('${{acc.id}}')" class="bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900 hover:to-indigo-900 text-purple-200 border border-purple-700/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 shadow-sm">
                                     <span>🧬 AI 人設與覆盤</span>
@@ -2146,9 +2214,11 @@ async def serve_dashboard():
                     
                     document.getElementById('chk-comment-agent-enabled').checked = d.comment_agent_enabled !== false;
                     document.getElementById('input-comment-keywords').value = (d.comment_keywords || []).join(', ');
-                    document.getElementById('input-comment-daily-limit').value = d.comment_daily_limit || 10;
+                    document.getElementById('input-comment-daily-limit').value = d.comment_daily_limit || 15;
                     document.getElementById('comment-today-count').innerText = d.today_count || 0;
-                    document.getElementById('comment-today-limit').innerText = `/ ${{d.comment_daily_limit || 10}} 則上限`;
+                    document.getElementById('comment-today-limit').innerText = `/ ${{d.comment_daily_limit || 15}} 則上限`;
+                    document.getElementById('comment-quotes-count').innerText = d.golden_quotes_count || 0;
+                    document.getElementById('comment-seeds-count').innerText = d.topic_seeds_count || 0;
                     document.getElementById('comment-last-time').innerText = d.last_comment_time || '尚未執行';
 
                     const dot = document.getElementById('comment-status-dot');
@@ -2232,6 +2302,56 @@ async def serve_dashboard():
                     }}
                 }} catch (e) {{
                     alert("發送海巡請求出錯: " + e);
+                }} finally {{
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }}
+            }}
+
+            async function triggerThreadsLearn() {{
+                const accId = currentCommentAccId;
+                const btn = document.getElementById('btn-threads-learn');
+                const origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<span>⏳ 正在全網 Threads 探索並提煉金句...</span>`;
+
+                try {{
+                    const res = await fetch(`/api/accounts/${{accId}}/learn`, {{ method: 'POST' }});
+                    const d = await res.json();
+                    if (d.success) {{
+                        alert(`🎉 偷師提煉完成！\n收錄金句: ${{d.extracted_comments || 0}} 條\n收錄話題: ${{d.extracted_seeds || 0}} 個\n目前金句庫總量: ${{d.total_golden_quotes || 0}} 條`);
+                        openCommentModal(accId);
+                        fetchDashboardData();
+                    }} else {{
+                        alert("⚠️ 偷師未完成: " + (d.error || "未知原因"));
+                    }}
+                }} catch (e) {{
+                    alert("發送偷師請求出錯: " + e);
+                }} finally {{
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }}
+            }}
+
+            async function triggerScrapeMetrics() {{
+                const accId = currentCommentAccId;
+                const btn = document.getElementById('btn-scrape-metrics');
+                const origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<span>⏳ 正在巡檢個人主頁貼文真實成效...</span>`;
+
+                try {{
+                    const res = await fetch(`/api/accounts/${{accId}}/scrape-metrics`, {{ method: 'POST' }});
+                    const d = await res.json();
+                    if (d.success) {{
+                        alert(`🎉 數據抓取完成！成功抓取 ${{d.post_count || 0}} 篇貼文真實成效 (讚數、留言數、轉發數、小飛機分享數、瀏覽量)。`);
+                        openCommentModal(accId);
+                        fetchDashboardData();
+                    }} else {{
+                        alert("⚠️ 數據抓取未完成: " + (d.error || "未知原因"));
+                    }}
+                }} catch (e) {{
+                    alert("發送抓取請求出錯: " + e);
                 }} finally {{
                     btn.disabled = false;
                     btn.innerHTML = origHtml;
