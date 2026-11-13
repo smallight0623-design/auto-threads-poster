@@ -674,7 +674,9 @@ def get_accounts():
             "current_bio": ""
         })
         acc.setdefault("reflections", [])
-        acc.setdefault("exploration_rate", 0.2)
+        acc.setdefault("bio_auto_update", True)
+        acc.setdefault("bio_update_time", "09:00")
+        acc.setdefault("bio_last_updated_date", "")
         if not acc.get("next_run") and acc.get("schedule_type") != "manual":
             acc["next_run"] = compute_next_run(acc)
             updated = True

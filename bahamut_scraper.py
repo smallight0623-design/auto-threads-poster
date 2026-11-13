@@ -69,6 +69,10 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
     candidates = []
 
     for r in rows:
+        # 嚴格過濾置頂集中串（累積數年置頂串動輒數萬GP，並非單日即時爆文）
+        if 'title="置頂"' in r or 'b-mark--update' in r or 'class="b-list__summary__mark' in r:
+            continue
+
         gp_m = re.search(r'class="b-list__summary__gp[^"]*"[^>]*>(\d+)</span>', r)
         title_m = re.search(r'href="(C\.php\?bsn=\d+&[^"]+)"[^>]*>(.*?)</a>', r)
         if not title_m:

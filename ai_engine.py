@@ -383,37 +383,24 @@ def run_weekly_reflection(acc_id: str, posts_history: list, current_strategy: st
     camp_str = campaign_status.get("badge_text", "常規巡航") if campaign_status else "常規巡航"
 
     prompt = f"""
-你是一位兼具「量化對沖基金研究員思維」與「社群流量操盤手」的頂級 AI 策略總監。
-請針對社群帳號【{game_name}】進行深入的【每週營運覆盤與防過度擬合反思 (Weekly Reflection)】。
+你是一位講求實戰成效的資深社群營運總監。請針對【{game_name}】帳號進行簡明扼要的【每週發布成效覆盤】。
+請務必遵守：只寫真正有意義的內容，文字越簡潔精煉越好（拒絕任何學術理論、空泛術語或長篇大論）。
 
-【歷史數據摘要】：
-- 總樣本貼文數：{total_samples} 篇
-- 短影音 (VIDEO)：{len(video_posts)} 篇，平均互動：{avg_upvotes(video_posts)}
-- 圖文 (IMAGE)：{len(image_posts)} 篇，平均互動：{avg_upvotes(image_posts)}
-- 純文字 (TEXT)：{len(text_posts)} 篇，平均互動：{avg_upvotes(text_posts)}
+【近期發布數據概況】：
+- 總發布貼文數：{total_samples} 篇
+- 短影音 (VIDEO)：{len(video_posts)} 篇，平均來源熱度：{avg_upvotes(video_posts)}
+- 圖文 (IMAGE)：{len(image_posts)} 篇，平均來源熱度：{avg_upvotes(image_posts)}
+- 純文字 (TEXT)：{len(text_posts)} 篇，平均來源熱度：{avg_upvotes(text_posts)}
 - 當前戰役階段：{camp_str}
-- 當前營運策略：{current_strategy}
+- 當前選材策略：{current_strategy}
 
-【成效最頂尖前 3 篇】：
-{top_str or '無'}
+【熱度較高前 3 篇素材】：
+{top_str or '暫無'}
 
-【成效較平淡後 3 篇】：
-{bottom_str or '無'}
-
-【核心反思準則（嚴格執行防過度擬合）】：
-1. 【杜絕單一指標過度擬合】：絕不能因為某張搞笑梗圖拿到高讚，就得出「以後全部只發迷因」的幼稚結論。擴散型資產（梗圖/短影音）負責拉新，權威型資產（深度配裝/官方機制解析）負責建立忠誠度與留存，兩者不可偏廢。
-2. 【80/20 探索與利用 (Epsilon-Greedy)】：
-   - 80% 利用（Exploitation）：保留歷史驗證勝率最高的話題（如短影音翻車高光、核心前瞻情報）。
-   - 20% 強制探索（Exploration）：明確規劃 20% 的試驗配額，去測試冷門新領域、小眾玩法討論或深度故事彩蛋，防止受眾審美疲勞。
-3. 【倖存者偏差過濾】：分析高讚貼文是否屬於不可複製的偶發事件。
-4. 【微調策略提示詞】：在保持帳號核心護城河的前提下，給出微調後的全新 `tuned_strategy`。
-
-【輸出規範】：
-必須且僅能以 JSON 格式回傳，格式如下：
+【輸出規範（必須且僅能以 JSON 回傳）】：
 {{
-  "insight_summary": "150字左右的本週發布數據洞察與成效對比分析",
-  "anti_overfitting_notes": "150字左右的防過度擬合分析，明確點出 80% 核心基石與 20% 探索試驗方向",
-  "tuned_strategy": "微調後的帳號營運策略提示詞（約 60~100 字，供下週選材使用）"
+  "insight_summary": "精簡 2~3 句話：直述哪類素材與主題表現最好、玩家受眾真實反應如何。",
+  "tuned_strategy": "精簡具體的下週選材方針（50~80字：明確指引接下來多抓什麼、少發什麼，以最大化粉絲關注）"
 }}
 """
     try:
@@ -433,7 +420,6 @@ def run_weekly_reflection(acc_id: str, posts_history: list, current_strategy: st
             match = re.search(r"\{.*\}", c, re.DOTALL)
             if match:
                 data = json.loads(match.group(0))
-                # 順便生成配合當前戰役的最新 Bio
                 data["recommended_bio"] = generate_human_persona_bio(game_name, persona, campaign_status, config)
                 return data
     except Exception as e:
@@ -442,8 +428,7 @@ def run_weekly_reflection(acc_id: str, posts_history: list, current_strategy: st
     # Fallback
     fallback_bio = generate_human_persona_bio(game_name, persona, campaign_status, config)
     return {
-        "insight_summary": f"本週累計分析 {total_samples} 篇貼文數據。短影音與熱門圖文互動表現良好，受眾對即時情報敏感度高。",
-        "anti_overfitting_notes": "實施 80/20 探索利用策略：80% 鎖定高讚短片與核心前瞻，保留 20% 份額探索冷門配裝與玩家討論，防止審美疲勞。",
-        "tuned_strategy": current_strategy or "優先挑選最有料、最好笑、最具社群傳播力的即時爆文，並保留20%探索冷門硬核機制。",
+        "insight_summary": f"近期累計發布 {total_samples} 篇貼文。圖文與短片在社群上吸睛度最高，玩家對實機前瞻與深度機制最感興趣。",
+        "tuned_strategy": "優先挑選實機試玩、官方情報與高共鳴圖文素材，適度搭配玩家幽默翻車片段以維持社群活絡度。",
         "recommended_bio": fallback_bio
     }

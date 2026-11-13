@@ -24,8 +24,33 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 async def startup_event():
     asyncio.create_task(auto_scheduler_daemon())
 
+async def run_daily_bio_sync(acc_id: str):
+    """每日固定時間 AI 自動推演並同步更新 Bio"""
+    try:
+        acc = account_manager.get_account(acc_id)
+        if not acc:
+            return
+        campaign_status = account_manager.get_account_campaign_status(acc_id)
+        persona = account_manager.get_account_persona(acc_id)
+        global_settings = account_manager.get_global_settings()
+        new_bio = ai_engine.generate_human_persona_bio(
+            game_name=acc.get("game_name", "遊戲"),
+            persona=persona,
+            campaign_status=campaign_status,
+            config=global_settings
+        )
+        if new_bio:
+            account_manager.update_account_bio(acc_id, new_bio)
+            session_path = account_manager.get_account_session_path(acc_id)
+            if session_path and acc.get("target_platform", "Threads").lower() == "threads":
+                from threads_playwright import update_threads_bio
+                await update_threads_bio(new_bio, session_file=session_path)
+                print(f"🎉 [Daily Bio Sync] 帳號【{acc.get('name')}】Bio 每日自動同步完成！")
+    except Exception as e:
+        print(f"⚠️ [Daily Bio Sync Error] 帳號 {acc_id} 自動更新 Bio 異常: {e}")
+
 async def auto_scheduler_daemon():
-    """24/7 背景排程巡航守護進程：支援常規定時巡航與破裂級爆款自主提前插隊"""
+    """24/7 背景排程巡航守護進程：支援常規定時巡航、爆款插隊與每日 Bio 自動同步"""
     await asyncio.sleep(3)
     print("🕒 [Auto Scheduler] 24/7 自動巡航排程守護進程已啟動！")
     loop_count = 0
@@ -42,11 +67,24 @@ async def auto_scheduler_daemon():
                 subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc_id], cwd=BASE_DIR, env=env)
                 await asyncio.sleep(2)
 
-            # 2. 破裂級爆款雷達插隊檢測 (每 15 分鐘 = 30次輪詢)
+            # 2. 每日固定時間 AI 自動更新 Bio 檢測
+            now_hm = datetime.datetime.now().strftime("%H:%M")
+            today_date = datetime.datetime.now().strftime("%Y-%m-%d")
+            all_accs = account_manager.get_accounts()
+            for acc in all_accs:
+                if acc.get("enabled", True) and acc.get("bio_auto_update", True):
+                    update_time = acc.get("bio_update_time", "09:00")
+                    last_update = acc.get("bio_last_updated_date", "")
+                    if now_hm == update_time and last_update != today_date:
+                        acc["bio_last_updated_date"] = today_date
+                        account_manager.save_account(acc)
+                        print(f"🧬 [Bio Scheduler] 帳號【{acc.get('name')}】到達每日 Bio 更新時間 ({update_time})，啟動自動推演與同步！")
+                        asyncio.create_task(run_daily_bio_sync(acc["id"]))
+
+            # 3. 破裂級爆款雷達插隊檢測 (每 15 分鐘 = 30次輪詢)
             loop_count += 1
             if loop_count >= 30:
                 loop_count = 0
-                all_accs = account_manager.get_accounts()
                 for acc in all_accs:
                     if acc.get("enabled", True) and account_manager.is_fast_track_allowed(acc["id"]):
                         env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
@@ -211,13 +249,27 @@ async def get_persona_api(acc_id: str):
         "reflections": reflections,
         "campaign_status": campaign_status,
         "strategy_prompt": acc.get("strategy_prompt", ""),
-        "game_name": acc.get("game_name", "")
+        "game_name": acc.get("game_name", ""),
+        "current_bio": persona.get("current_bio", ""),
+        "bio_auto_update": acc.get("bio_auto_update", True),
+        "bio_update_time": acc.get("bio_update_time", "09:00")
     })
 
 @app.post("/api/accounts/{acc_id}/persona/save")
 async def save_persona_api(acc_id: str, request: Request):
-    """保存玩家真人人設設定"""
+    """保存玩家 Bio 設定與每日自動更新排程"""
     data = await request.json()
+    acc = account_manager.get_account(acc_id)
+    if acc:
+        if "bio_auto_update" in data:
+            acc["bio_auto_update"] = bool(data["bio_auto_update"])
+        if "bio_update_time" in data:
+            acc["bio_update_time"] = str(data["bio_update_time"]).strip()
+        account_manager.save_account(acc)
+    
+    if "current_bio" in data:
+        account_manager.update_account_bio(acc_id, data["current_bio"])
+    
     account_manager.save_account_persona(acc_id, data)
     return JSONResponse({"status": "success"})
 
@@ -817,119 +869,80 @@ async def serve_dashboard():
             </div>
         </div>
 
-        <!-- =================== Modal 6: AI 真人人設與防過度擬合覆盤 =================== -->
-        <div id="modal-persona-reflection" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-gray-900 border border-purple-800/60 w-full max-w-4xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+        <!-- =================== Modal 6: Threads Bio 與每週成效覆盤 =================== -->
+        <div id="modal-persona-reflection" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-900 border border-purple-800/60 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-gray-800 pb-3">
                     <div class="flex items-center gap-2.5">
-                        <span class="text-2xl">🧬</span>
-                        <div>
-                            <h3 id="persona-modal-title" class="text-base font-bold text-white flex items-center gap-2">
-                                <span>AI 玩家真人人設與每週防過度擬合覆盤</span>
-                            </h3>
-                            <p class="text-[11px] text-gray-400">杜絕冰冷搬運工辭藻 ‧ 打造具備生活感的同行者視角 ‧ 80/20 探索防過度擬合</p>
-                        </div>
+                        <span class="text-xl">🧬</span>
+                        <h3 id="persona-modal-title" class="text-sm font-bold text-white">
+                            <span>Threads Bio 與每週成效覆盤</span>
+                        </h3>
                     </div>
                     <button onclick="closePersonaModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
                 </div>
 
-                <!-- 分頁切換 (Tab Navigation) -->
-                <div class="flex border-b border-gray-800 text-xs gap-4 font-bold">
+                <!-- 分頁切換 -->
+                <div class="flex border-b border-gray-800 text-xs gap-6 font-bold">
                     <button id="tab-btn-bio" onclick="switchPersonaTab('bio')" class="pb-2.5 text-purple-400 border-b-2 border-purple-500 transition">
-                        <span>🎮 玩家人設與生活感 Bio</span>
+                        <span>💬 帳號 Bio (個人簡介) 管理</span>
                     </button>
                     <button id="tab-btn-reflection" onclick="switchPersonaTab('reflection')" class="pb-2.5 text-gray-400 hover:text-gray-200 transition">
-                        <span>🧠 每週覆盤與防過度擬合演算法 (80/20)</span>
+                        <span>📊 每週成效覆盤與方針</span>
                     </button>
                 </div>
 
-                <!-- TAB 1: 玩家人設與生活感 Bio -->
+                <!-- TAB 1: 帳號 Bio (個人簡介) 管理 -->
                 <div id="tab-content-bio" class="space-y-4 text-xs">
-                    <!-- Bio 預覽與同步區 -->
-                    <div class="bg-gradient-to-br from-purple-950/40 via-indigo-950/20 to-gray-950 border border-purple-900/40 p-4 rounded-xl space-y-3">
+                    <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-purple-200 flex items-center gap-1.5 text-xs">
-                                <span>💬 當前動態戰役 Bio (個人簡介)</span>
-                            </span>
+                            <span class="font-bold text-gray-200">當前 Bio 內容 (可直接手動編輯修改)：</span>
                             <div class="flex items-center gap-2">
-                                <button type="button" onclick="generatePersonaBio()" class="bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition shadow-md shadow-purple-900/30 flex items-center gap-1">
-                                    <span>✨ 依當前戰役 AI 生成生活感 Bio</span>
+                                <button type="button" onclick="generatePersonaBio()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-[11px] flex items-center gap-1 shadow-sm">
+                                    <span>✨ AI 依戰役節奏重新生成</span>
                                 </button>
-                                <button type="button" onclick="syncBioToThreads()" id="btn-sync-bio" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition shadow-md shadow-emerald-900/30 flex items-center gap-1">
-                                    <span>🚀 一鍵同步至 Threads</span>
+                                <button type="button" onclick="syncBioToThreads()" id="btn-sync-bio" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-[11px] flex items-center gap-1 shadow-sm">
+                                    <span>🚀 儲存並同步至 Threads</span>
                                 </button>
                             </div>
                         </div>
 
-                        <textarea id="persona-live-bio" rows="3" placeholder="點擊上方『AI 生成生活感 Bio』即可依據當前人設與倒數節奏自動生成..." class="w-full bg-gray-950 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-100 font-sans leading-relaxed focus:border-purple-500 focus:outline-none"></textarea>
-                        
-                        <div class="text-[11px] text-gray-400 flex items-center gap-2">
-                            <span>💡 <strong>真人小編原則</strong>：以「熱愛遊戲的同行者」視角撰寫，融入生活感自嘲（假單已送、手殘貓車），嚴禁出現「搬運/情報站/彙整」。</span>
-                        </div>
+                        <textarea id="persona-live-bio" rows="4" placeholder="在此直接輸入或點擊 AI 生成 Bio..." class="w-full bg-gray-950 border border-gray-700 rounded-xl p-3 text-xs text-gray-100 font-sans leading-relaxed focus:border-purple-500 focus:outline-none"></textarea>
                     </div>
 
-                    <!-- 人設微調表單 -->
-                    <div class="bg-gray-950/70 border border-gray-800 p-4 rounded-xl space-y-3">
-                        <h4 class="font-bold text-gray-200 flex items-center gap-1.5">
-                            <span>🎭 玩家真人人設細節 (Persona Settings)</span>
-                        </h4>
-                        <form onsubmit="handlePersonaFormSubmit(event)" class="space-y-3">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-gray-400 text-[11px] mb-1">玩家身分人設 (Identity)*</label>
-                                    <input id="persona-identity" required placeholder="例如：每天上班摸魚的大劍老獵犬 / 嘴硬心軟的排位排骨仔" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-100 focus:border-purple-500 focus:outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-gray-400 text-[11px] mb-1">特色口癖 / 常掛嘴邊的話 (Catchphrase)*</label>
-                                    <input id="persona-catchphrase" placeholder="例如：假單已經送出去了！/ 誰又在排位搞事" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-100 focus:border-purple-500 focus:outline-none">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-gray-400 text-[11px] mb-1">說話語氣與性格特徵 (Tone & Style)*</label>
-                                <input id="persona-tone-style" placeholder="例如：幽默、自嘲、熱血、愛用玩家社群黑話、帶有濃厚生活感" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-100 focus:border-purple-500 focus:outline-none">
-                            </div>
-                            <div class="flex justify-end pt-1">
-                                <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-purple-300 border border-purple-800/40 px-4 py-1.5 rounded-lg text-xs font-bold transition">
-                                    💾 儲存真人人設
-                                </button>
-                            </div>
-                        </form>
+                    <!-- 每日自動更新排程設定 -->
+                    <div class="bg-gray-950/80 border border-gray-800 p-3.5 rounded-xl flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" id="chk-bio-auto-update" class="w-4 h-4 rounded bg-gray-900 border-gray-700 text-purple-600 focus:ring-0">
+                            <label for="chk-bio-auto-update" class="font-medium text-gray-200 cursor-pointer">
+                                每日固定時間由 AI 自動推演並同步更新 Bio (隨重大戰役動態倒數)
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-400">每日更新時間：</span>
+                            <input type="time" id="input-bio-update-time" value="09:00" class="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1 text-xs text-purple-300 font-mono focus:border-purple-500 focus:outline-none">
+                            <button type="button" onclick="saveBioScheduleSettings()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1 rounded-lg text-xs font-semibold border border-gray-700 transition">
+                                儲存排程
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- TAB 2: 每週覆盤與防過度擬合演算法 (80/20) -->
+                <!-- TAB 2: 每週成效覆盤 (Weekly Reflection) -->
                 <div id="tab-content-reflection" class="hidden space-y-4 text-xs">
-                    <!-- 防過度擬合指標卡片 -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div class="bg-gray-950/80 border border-emerald-900/40 p-3 rounded-xl">
-                            <span class="text-[11px] text-emerald-400 block font-bold">80% 成熟高勝率基石</span>
-                            <span class="text-xs text-gray-300 mt-1 block">鎖定已驗證有效之短影音翻車高光與核心情報，保障受眾底線。</span>
-                        </div>
-                        <div class="bg-gray-950/80 border border-amber-900/40 p-3 rounded-xl">
-                            <span class="text-[11px] text-amber-400 block font-bold">20% 強制探索創新 (Epsilon)</span>
-                            <span class="text-xs text-gray-300 mt-1 block">保留配額試驗冷門配裝、小眾討論與故事彩蛋，杜絕審美疲勞。</span>
-                        </div>
-                        <div class="bg-gray-950/80 border border-purple-900/40 p-3 rounded-xl">
-                            <span class="text-[11px] text-purple-400 block font-bold">雙重資產平衡機制</span>
-                            <span class="text-xs text-gray-300 mt-1 block">嚴格防禦局部最優：禁止以過路擴散梗圖徹底取代權威留存攻略。</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between bg-gray-950/60 border border-gray-800 p-3.5 rounded-xl">
+                    <div class="flex items-center justify-between bg-gray-950/80 border border-gray-800 p-3.5 rounded-xl">
                         <div>
-                            <span class="font-bold text-white block">觸發 AI 深度每週覆盤 (Weekly Reflection)</span>
-                            <span class="text-[11px] text-gray-400">分析過去貼文成效數據，過濾倖存者偏差，自動微調選材 Strategy Prompt</span>
+                            <span class="font-bold text-white block">觸發 AI 深度每週覆盤</span>
+                            <span class="text-[11px] text-gray-400">分析真實發布成效，提煉下週具體選材方針</span>
                         </div>
-                        <button type="button" onclick="runWeeklyReflection()" id="btn-run-reflection" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-md shadow-purple-900/30 flex items-center gap-1.5 whitespace-nowrap">
+                        <button type="button" onclick="runWeeklyReflection()" id="btn-run-reflection" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-md flex items-center gap-1.5 whitespace-nowrap">
                             <span>🧠 立即執行 AI 週覆盤</span>
                         </button>
                     </div>
 
                     <!-- 歷史覆盤反思筆記列表 -->
-                    <div class="space-y-2.5">
-                        <h4 class="font-bold text-gray-300 flex items-center gap-1.5">
-                            <span>📝 覆盤反思筆記歷史 (Reflection Logs)</span>
-                        </h4>
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-gray-300">📝 營運覆盤歷史記錄</h4>
                         <div id="reflection-logs-container" class="space-y-3">
                             <!-- 動態渲染覆盤筆記卡片 -->
                         </div>
@@ -1768,30 +1781,28 @@ async def serve_dashboard():
                 }}
             }}
 
-            // =================== AI 真人人設與防過度擬合覆盤 Modal ===================
+            // =================== Threads Bio 與每週成效覆盤 Modal ===================
             let currentPersonaAccId = null;
 
             async function openPersonaModal(accId) {{
                 currentPersonaAccId = accId;
                 const acc = (currentData?.accounts || []).find(a => a.id === accId);
                 const accName = acc ? acc.name : accId;
-                document.getElementById('persona-modal-title').innerHTML = `<span>AI 玩家真人人設與每週防過度擬合覆盤 - 【${{escapeHtml(accName)}}】</span>`;
+                document.getElementById('persona-modal-title').innerHTML = `<span>Threads Bio 與每週成效覆盤 - 【${{escapeHtml(accName)}}】</span>`;
                 switchPersonaTab('bio');
 
                 try {{
                     const res = await fetch(`/api/accounts/${{accId}}/persona`);
                     const d = await res.json();
                     
-                    const p = d.persona || {{}};
-                    document.getElementById('persona-identity').value = p.identity || '';
-                    document.getElementById('persona-catchphrase').value = p.catchphrase || '';
-                    document.getElementById('persona-tone-style').value = p.tone_style || '';
-                    document.getElementById('persona-live-bio').value = p.current_bio || '';
+                    document.getElementById('persona-live-bio').value = d.current_bio || '';
+                    document.getElementById('chk-bio-auto-update').checked = d.bio_auto_update !== false;
+                    document.getElementById('input-bio-update-time').value = d.bio_update_time || '09:00';
 
                     renderReflectionLogs(d.reflections || []);
                     document.getElementById('modal-persona-reflection').classList.remove('hidden');
                 }} catch (e) {{
-                    alert("載入玩家人設與覆盤資料失敗: " + e);
+                    alert("載入資料失敗: " + e);
                 }}
             }}
 
@@ -1818,14 +1829,12 @@ async def serve_dashboard():
                 }}
             }}
 
-            async function handlePersonaFormSubmit(e) {{
-                e.preventDefault();
+            async function saveBioScheduleSettings() {{
                 const accId = currentPersonaAccId;
                 const payload = {{
-                    identity: document.getElementById('persona-identity').value.trim(),
-                    catchphrase: document.getElementById('persona-catchphrase').value.trim(),
-                    tone_style: document.getElementById('persona-tone-style').value.trim(),
-                    current_bio: document.getElementById('persona-live-bio').value.trim()
+                    current_bio: document.getElementById('persona-live-bio').value.trim(),
+                    bio_auto_update: document.getElementById('chk-bio-auto-update').checked,
+                    bio_update_time: document.getElementById('input-bio-update-time').value.trim()
                 }};
 
                 try {{
@@ -1836,11 +1845,11 @@ async def serve_dashboard():
                     }});
                     const d = await res.json();
                     if (d.status === 'success') {{
-                        alert("玩家真人人設已成功儲存！");
+                        alert("✅ 每日 Bio 自動更新排程已儲存！");
                         fetchDashboardData();
                     }}
                 }} catch (err) {{
-                    alert("儲存人設失敗: " + err);
+                    alert("儲存排程失敗: " + err);
                 }}
             }}
 
@@ -1848,7 +1857,7 @@ async def serve_dashboard():
                 const accId = currentPersonaAccId;
                 const bioArea = document.getElementById('persona-live-bio');
                 const origVal = bioArea.value;
-                bioArea.value = "⏳ AI 正在推演具有玩家生活感與倒數節奏的 Bio，請稍候...";
+                bioArea.value = "⏳ AI 正在依據當前戰役倒數推演生活感 Bio，請稍候...";
                 
                 try {{
                     const res = await fetch(`/api/accounts/${{accId}}/generate-bio`, {{ method: 'POST' }});
@@ -1869,16 +1878,23 @@ async def serve_dashboard():
                 const accId = currentPersonaAccId;
                 const bioText = document.getElementById('persona-live-bio').value.trim();
                 if (!bioText) {{
-                    alert("請先輸入或點擊 AI 生成 Bio！");
+                    alert("請先輸入 Bio 內容！");
                     return;
                 }}
 
                 const btn = document.getElementById('btn-sync-bio');
                 const origHtml = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = `<span>⏳ 正在透過 Playwright 同步至 Threads...</span>`;
+                btn.innerHTML = `<span>⏳ 正在同步至 Threads...</span>`;
 
                 try {{
+                    // 先存入帳號設定
+                    await fetch(`/api/accounts/${{accId}}/persona/save`, {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{ current_bio: bioText }})
+                    }});
+
                     const res = await fetch(`/api/accounts/${{accId}}/sync-bio`, {{
                         method: 'POST',
                         headers: {{ 'Content-Type': 'application/json' }},
@@ -1904,7 +1920,7 @@ async def serve_dashboard():
                 const btn = document.getElementById('btn-run-reflection');
                 const origHtml = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = `<span>🧠 AI 分析反思中 (80/20 探索/利用)...</span>`;
+                btn.innerHTML = `<span>🧠 AI 分析覆盤中...</span>`;
 
                 try {{
                     const res = await fetch(`/api/accounts/${{accId}}/run-reflection`, {{ method: 'POST' }});
@@ -1913,10 +1929,7 @@ async def serve_dashboard():
                         const rRes = await fetch(`/api/accounts/${{accId}}/persona`);
                         const rData = await rRes.json();
                         renderReflectionLogs(rData.reflections || []);
-                        if (d.reflection && d.reflection.recommended_bio) {{
-                            document.getElementById('persona-live-bio').value = d.reflection.recommended_bio;
-                        }}
-                        alert("✅ 每週深度覆盤完成！已更新防過度擬合策略並記錄反思筆記。");
+                        alert("✅ 每週成效覆盤完成！已更新下週選材方針。");
                         fetchDashboardData();
                     }} else {{
                         alert("覆盤失敗: " + (d.message || "未知原因"));
@@ -1932,37 +1945,26 @@ async def serve_dashboard():
             function renderReflectionLogs(reflections) {{
                 const container = document.getElementById('reflection-logs-container');
                 if (!reflections || reflections.length === 0) {{
-                    container.innerHTML = `<div class="text-xs text-gray-500 p-4 bg-gray-950/60 rounded-xl border border-gray-800 text-center">尚無覆盤歷史記錄。點擊上方『立即執行 AI 週覆盤』開始第 1 次反思與防過度擬合優化！</div>`;
+                    container.innerHTML = `<div class="text-xs text-gray-500 p-4 bg-gray-950/60 rounded-xl border border-gray-800 text-center">尚無覆盤歷史記錄。點擊上方『立即執行 AI 週覆盤』開始分析成效！</div>`;
                     return;
                 }}
 
                 const sorted = [...reflections].reverse();
                 container.innerHTML = sorted.map((ref, idx) => `
                     <div class="bg-gray-950/90 border border-gray-800 p-3.5 rounded-xl space-y-2">
-                        <div class="flex items-center justify-between text-[11px] border-b border-gray-800/80 pb-1.5">
-                            <span class="font-bold text-purple-300">📅 第 ${{sorted.length - idx}} 次反思覆盤 (${{ref.created_at || '剛剛'}})</span>
-                            <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800/60 font-mono text-[10px]">
-                                探索率 ε: 20%
-                            </span>
+                        <div class="flex items-center justify-between text-[11px] border-b border-gray-800/80 pb-1.5 font-bold text-purple-300">
+                            <span>📅 營運覆盤記錄 (${{ref.created_at || '剛剛'}})</span>
                         </div>
                         
-                        <div class="text-gray-300 leading-relaxed text-[11px]">
-                            ${{escapeHtml(ref.insight_summary || ref.reflection_summary || '')}}
+                        <div class="text-gray-200 text-xs leading-relaxed">
+                            <span class="text-emerald-400 font-bold">💡 成效觀察：</span>
+                            <span>${{escapeHtml(ref.insight_summary || ref.reflection_summary || '')}}</span>
                         </div>
 
-                        ${{ref.anti_overfitting_notes ? `
-                            <div class="bg-gray-900/60 border border-gray-800/60 p-2.5 rounded-lg text-[10px] space-y-1">
-                                <div class="text-emerald-400 font-semibold">🛡️ 防過度擬合評估 (80/20 探索與利用)：</div>
-                                <div class="text-gray-300">${{escapeHtml(typeof ref.anti_overfitting_notes === 'string' ? ref.anti_overfitting_notes : JSON.stringify(ref.anti_overfitting_notes))}}</div>
-                            </div>
-                        ` : ''}}
-
                         ${{ref.tuned_strategy ? `
-                            <div class="pt-1">
-                                <span class="text-[10px] text-gray-500 font-bold block mb-0.5">🚀 已應用至該帳號的新選材策略方針 (Tuned Strategy):</span>
-                                <div class="bg-indigo-950/30 border border-indigo-900/40 p-2 rounded text-[11px] text-indigo-200 font-mono">
-                                    ${{escapeHtml(ref.tuned_strategy)}}
-                                </div>
+                            <div class="pt-1 border-t border-gray-800/60 text-xs text-gray-300 leading-relaxed">
+                                <span class="text-indigo-400 font-bold">🎯 下週選材方針：</span>
+                                <span>${{escapeHtml(ref.tuned_strategy)}}</span>
                             </div>
                         ` : ''}}
                     </div>

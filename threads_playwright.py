@@ -197,56 +197,98 @@ async def update_threads_bio(new_bio: str, session_file: str = "threads_session.
         try:
             print("[Threads Bio Updater] 正在前往 Threads 個人主頁...")
             await page.goto("https://www.threads.net/", wait_until="domcontentloaded")
-            await asyncio.sleep(3)
+            await asyncio.sleep(2.5)
 
-            # 點擊左下角個人頭貼/個人檔案連結進入個人首頁
-            profile_link = page.locator("a[href*='/@']").first
-            if await profile_link.is_visible():
-                await profile_link.click()
-                await asyncio.sleep(3)
+            # 透過 evaluate 尋找自己的個人檔案連結
+            profile_url = await page.evaluate('''() => {
+                const links = Array.from(document.querySelectorAll('a[href*="/@"]'));
+                for (const a of links) {
+                    if (a.href && !a.href.includes('/post/')) {
+                        return a.href;
+                    }
+                }
+                return null;
+            }''')
 
-            # 尋找 "Edit profile" 或 "編輯個人檔案"
-            edit_btn = page.get_by_role("button", name="Edit profile").or_(
-                page.locator("button:has-text('編輯個人檔案')")
+            if profile_url:
+                print(f"[Threads Bio Updater] 前往個人主頁: {profile_url}")
+                await page.goto(profile_url, wait_until="domcontentloaded")
+                await asyncio.sleep(2.5)
+
+            # 點擊 Edit profile / 編輯個人檔案
+            edit_btn = page.locator("div:text-is('Edit profile')").or_(
+                page.locator("button:text-is('Edit profile')")
             ).or_(
-                page.locator("div[role='button']:has-text('Edit profile')")
-            ).or_(
-                page.locator("div[role='button']:has-text('編輯個人檔案')")
+                page.locator("text='編輯個人檔案'")
             ).first
+
+            if not await edit_btn.is_visible():
+                fallback_link = page.locator("a[href*='/@']").first
+                if await fallback_link.is_visible():
+                    await fallback_link.click()
+                    await asyncio.sleep(2.5)
+                    edit_btn = page.locator("div:text-is('Edit profile')").or_(
+                        page.locator("button:text-is('Edit profile')")
+                    ).or_(
+                        page.locator("text='編輯個人檔案'")
+                    ).first
 
             if await edit_btn.is_visible():
                 await edit_btn.click()
+                await asyncio.sleep(2)
+
+                # 點擊 Bio 欄位進入 Edit bio 子視窗
+                clicked_bio = await page.evaluate('''() => {
+                    const dialog = document.querySelector('div[role="dialog"]') || document.body;
+                    const allElements = Array.from(dialog.querySelectorAll('div, span'));
+                    for (const el of allElements) {
+                        if (el.children.length === 0 && (el.innerText.trim() === 'Bio' || el.innerText.trim() === '簡介' || el.innerText.trim() === '+ Write bio' || el.innerText.trim() === '+ 寫下簡介')) {
+                            const row = el.closest('div[class*="x"]') || el.parentElement;
+                            if (row) {
+                                row.click();
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }''')
+
+                if not clicked_bio:
+                    bio_fallback = page.locator("text='+ Write bio'").or_(
+                        page.locator("text='寫下簡介'")
+                    ).or_(
+                        page.locator("text='Bio'")
+                    ).first
+                    if await bio_fallback.is_visible():
+                        await bio_fallback.click()
+
                 await asyncio.sleep(1.5)
 
-                # 尋找 Bio 輸入框
-                bio_input = page.locator("textarea").or_(
-                    page.locator("input[placeholder*='Bio']")
-                ).or_(
-                    page.locator("div[contenteditable='true']")
-                ).first
-
-                if await bio_input.is_visible():
-                    await bio_input.click()
-                    await page.keyboard.press("Control+A")
-                    await page.keyboard.press("Backspace")
-                    await page.keyboard.type(new_bio, delay=20)
+                # 尋找 Edit bio 子視窗的 textarea
+                textarea = page.locator("textarea").first
+                if await textarea.is_visible():
+                    await textarea.fill(new_bio)
                     await asyncio.sleep(1)
 
-                    # 尋找 "Done" 或 "完成" 按鈕
-                    done_btn = page.get_by_role("button", name="Done").or_(
-                        page.locator("button:has-text('完成')")
-                    ).or_(
-                        page.locator("div[role='button']:has-text('Done')")
-                    ).or_(
-                        page.locator("div[role='button']:has-text('完成')")
-                    ).first
+                    # 點擊 Edit bio 的 Done
+                    done_btns = await page.locator("text='Done'").or_(page.locator("text='完成'")).all()
+                    for d in reversed(done_btns):
+                        if await d.is_visible():
+                            await d.click()
+                            await asyncio.sleep(1.5)
+                            break
 
-                    if await done_btn.is_visible():
-                        await done_btn.click()
-                        await asyncio.sleep(3)
-                        print(f"✅ [Threads Bio Updater] 成功更新 Bio：{new_bio}")
-                        await browser.close()
-                        return True
+                    # 點擊 Edit profile modal 最下方的 Done
+                    final_done = await page.locator("text='Done'").or_(page.locator("text='完成'")).all()
+                    for d in reversed(final_done):
+                        if await d.is_visible():
+                            await d.click()
+                            await asyncio.sleep(2.5)
+                            break
+
+                    print(f"✅ [Threads Bio Updater] 成功更新 Bio：{new_bio}")
+                    await browser.close()
+                    return True
 
             print("⚠️ [Threads Bio Updater] 未能找到編輯簡介輸入框或按鈕。")
             await browser.close()
