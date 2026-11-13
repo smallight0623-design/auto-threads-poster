@@ -17,6 +17,7 @@ x_session.json
 session.json
 accounts/**/session.json
 accounts/**/history.json
+accounts/**/comment_history.json
 accounts/**/status.json
 accounts/**/error.json
 accounts/accounts.json

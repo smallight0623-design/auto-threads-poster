@@ -24,11 +24,19 @@
 4. **Playwright 網頁自動化發布（免圖床、免官方 API 審核）**
    - 本地檔案直接拖曳/上傳至 Threads，**完全不需要另外花錢租圖床或 CDN 伺服器**。
    - 採用 Session Cookie 登入機制，繞過機房 IP 與雙步驟驗證干擾。
-5. **外接視覺化主控台（Web Dashboard）**
+5. **💬 24H Threads 留言區海巡獲客 Agent（精準獲客公關）**
+   - **全自動雷達海巡**：24 小時定時在 Threads 官方搜尋指定遊戲/主題關鍵字（如：魔物獵人、MHWilds、荒野、傳說對決），即時嗅探討論熱度高的新貼文。
+   - **真人玩家同行者神回覆（AI Witty Commenter）**：以「同為熱愛該遊戲、有生活感、幽默自嘲」的真實玩家視角切入，產出精煉（1~2 句）且充滿社群黑話的神回覆，絕無「求追蹤/小編」等廣告感。
+   - **高轉換導流閉環**：當路人被神回覆吸引點進個人主頁時，看到的是充滿動態倒數生活感的 Bio 與滿滿熱門精華，自然大幅提升追蹤轉換率。
+   - **嚴格防封控機制**：支援每日安全上限（預設 10 則）、單次巡邏上限（預設 1~2 則）、自動過濾自身帳號與歷史重複留言。
+6. **🧬 動態真人 Bio 隨重大戰役動態更新與自動同步**
+   - 擺脫搬運工的冰冷機器感，隨遊戲發售日、測試倒數或新賽季節奏自動推演具生活感的自我介紹。
+   - 支援每日定時自動透過 Playwright 無縫同步至 Threads 個人主頁。
+7. **外接視覺化主控台（Web Dashboard）**
    - **單一/批次點火**：支援「⚡ 點火此帳號」獨立發布，也支援「⚡ 一鍵點火所有啟用帳號」全域批次發布。
-   - **視覺化管理**：支援隨時新增、開關啟用/暫停、編輯設定、一鍵複製 Session、刪除工作台。
+   - **海巡獲客面板**：提供「💬 海巡獲客」專屬彈窗，支援即時查看今日留言進度、自訂監控關鍵字、一鍵觸發手動海巡、以及審閱歷史神回覆記錄。
    - **獨立 Bug 診斷**：若任一帳號執行遇到例外，該卡片直接展開紅色錯誤區，清楚標註出錯步驟並提供「📋 複製錯誤日誌」按鈕。
-6. **零伺服器成本運轉（GitHub Actions + 外接點火器）**
+8. **零伺服器成本運轉（GitHub Actions + 外接點火器）**
    - 支援透過 cron-job.org 發送 Webhook 喚醒 GitHub Actions 免費運行，依序為所有啟用的帳號排隊發布。
 
 ---
@@ -51,7 +59,8 @@ auto_threads_poster/
 ├── reddit_scraper.py            # Playwright 無痕模式 Reddit 熱門貼文採集器 (防 403 阻擋)
 ├── media_handler.py             # 圖片下載與 yt-dlp 影音合成壓制器
 ├── threads_playwright.py        # Playwright Threads 自動登入與直傳發文引擎
-├── main.py                      # 主調度流程 (支援 --account <id> 與 --all 批次執行)
+├── threads_commenter.py         # Threads 24H 留言區海巡獲客與神回覆引擎
+├── main.py                      # 主調度流程 (支援 --account <id>, --all 與 --patrol)
 ├── dashboard.py                 # 矩陣多帳號視覺化主控台 (FastAPI + Tailwind)
 ├── login_local.py               # 本機一次性登入導出 Session 工具
 ├── requirements.txt             # Python 依賴清單
@@ -115,6 +124,9 @@ python main.py --all
 
 # 指定單一帳號工作台執行
 python main.py --account acc_primary
+
+# 執行指定帳號的 Threads 留言區海巡獲客
+python main.py --account acc_primary --patrol
 ```
 
 ---

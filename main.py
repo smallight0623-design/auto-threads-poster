@@ -218,7 +218,16 @@ async def main():
     parser.add_argument("--account", type=str, help="指定單一帳號 ID 執行發布")
     parser.add_argument("--all", action="store_true", help="依序執行所有啟用的帳號工作台")
     parser.add_argument("--fast-track", action="store_true", help="以破裂級爆款自主插隊模式掃描執行")
+    parser.add_argument("--patrol", action="store_true", help="執行指定帳號的 Threads 留言區海巡獲客")
     args = parser.parse_args()
+
+    if args.patrol:
+        import threads_commenter
+        target_acc = args.account or "acc_primary"
+        print(f"💬 [Main CLI] 啟動帳號【{target_acc}】Threads 海巡獲客留言...")
+        res = await threads_commenter.run_threads_patrol_async(target_acc)
+        print("海巡結果:", json.dumps(res, ensure_ascii=False, indent=2))
+        return
 
     if args.account:
         await run_for_account(args.account, is_fast_track=args.fast_track)

@@ -14,8 +14,10 @@ if sys.platform == "win32":
         pass
 
 import asyncio
+import datetime
 import account_manager
 import ai_engine
+import threads_commenter
 
 app = FastAPI(title="Threads 矩陣多帳號自動發布主控台")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -91,6 +93,19 @@ async def auto_scheduler_daemon():
                         subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc["id"], "--fast-track"], cwd=BASE_DIR, env=env)
                         await asyncio.sleep(2)
 
+            # 4. Threads 獲客海巡留言巡邏 (每 45 分鐘 = 90 次輪詢，或依定時檢測)
+            if loop_count % 90 == 0:
+                for acc in all_accs:
+                    if acc.get("enabled", True) and acc.get("comment_agent_enabled", True) and acc.get("target_platform", "Threads").lower() == "threads":
+                        try:
+                            t_count = threads_commenter.get_today_comment_count(acc["id"])
+                            d_limit = int(acc.get("comment_daily_limit") or 10)
+                            if t_count < d_limit:
+                                print(f"💬 [Comment Scheduler] 帳號【{acc.get('name')}】啟動定期海巡獲客巡邏 (今日進度 {t_count}/{d_limit})...")
+                                asyncio.create_task(threads_commenter.run_threads_patrol_async(acc["id"], max_comments=int(acc.get("comment_single_limit") or 2)))
+                        except Exception as ce:
+                            print(f"⚠️ [Comment Scheduler] 海巡異常: {ce}")
+
         except Exception as e:
             print(f"⚠️ [Auto Scheduler Error] {e}")
         await asyncio.sleep(30)
@@ -122,13 +137,15 @@ async def get_dashboard_data():
         error = account_manager.get_account_error(acc_id)
         session_content = account_manager.get_account_session_content(acc_id)
         has_session = bool(session_content)
+        today_comments = threads_commenter.get_today_comment_count(acc_id)
 
         accounts_detail.append({
             **acc,
             "has_session": has_session,
             "session_length": len(session_content) if has_session else 0,
             "status": status,
-            "error": error
+            "error": error,
+            "today_comments": today_comments
         })
 
     return JSONResponse({
@@ -347,6 +364,46 @@ async def run_reflection_api(acc_id: str):
 
     account_manager.add_account_reflection(acc_id, reflection_res)
     return JSONResponse({"status": "success", "reflection": reflection_res})
+
+@app.get("/api/accounts/{acc_id}/comments")
+async def get_account_comments_api(acc_id: str):
+    """取得帳號的海巡留言設定與近期記錄"""
+    acc = account_manager.get_account(acc_id)
+    if not acc:
+        return JSONResponse({"status": "error", "message": "帳號不存在"}, status_code=404)
+    history = threads_commenter.load_comment_history(acc_id)
+    today_count = threads_commenter.get_today_comment_count(acc_id)
+    return JSONResponse({
+        "status": "success",
+        "comment_agent_enabled": acc.get("comment_agent_enabled", True),
+        "comment_daily_limit": int(acc.get("comment_daily_limit") or 10),
+        "comment_single_limit": int(acc.get("comment_single_limit") or 2),
+        "comment_keywords": acc.get("comment_keywords", []),
+        "last_comment_time": acc.get("last_comment_time", ""),
+        "today_count": today_count,
+        "history": history[-30:][::-1]
+    })
+
+@app.post("/api/accounts/{acc_id}/comments/save")
+async def save_account_comments_api(acc_id: str, request: Request):
+    """保存帳號海巡關鍵字與限制設定"""
+    data = await request.json()
+    account_manager.save_comment_settings(acc_id, data)
+    return JSONResponse({"status": "success", "message": "海巡設定已成功儲存！"})
+
+@app.post("/api/accounts/{acc_id}/comments/patrol")
+async def trigger_account_comments_patrol_api(acc_id: str):
+    """手動一鍵觸發一次 Threads 海巡獲客留言"""
+    acc = account_manager.get_account(acc_id)
+    if not acc:
+        return JSONResponse({"status": "error", "message": "帳號不存在"}, status_code=404)
+    single_limit = int(acc.get("comment_single_limit") or 2)
+    try:
+        res = await threads_commenter.run_threads_patrol_async(acc_id, max_comments=single_limit)
+        return JSONResponse(res)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": str(e)}, status_code=500)
+
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_dashboard():
@@ -955,6 +1012,99 @@ async def serve_dashboard():
             </div>
         </div>
 
+        <!-- =================== Modal 7: Threads 24H 留言海巡獲客 Agent =================== -->
+        <div id="modal-comment-agent" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-900 border border-emerald-800/60 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xl">💬</span>
+                        <div>
+                            <h3 id="comment-modal-title" class="text-sm font-bold text-white flex items-center gap-2">
+                                <span>Threads 24H 留言區海巡獲客 Agent</span>
+                            </h3>
+                            <span class="text-[11px] text-gray-400 block mt-0.5">
+                                24 小時雷達巡邏・真人玩家同行者神回覆・自然導流鐵粉・零行銷廣告感
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="closeCommentModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
+                </div>
+
+                <!-- 狀態儀表橫條 -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
+                        <span class="text-gray-400 block text-[11px]">今日海巡留言進度</span>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <span id="comment-today-count" class="text-lg font-extrabold text-emerald-400">0</span>
+                            <span id="comment-today-limit" class="text-xs text-gray-500">/ 10 則上限</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
+                        <span class="text-gray-400 block text-[11px]">Agent 巡邏狀態</span>
+                        <div class="mt-1 flex items-center gap-1.5">
+                            <span id="comment-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span id="comment-status-text" class="font-bold text-emerald-300">守護巡航中</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
+                        <span class="text-gray-400 block text-[11px]">上次留言發布時間</span>
+                        <span id="comment-last-time" class="font-medium text-gray-300 font-mono block mt-1">尚未執行</span>
+                    </div>
+                </div>
+
+                <!-- 核心控制與關鍵字設定卡片 -->
+                <div class="bg-gray-950/80 border border-gray-800 p-4 rounded-xl space-y-3.5 text-xs">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800/80 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" id="chk-comment-agent-enabled" class="w-4 h-4 rounded bg-gray-900 border-gray-700 text-emerald-600 focus:ring-0 cursor-pointer">
+                            <label for="chk-comment-agent-enabled" class="font-bold text-gray-200 cursor-pointer">
+                                啟用 24H Threads 留言區海巡自動獲客
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="triggerManualPatrol()" id="btn-manual-patrol" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-3.5 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1.5">
+                                <span>⚡ 立即執行一次海巡留言</span>
+                            </button>
+                            <button type="button" onclick="saveCommentAgentSettings()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-700 transition">
+                                💾 儲存設定
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div class="md:col-span-2 space-y-1">
+                            <label class="font-bold text-gray-300 block">監控搜尋關鍵字 (以逗號分隔)：</label>
+                            <input type="text" id="input-comment-keywords" placeholder="例如：魔物獵人, MHWilds, 荒野" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none font-mono">
+                            <span class="text-[10px] text-gray-500">Agent 會定時在 Threads 官方搜尋這些主題，尋找新熱門貼文進行神回覆</span>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="font-bold text-gray-300 block">每日安全上限：</label>
+                            <input type="number" id="input-comment-daily-limit" value="10" min="1" max="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-emerald-300 focus:border-emerald-500 focus:outline-none font-mono">
+                            <span class="text-[10px] text-gray-500">保護帳號防範平台封控 (建議 5~15 則)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 近期海巡神回覆記錄 -->
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-gray-200 flex items-center gap-1.5">
+                            <span>📜 近期海巡獲客留言記錄</span>
+                        </h4>
+                        <span class="text-[10px] text-gray-400">已自動排除自身貼文與重複留言</span>
+                    </div>
+
+                    <div id="comment-history-container" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                        <!-- 動態渲染留言記錄 -->
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2 border-t border-gray-800">
+                    <button type="button" onclick="closeCommentModal()" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-xs">關閉視窗</button>
+                </div>
+            </div>
+        </div>
+
         <script>
             const AVAILABLE_REGIONS = {regions_json};
             let currentData = null;
@@ -1127,6 +1277,11 @@ async def serve_dashboard():
                                 <div class="flex items-center gap-2">
                                     ${{sessionBadge}}
                                     ${{stateBadge}}
+                                    ${{acc.target_platform === 'Threads' ? `
+                                        <span class="text-[10px] px-2 py-0.5 rounded font-mono ${{acc.today_comments > 0 ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-700/60' : 'bg-gray-900 text-gray-400 border border-gray-800'}}">
+                                            💬 今日海巡: ${{acc.today_comments || 0}} 則
+                                        </span>
+                                    ` : ''}}
                                 </div>
                                 <span class="text-[10px] text-gray-500">${{acc.status?.timestamp || ''}}</span>
                             </div>
@@ -1170,6 +1325,11 @@ async def serve_dashboard():
                                 <button onclick="openPersonaModal('${{acc.id}}')" class="bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900 hover:to-indigo-900 text-purple-200 border border-purple-700/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 shadow-sm">
                                     <span>🧬 AI 人設與覆盤</span>
                                 </button>
+                                ${{acc.target_platform === 'Threads' ? `
+                                    <button onclick="openCommentModal('${{acc.id}}')" class="bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900 hover:to-teal-900 text-emerald-200 border border-emerald-700/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 shadow-sm">
+                                        <span>💬 海巡獲客</span>
+                                    </button>
+                                ` : ''}}
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <button onclick="openEditAccountModal('${{acc.id}}')" class="text-gray-400 hover:text-white px-2 py-1 text-xs">
@@ -1967,6 +2127,146 @@ async def serve_dashboard():
                                 <span>${{escapeHtml(ref.tuned_strategy)}}</span>
                             </div>
                         ` : ''}}
+                    </div>
+                `).join('');
+            }}
+
+            // =================== Threads 留言海巡獲客 Agent Modal ===================
+            let currentCommentAccId = null;
+
+            async function openCommentModal(accId) {{
+                currentCommentAccId = accId;
+                const acc = (currentData?.accounts || []).find(a => a.id === accId);
+                const accName = acc ? acc.name : accId;
+                document.getElementById('comment-modal-title').innerHTML = `<span>Threads 24H 留言區海巡獲客 Agent - 【${{escapeHtml(accName)}}】</span>`;
+                
+                try {{
+                    const res = await fetch(`/api/accounts/${{accId}}/comments`);
+                    const d = await res.json();
+                    
+                    document.getElementById('chk-comment-agent-enabled').checked = d.comment_agent_enabled !== false;
+                    document.getElementById('input-comment-keywords').value = (d.comment_keywords || []).join(', ');
+                    document.getElementById('input-comment-daily-limit').value = d.comment_daily_limit || 10;
+                    document.getElementById('comment-today-count').innerText = d.today_count || 0;
+                    document.getElementById('comment-today-limit').innerText = `/ ${{d.comment_daily_limit || 10}} 則上限`;
+                    document.getElementById('comment-last-time').innerText = d.last_comment_time || '尚未執行';
+
+                    const dot = document.getElementById('comment-status-dot');
+                    const statusText = document.getElementById('comment-status-text');
+                    if (d.comment_agent_enabled === false) {{
+                        dot.className = "w-2.5 h-2.5 rounded-full bg-gray-500";
+                        statusText.className = "font-bold text-gray-400";
+                        statusText.innerText = "已暫停";
+                    }} else if ((d.today_count || 0) >= (d.comment_daily_limit || 10)) {{
+                        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                        statusText.className = "font-bold text-amber-300";
+                        statusText.innerText = "今日上限 (安全休眠)";
+                    }} else {{
+                        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                        statusText.className = "font-bold text-emerald-300";
+                        statusText.innerText = "守護巡航中";
+                    }}
+
+                    renderCommentHistory(d.history || []);
+                    document.getElementById('modal-comment-agent').classList.remove('hidden');
+                }} catch (e) {{
+                    alert("載入海巡資料失敗: " + e);
+                }}
+            }}
+
+            function closeCommentModal() {{
+                document.getElementById('modal-comment-agent').classList.add('hidden');
+            }}
+
+            async function saveCommentAgentSettings() {{
+                const accId = currentCommentAccId;
+                const rawKws = document.getElementById('input-comment-keywords').value;
+                const kws = rawKws.split(',').map(s => s.trim()).filter(s => s);
+                const dailyLimit = parseInt(document.getElementById('input-comment-daily-limit').value) || 10;
+                const enabled = document.getElementById('chk-comment-agent-enabled').checked;
+
+                try {{
+                    const res = await fetch(`/api/accounts/${{accId}}/comments/save`, {{
+                        method: 'POST',
+                        headers: {{ 'Content-Type': 'application/json' }},
+                        body: JSON.stringify({{
+                            comment_agent_enabled: enabled,
+                            comment_keywords: kws,
+                            comment_daily_limit: dailyLimit
+                        }})
+                    }});
+                    const d = await res.json();
+                    if (d.status === 'success') {{
+                        alert("🎉 " + d.message);
+                        fetchDashboardData();
+                    }} else {{
+                        alert("⚠️ 儲存失敗: " + d.message);
+                    }}
+                }} catch (e) {{
+                    alert("儲存設定失敗: " + e);
+                }}
+            }}
+
+            async function triggerManualPatrol() {{
+                const accId = currentCommentAccId;
+                const btn = document.getElementById('btn-manual-patrol');
+                const origHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<span>⏳ 正在巡邏 Threads 貼文並留言...</span>`;
+
+                try {{
+                    const res = await fetch(`/api/accounts/${{accId}}/comments/patrol`, {{ method: 'POST' }});
+                    const d = await res.json();
+                    if (d.success) {{
+                        const count = d.commented_count || 0;
+                        if (count > 0) {{
+                            alert(`🎉 海巡巡邏完成！本次已成功神回覆 ${{count}} 則熱門貼文。`);
+                        }} else {{
+                            alert("💡 本次巡邏完畢：未發現符合條件之新熱門貼文，或候選貼文已留言過。");
+                        }}
+                        // 重新載入對話框數據
+                        openCommentModal(accId);
+                        fetchDashboardData();
+                    }} else {{
+                        alert("⚠️ 海巡執行未完成: " + (d.error || "未知原因"));
+                    }}
+                }} catch (e) {{
+                    alert("發送海巡請求出錯: " + e);
+                }} finally {{
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }}
+            }}
+
+            function renderCommentHistory(logs) {{
+                const container = document.getElementById('comment-history-container');
+                if (!logs || logs.length === 0) {{
+                    container.innerHTML = `<div class="text-xs text-gray-500 p-4 bg-gray-950/60 rounded-xl border border-gray-800 text-center">尚無海巡留言記錄。點擊『立即執行一次海巡留言』啟動雷達獲客！</div>`;
+                    return;
+                }}
+
+                container.innerHTML = logs.map(item => `
+                    <div class="bg-gray-950/90 border border-gray-800 p-3 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex items-center justify-between text-[11px] border-b border-gray-800/80 pb-1 font-mono">
+                            <div class="flex items-center gap-2">
+                                <span class="text-indigo-400 font-bold">@${{escapeHtml(item.author || '未知用戶')}}</span>
+                                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded text-[10px]">#${{escapeHtml(item.keyword || '')}}</span>
+                                ${{item.post_url ? `<a href="${{item.post_url}}" target="_blank" class="text-blue-400 hover:text-blue-300 underline text-[10px]">🔗 查看原貼文</a>` : ''}}
+                            </div>
+                            <span class="text-gray-500">${{item.created_at || ''}}</span>
+                        </div>
+                        <p class="text-gray-400 text-[11px] line-clamp-1 italic">
+                            「${{escapeHtml(item.post_snippet || '')}}」
+                        </p>
+                        <div class="bg-emerald-950/40 border border-emerald-800/50 p-2 rounded-lg text-emerald-200 text-xs font-sans">
+                            <span class="text-emerald-400 font-bold">💬 真人神回覆：</span>
+                            <span>${{escapeHtml(item.comment_text || '')}}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] pt-0.5">
+                            <span class="${{item.status === 'success' ? 'text-emerald-400' : 'text-red-400'}} font-semibold">
+                                ${{item.status === 'success' ? '✅ 發布成功' : '❌ 發布失敗: ' + escapeHtml(item.error || '')}}
+                            </span>
+                        </div>
                     </div>
                 `).join('');
             }}

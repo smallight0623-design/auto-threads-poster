@@ -350,6 +350,25 @@ def update_account_bio(acc_id: str, new_bio: str):
             break
     save_data(data)
 
+def save_comment_settings(acc_id: str, settings: dict):
+    """保存帳號的海巡留言 Agent 設定"""
+    data = load_data()
+    for acc in data.get("accounts", []):
+        if acc["id"] == acc_id:
+            if "comment_agent_enabled" in settings:
+                acc["comment_agent_enabled"] = bool(settings["comment_agent_enabled"])
+            if "comment_daily_limit" in settings:
+                acc["comment_daily_limit"] = int(settings["comment_daily_limit"])
+            if "comment_single_limit" in settings:
+                acc["comment_single_limit"] = int(settings["comment_single_limit"])
+            if "comment_keywords" in settings:
+                kws = settings["comment_keywords"]
+                if isinstance(kws, str):
+                    kws = [k.strip() for k in kws.replace("，", ",").split(",") if k.strip()]
+                acc["comment_keywords"] = kws
+            break
+    save_data(data)
+
 def get_account_reflections(acc_id: str) -> list:
     """獲取指定帳號的 AI 覆盤歷史筆記"""
     acc = get_account(acc_id)
@@ -677,6 +696,12 @@ def get_accounts():
         acc.setdefault("bio_auto_update", True)
         acc.setdefault("bio_update_time", "09:00")
         acc.setdefault("bio_last_updated_date", "")
+        acc.setdefault("comment_agent_enabled", True)
+        acc.setdefault("comment_daily_limit", 10)
+        acc.setdefault("comment_single_limit", 2)
+        default_kws = ["魔物獵人", "MHWilds", "荒野"] if "魔物" in acc.get("name", "") else ["傳說對決", "AOV"]
+        acc.setdefault("comment_keywords", default_kws)
+        acc.setdefault("last_comment_time", "")
         if not acc.get("next_run") and acc.get("schedule_type") != "manual":
             acc["next_run"] = compute_next_run(acc)
             updated = True
