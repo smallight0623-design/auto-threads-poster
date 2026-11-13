@@ -116,72 +116,154 @@ async def post_thread_reply(page, post_url: str, reply_text: str) -> dict:
     """
     print(f"🎯 [Threads 留言] 前往目標貼文: {post_url}")
     try:
-        await page.goto(post_url, wait_until="domcontentloaded", timeout=25000)
-        await page.wait_for_timeout(3000)
-    except Exception as e:
-        return {"success": False, "error": f"載入貼文頁面逾時: {str(e)}"}
+        try:
+            await page.goto(post_url, wait_until="domcontentloaded", timeout=25000)
+            await page.wait_for_timeout(3000)
+        except Exception as e:
+            return {"success": False, "error": f"載入貼文頁面逾時: {str(e)}"}
 
-    # 1. 尋找並點擊回覆對話框觸發器 ("Reply to ...")
-    reply_trigger = page.locator("text='Reply to'").or_(page.locator("div:has-text('Reply to')")).first
-    if not await reply_trigger.is_visible():
-        # 嘗試找尋留言泡泡圖示
-        bubble = page.locator('div[role="button"]:has(svg[aria-label*="Reply" i]), div[role="button"]:has(svg[aria-label*="回覆" i])').first
-        if await bubble.is_visible():
-            await bubble.click()
-            await page.wait_for_timeout(1500)
+        # 1. 檢測輸入框是否已經出現在畫面上 (例如底部已有輸入列)
+        textbox = page.locator('div[role="textbox"]').first
+        is_tb_ready = False
+        try:
+            is_tb_ready = await textbox.is_visible()
+        except Exception:
+            pass
+
+        if not is_tb_ready:
+            # 尋找並點擊回覆對話框觸發器 ("Reply to ...")
+            reply_trigger = page.locator("text='Reply to'").or_(page.locator("div:has-text('Reply to')")).first
+            has_trigger = False
+            try:
+                has_trigger = await reply_trigger.is_visible()
+            except Exception:
+                pass
+
+            if has_trigger:
+                try:
+                    await reply_trigger.click(force=True, timeout=4000)
+                except Exception:
+                    await page.evaluate(r'''() => {
+                        const all = Array.from(document.querySelectorAll('*'));
+                        for (const el of all) {
+                            if (el.innerText && el.innerText.startsWith('Reply to') && el.children.length === 0) {
+                                el.click();
+                                return;
+                            }
+                        }
+                    }''')
+                await page.wait_for_timeout(1500)
+            else:
+                # 嘗試找尋留言泡泡圖示
+                bubble = page.locator('div[role="button"]:has(svg[aria-label*="Reply" i]), div[role="button"]:has(svg[aria-label*="回覆" i])').first
+                try:
+                    if await bubble.is_visible():
+                        await bubble.click(force=True, timeout=4000)
+                        await page.wait_for_timeout(1500)
+                except Exception:
+                    pass
+
+        # 2. 定位輸入框 (role="textbox")
+        textbox = page.locator('div[role="textbox"]').first
+        try:
+            await textbox.wait_for(state="visible", timeout=6000)
+        except Exception:
+            pass
+
+        if not await textbox.is_visible():
+            return {"success": False, "error": "輸入框未如期顯現"}
+
+        # 聚焦與輸入文字 (使用短超時與 force=True，徹底杜絕 30s 鎖死)
+        try:
+            await textbox.click(force=True, timeout=3000)
+        except Exception:
+            try:
+                await textbox.focus(timeout=2000)
+            except Exception:
+                pass
+
+        filled = False
+        try:
+            await textbox.fill(reply_text, timeout=4000)
+            filled = True
+        except Exception:
+            pass
+
+        if not filled:
+            # Fallback: 使用 JS 聚焦並填入
+            await page.evaluate(r'''({ text }) => {
+                const tb = document.querySelector('div[role="textbox"]');
+                if (tb) {
+                    tb.focus();
+                    document.execCommand('selectAll', false, null);
+                    document.execCommand('insertText', false, text);
+                    tb.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }''', {"text": reply_text})
+
+        await page.wait_for_timeout(1000)
+
+        # 3. 點擊發布按鈕 (相容旋轉箭頭按鈕與 Post / 發布 / 回覆 文字按鈕)
+        clicked = await page.evaluate(r'''() => {
+            const tb = document.querySelector('div[role="textbox"]');
+            if (tb) {
+                let parent = tb;
+                for (let i = 0; i < 6; i++) {
+                    if (parent.parentElement) parent = parent.parentElement;
+                }
+                const btns = Array.from(parent.querySelectorAll('div[role="button"], button'));
+                for (const b of btns) {
+                    const txt = (b.innerText || '').trim();
+                    if (txt === 'Post' || txt === '發布' || txt === '回覆' || b.innerHTML.includes('rotate(90deg)')) {
+                        b.click();
+                        return true;
+                    }
+                }
+                if (btns.length > 0) {
+                    btns[btns.length - 1].click();
+                    return true;
+                }
+            }
+            // 全域搜尋 Post 按鈕
+            const allBtns = Array.from(document.querySelectorAll('div[role="button"], button'));
+            for (const b of allBtns) {
+                const txt = (b.innerText || '').trim();
+                if (txt === 'Post' || txt === '發布') {
+                    b.click();
+                    return true;
+                }
+            }
+            return false;
+        }''')
+
+        if not clicked:
+            return {"success": False, "error": "未能觸發發布按鈕"}
+
+        print("🚀 [Threads 留言] 已點擊發送按鈕，等待系統回應...")
+        await page.wait_for_timeout(4000)
+
+        # 4. 驗證是否出現 Posted / 已發布 提示訊息
+        is_posted = False
+        try:
+            is_posted = await page.locator("text='Posted'").or_(page.locator("text='已發布'")).is_visible()
+        except Exception:
+            pass
+        
+        # 備選驗證：輸入框是否已消失或被重置
+        tb_text = await page.evaluate(r'''() => {
+            const tb = document.querySelector('div[role="textbox"]');
+            return tb ? tb.innerText.trim() : "";
+        }''')
+
+        if is_posted or not tb_text:
+            print(f"✅ [Threads 留言] 成功發布神回覆: {reply_text}")
+            return {"success": True, "error": None}
         else:
-            return {"success": False, "error": "未能在頁面找到回覆輸入觸發點"}
-    else:
-        await reply_trigger.click()
-        await page.wait_for_timeout(1500)
+            return {"success": True, "error": None, "note": "已送出但未捕獲明確 Toast"}
 
-    # 2. 定位輸入框 (role="textbox")
-    textbox = page.locator('div[role="textbox"]').first
-    if not await textbox.is_visible():
-        return {"success": False, "error": "輸入框未如期顯現"}
-
-    await textbox.click()
-    await textbox.fill(reply_text)
-    await page.wait_for_timeout(1000)
-
-    # 3. 點擊發布按鈕 (利用祖先容器定位末端之發送箭頭按鈕)
-    clicked = await page.evaluate('''() => {
-        const tb = document.querySelector('div[role="textbox"]');
-        if (!tb) return false;
-        let parent = tb;
-        for (let i = 0; i < 5; i++) {
-            if (parent.parentElement) parent = parent.parentElement;
-        }
-        const btns = parent.querySelectorAll('div[role="button"]');
-        if (btns.length > 0) {
-            const sendBtn = btns[btns.length - 1];
-            sendBtn.click();
-            return true;
-        }
-        return false;
-    }''')
-
-    if not clicked:
-        return {"success": False, "error": "未能觸發發布按鈕"}
-
-    print("🚀 [Threads 留言] 已點擊發送按鈕，等待系統回應...")
-    await page.wait_for_timeout(4000)
-
-    # 4. 驗證是否出現 Posted / 已發布 提示訊息
-    is_posted = await page.locator("text='Posted'").or_(page.locator("text='已發布'")).is_visible()
-    
-    # 備選驗證：輸入框是否已消失或被重置
-    tb_text = await page.evaluate('''() => {
-        const tb = document.querySelector('div[role="textbox"]');
-        return tb ? tb.innerText.trim() : "";
-    }''')
-
-    if is_posted or not tb_text:
-        print(f"✅ [Threads 留言] 成功發布神回覆: {reply_text}")
-        return {"success": True, "error": None}
-    else:
-        # 仍可能已發布，回傳完成但加註
-        return {"success": True, "error": None, "note": "已送出但未捕獲明確 Toast"}
+    except Exception as e:
+        print(f"❌ [Threads 留言異常] {e}")
+        return {"success": False, "error": str(e)}
 
 async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
     """
@@ -317,6 +399,8 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
                             sleep_sec = random.randint(12, 20)
                             print(f"⏳ 安全擬真等待 {sleep_sec} 秒後繼續下一次巡邏...")
                             await asyncio.sleep(sleep_sec)
+                    else:
+                        print(f"⚠️ [海巡跳過] 貼文留言未成功 ({post_res.get('error')})，繼續搜尋下一則候選貼文...")
 
         finally:
             await browser.close()
