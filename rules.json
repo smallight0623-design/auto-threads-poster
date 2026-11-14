@@ -43,6 +43,31 @@
       "status": "ACTIVE"
     },
     {
+      "id": "RULE-004",
+      "category": "content_type",
+      "name": "排除集中串、許願串與大型累積大樓",
+      "description": "過濾標題或內文含有集中串、許願串、大樓等累積數月數年的多人蓋樓帖，首篇通常僅為發問或徵集宣言，缺乏單篇獨立高完整度與高情緒價值",
+      "condition": {
+        "title_keywords_exclude": [
+          "集中串",
+          "許願串",
+          "交流串",
+          "簽到串",
+          "回報串",
+          "分享串",
+          "大樓",
+          "蓋樓",
+          "megathread",
+          "weekly thread",
+          "daily thread"
+        ],
+        "max_cumulative_replies": 100
+      },
+      "action": "REJECT",
+      "reason": "集中串/許願大樓為歷時累積蓋樓，首篇缺乏單篇獨立完整內容與高情緒價值",
+      "status": "ACTIVE"
+    },
+    {
       "id": "RULE-EX-001",
       "category": "exception_boundary",
       "name": "多圖超限例外標註 (大於4張)",

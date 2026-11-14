@@ -96,15 +96,18 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
         raw_title = html.unescape(raw_title)
         detail_href = "https://forum.gamer.com.tw/" + href_m.group(1)
         
-        # 提取文章編號
+        # 提取文章編號與回覆總數 (tnum)
         snA_m = re.search(r'snA=(\d+)', detail_href)
+        tnum_m = re.search(r'tnum=(\d+)', detail_href)
+        replies_count = int(tnum_m.group(1)) if tnum_m else 0
         article_id = f"baha_{bsn}_{snA_m.group(1)}" if snA_m else f"baha_{len(candidates)}"
 
         candidates.append({
             "id": article_id,
             "title": raw_title,
             "url": detail_href,
-            "gp": gp
+            "gp": gp,
+            "replies_count": replies_count
         })
         if len(candidates) >= limit:
             break
@@ -147,6 +150,7 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
                 "title": item["title"],
                 "full_content": full_content,
                 "upvotes": item["gp"],
+                "replies_count": item.get("replies_count", 0),
                 "media_type": media_type,
                 "media_url": media_url,
                 "permalink": item["url"],

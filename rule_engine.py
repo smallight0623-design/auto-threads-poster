@@ -100,6 +100,14 @@ def evaluate_post(post: Dict[str, Any], rules_data: Dict[str, Any] = None) -> Tu
                     return "EXCEPTION", r.get("id"), r.get("reason")
                 return "REJECT", r.get("id"), r.get("reason")
 
+        # 3. 累積蓋樓超限 (排除累積數十上百回覆的集中大樓)
+        if cond.get("max_cumulative_replies"):
+            replies = post.get("replies_count", 0)
+            if replies >= cond.get("max_cumulative_replies"):
+                if action == "FLAG_EXCEPTION":
+                    return "EXCEPTION", r.get("id"), r.get("reason")
+                return "REJECT", r.get("id"), r.get("reason")
+
     return "PASS", "", "通過所有規則檢驗"
 
 def filter_candidates(candidates: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[Dict[str, Any]]]:
