@@ -74,16 +74,27 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
             continue
 
         gp_m = re.search(r'class="b-list__summary__gp[^"]*"[^>]*>(\d+)</span>', r)
-        title_m = re.search(r'href="(C\.php\?bsn=\d+&[^"]+)"[^>]*>(.*?)</a>', r)
-        if not title_m:
-            continue
-
         gp = int(gp_m.group(1)) if gp_m else 0
         if gp < min_gp:
             continue
 
-        raw_title = html.unescape(title_m.group(2).strip())
-        detail_href = "https://forum.gamer.com.tw/" + title_m.group(1)
+        main_td = re.search(r'<td class="b-list__main"[^>]*>(.*?)</td>', r, re.DOTALL)
+        if not main_td:
+            continue
+        content = main_td.group(1)
+
+        # 優先從 b-list__main 提取真實文章標題與連結
+        href_m = re.search(r'href="(C\.php\?bsn=\d+&[^"]+)"', content)
+        title_m = re.search(r'class="b-list__main__title"[^>]*>(.*?)</(?:p|a)>', content, re.DOTALL)
+        if not title_m:
+            title_m = re.search(r'<a[^>]+href="C\.php\?[^"]+"[^>]*>(.*?)</a>', content, re.DOTALL)
+
+        if not href_m or not title_m:
+            continue
+
+        raw_title = re.sub(r'<[^>]+>', '', title_m.group(1)).strip()
+        raw_title = html.unescape(raw_title)
+        detail_href = "https://forum.gamer.com.tw/" + href_m.group(1)
         
         # 提取文章編號
         snA_m = re.search(r'snA=(\d+)', detail_href)
