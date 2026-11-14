@@ -108,6 +108,11 @@ async def post_to_threads(text: str, media_file_path: str = None, session_file: 
         if not body_text:
             body_text = text
 
+        # 淨化 Markdown 符號（Threads 不支援 Markdown 渲染，去除 **粗體**、*清單點，轉化為社群符號）
+        body_text = re.sub(r'\*\*(.*?)\*\*', r'\1', body_text)
+        body_text = re.sub(r'^\s*[\*\-]\s+', '▫️ ', body_text, flags=re.MULTILINE)
+        body_text = re.sub(r'(?<!\w)\*(.*?)\*(?!\w)', r'\1', body_text)
+
         # 定位輸入框並填入主內文
         editor = dialog.locator("div[contenteditable='true']").first
         await editor.wait_for(state="visible", timeout=8000)
