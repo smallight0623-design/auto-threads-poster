@@ -127,6 +127,18 @@ def filter_candidates(candidates: List[Dict[str, Any]]) -> Tuple[List[Dict[str, 
         post_copy["eval_rule_id"] = rule_id
         post_copy["eval_reason"] = reason
 
+        # 檢查優先級標註 (如建設性攻略 RULE-PRIO-001)
+        for r in rules_data.get("rules", []):
+            if r.get("status") == "ACTIVE" and r.get("action") == "PRIORITY_BOOST":
+                cond = r.get("condition", {})
+                kw_match = [k.lower() for k in cond.get("keywords_match", [])]
+                t_lower = post.get("title", "").lower()
+                c_lower = post.get("full_content", "").lower()
+                if any(kw in t_lower or kw in c_lower for kw in kw_match):
+                    post_copy["is_priority_guide"] = True
+                    post_copy["priority_reason"] = r.get("name")
+                    break
+
         if status == "PASS":
             passed.append(post_copy)
         elif status == "EXCEPTION":
@@ -135,5 +147,8 @@ def filter_candidates(candidates: List[Dict[str, Any]]) -> Tuple[List[Dict[str, 
         else:
             rejected.append(post_copy)
 
-    print(f"📊 [Rule Engine 篩選結果]: 候選 {len(candidates)} 篇 ➔ 通過 {len(passed)} 篇 ｜ 淘汰 {len(rejected)} 篇 ｜ 例外標註 {len(exceptions)} 篇")
+    # 建設性攻略優先通道：若有標註攻略，排至候選池前端，其餘依熱度排序
+    passed.sort(key=lambda x: (x.get("is_priority_guide", False), x.get("upvotes", 0)), reverse=True)
+
+    print(f"📊 [Rule Engine 篩選結果]: 候選 {len(candidates)} 篇 ➔ 通過 {len(passed)} 篇 (攻略優先 {sum(1 for p in passed if p.get('is_priority_guide'))} 篇) ｜ 淘汰 {len(rejected)} 篇 ｜ 例外標註 {len(exceptions)} 篇")
     return passed, rejected, exceptions

@@ -68,6 +68,35 @@
       "status": "ACTIVE"
     },
     {
+      "id": "RULE-PRIO-001",
+      "category": "priority_boost",
+      "name": "建設性攻略與實用乾貨最高優先級",
+      "description": "當貼文屬於遊戲高實用價值之攻略、配裝、打法、機制解析或重大情報時，給予最高選品優先級優先發布",
+      "condition": {
+        "keywords_match": [
+          "配裝",
+          "攻略",
+          "打法",
+          "弱點",
+          "機制",
+          "速刷",
+          "開荒",
+          "心得",
+          "解說",
+          "實測",
+          "guide",
+          "build",
+          "mechanic",
+          "meta",
+          "tips",
+          "tutorial"
+        ]
+      },
+      "action": "PRIORITY_BOOST",
+      "reason": "具備強實用性與建設性，能實質解決玩家痛點，優先插隊發布",
+      "status": "ACTIVE"
+    },
+    {
       "id": "RULE-EX-001",
       "category": "exception_boundary",
       "name": "多圖超限例外標註 (大於4張)",

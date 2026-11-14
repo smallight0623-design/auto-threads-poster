@@ -125,8 +125,9 @@ def select_best_post_material(candidates: list, strategy_prompt: str, game_name:
     # 候選清單概況
     candidates_brief = []
     for idx, c in enumerate(candidates):
+        prio_tag = " [🔥 建設性攻略/實用乾貨]" if c.get("is_priority_guide") else ""
         brief = (
-            f"【候選 {idx}】(ID: {c['id']})\n"
+            f"【候選 {idx}】(ID: {c['id']}){prio_tag}\n"
             f"- 來源平台: {c.get('source_platform', '未知')}\n"
             f"- 互動數據: {c.get('upvotes', 0)} 讚/觀看\n"
             f"- 媒體類型: {c.get('media_type', 'TEXT')}\n"
@@ -142,6 +143,11 @@ def select_best_post_material(candidates: list, strategy_prompt: str, game_name:
 
 【核心選品金律】：
 「先以熱門程度判別，然後思考對於我們受眾有沒有吸引力即可。」
+
+【最高優先級規則 - 穿插建設性攻略與實用乾貨】：
+- 我們的核心主題是遊戲，日常內容風格可自由多元（迷因、二創、神操作、趣味日常），但【必須適時穿插具備建設性的攻略】！
+- 若候選素材中出現「高建設性的攻略/實用乾貨」（例如：配裝指南、打法心得、怪物弱點、武器核心機制拆解、重大情報實測），只要具備實用性與熱度，【一律給予最高優先級，優先挑選發布】！
+- 若當前候選中無突出攻略，則自由挑選最具視覺美感或情緒共鳴之爆款。
 
 以下候選貼文均已通過各平台熱門數據門檻。現在請你站在台灣玩家受眾的角度思考：
 1. 【吸引力核心】：台灣玩家滑到這篇時，會不會想看、想笑、想轉發或覺得有料？
@@ -194,7 +200,7 @@ def select_best_post_material(candidates: list, strategy_prompt: str, game_name:
     except Exception as e:
         print(f"⚠️ [AI 選材評估] 呼叫逾時或異常 ({e})，自動採用讚數最高之候選貼文")
 
-    candidates.sort(key=lambda x: x.get("upvotes", 0), reverse=True)
+    candidates.sort(key=lambda x: (x.get("is_priority_guide", False), x.get("upvotes", 0)), reverse=True)
     return candidates[0]
 
 def detect_future_events(raw_posts: list, game_name: str, config: dict) -> list:
