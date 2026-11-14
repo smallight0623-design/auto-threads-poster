@@ -122,63 +122,44 @@ def select_best_post_material(candidates: list, strategy_prompt: str, game_name:
     api_key = os.getenv("AI_API_KEY") or config.get("AI_API_KEY", "")
     primary_model = config.get("AI_MODEL", "gemini-2.5-flash")
 
-    # 戰役階段動態提示詞注入
-    campaign_directive = ""
-    if campaign_status and campaign_status.get("phase") in ["WARMUP", "LAUNCH_DAY", "AFTERMATH"]:
-        m = campaign_status.get("milestone", {})
-        phase = campaign_status.get("phase")
-        m_title = m.get("title", "")
-        if phase == "WARMUP":
-            days = campaign_status.get("days_diff", 0)
-            campaign_directive = f"""
-【🚨 當前特殊作戰戰役 - 預熱宣傳期（倒數 {days} 天）】：
-目前社群正處於重大事件【{m_title}】的倒數衝刺期！粉絲與玩家對此事件高度飢渴。
-如果候選貼文中存在任何與【{m_title}】直接相關的前瞻爆料、測試情報、實機畫面、倒數預熱或規格討論，請【極度高度加權優先入選】！並在選材決策理由中明確指出此篇符合預熱戰役目標。
-"""
-        elif phase == "LAUNCH_DAY":
-            campaign_directive = f"""
-【🚨 當前特殊作戰戰役 - 正式引爆日（年度巔峰）】：
-今日為重大事件【{m_title}】的正式上線/引爆日！全網流量最高峰！
-請極度優先挑選第一時間的實機體驗、首發試玩、捏臉/初見神操作或震撼反響貼文！
-"""
-        elif phase == "AFTERMATH":
-            days = campaign_status.get("days_since", 1)
-            campaign_directive = f"""
-【📈 當前特殊作戰戰役 - 餘波開荒攻略期（上線第 {days} 天）】：
-目前為【{m_title}】正式上線第 {days} 天！玩家進入開荒深水區，請優先挑選逃課配裝攻略、新手避坑指南、神級彩蛋或好笑翻車！
-"""
-
     # 候選清單概況
     candidates_brief = []
     for idx, c in enumerate(candidates):
         brief = (
             f"【候選 {idx}】(ID: {c['id']})\n"
             f"- 來源平台: {c.get('source_platform', '未知')}\n"
-            f"- 互動讚數/觀看: {c.get('upvotes', 0)}\n"
+            f"- 互動數據: {c.get('upvotes', 0)} 讚/觀看\n"
             f"- 媒體類型: {c.get('media_type', 'TEXT')}\n"
             f"- 標題/主旨: {c.get('title', '')[:80]}\n"
-            f"- 內容片段: {c.get('full_content', '')[:200]}..."
+            f"- 內容片段: {c.get('full_content', '')[:250]}..."
         )
         candidates_brief.append(brief)
     
     briefs_text = "\n\n".join(candidates_brief)
 
     curator_prompt = f"""
-你是一位身價百萬的頂級社群營運操盤手與流量總監。
-【帳號核心終極目標】：在【{game_name}】領域中取得最多的粉絲、讚數與社群關注度。
-【該帳號專屬營運策略】：{strategy_prompt or '優先挑選最有料、最好笑、最具傳播力、最有共鳴感的爆款內容'}
-{campaign_directive}
-以下是從各平台即時掃描收集到的 {len(candidates)} 篇候選爆文：
+你是一位深諳【{game_name}】社群玩家心理的頂級選品專家。
+
+【核心選品金律】：
+「先以熱門程度判別，然後思考對於我們受眾有沒有吸引力即可。」
+
+以下候選貼文均已通過各平台熱門數據門檻。現在請你站在台灣玩家受眾的角度思考：
+1. 【吸引力核心】：台灣玩家滑到這篇時，會不會想看、想笑、想轉發或覺得有料？
+   - 強情緒價值（神操作太帥、貓車翻車太好笑、全網狂歡迷因）
+   - 強實用價值（武器機制實測、重大更新情報、高品質視覺二創）
+2. 【排除無感內容】：排除海外小圈子內部吵架、純個人自言自語流水帳、無普遍討論度的邊緣問題。
+
+以下是 {len(candidates)} 篇候選素材：
 {briefs_text}
 
-【評選任務】：
-請綜合分析這幾篇貼文的「話題性、爆笑程度、吸睛度、圖片/影片傳播力、粉絲互動意願」，從中選出最符合上述策略、最容易在社群爆發的唯一【最佳候選】。
+【任務】：
+從中挑選出【對我們受眾最具吸引力】的唯一最佳貼文，並給出具體簡練的吸引力分析。
 
 【回傳格式要求】：
 你必須且僅能以 JSON 格式回傳，格式如下：
 {{
   "selected_index": 0,
-  "reason": "挑選理由簡述（例如：這張迷因圖非常切合近期遊戲痛點，笑點強烈且互動讚數飆升快）"
+  "reason": "說明為什麼這篇對受眾最具吸引力 (30字以內)"
 }}
 """
 
