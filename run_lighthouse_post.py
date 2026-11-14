@@ -63,7 +63,10 @@ async def execute_lighthouse_post():
 
     raw_text = winner.get("full_content") or winner.get("title")
     localized_text = ai_engine.call_ai_proxy(raw_text, ai_config)
-    print(f"📝 在地化完成文案：\n----------------------------------------\n{localized_text}\n----------------------------------------")
+    main_text, comment_text = ai_engine.split_post_for_threads(localized_text)
+    print(f"📝 在地化主文案 (長度: {len(main_text)})：\n----------------------------------------\n{main_text}\n----------------------------------------")
+    if comment_text:
+        print(f"💬 在地化留言區續篇 (長度: {len(comment_text)})：\n----------------------------------------\n{comment_text}\n----------------------------------------")
 
     # 4. 媒體檔案下載與處理
     media_path = None
@@ -74,7 +77,7 @@ async def execute_lighthouse_post():
 
     # 5. Playwright 正式發布至 Threads
     print("\n[階段 4：Playwright 自動化無痕發布至 Threads]")
-    await post_to_threads(localized_text, media_file_path=media_path, session_file=session_file)
+    await post_to_threads(main_text, media_file_path=media_path, session_file=session_file, comment_text=comment_text)
 
     # 6. 保存分析與發布記錄
     account_manager.add_account_history("acc_primary", winner["id"])

@@ -16,11 +16,12 @@ from threads_scraper import fetch_top_threads_posts
 from x_scraper import fetch_top_x_tweets
 from bahamut_scraper import fetch_top_bahamut_posts
 from twitch_scraper import fetch_top_twitch_clips
-from ai_engine import call_ai_proxy, select_best_post_material, detect_future_events
+from ai_engine import call_ai_proxy, select_best_post_material, detect_future_events, split_post_for_threads
 from media_handler import download_media
 from threads_playwright import post_to_threads
 from facebook_playwright import post_to_facebook
 import account_manager
+import content_queue
 
 ACTIVE_RUNNING_ACCOUNTS = set()
 
@@ -140,35 +141,39 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
     account_manager.update_account_status(acc_id, "規則篩選", f"正在依據 rules.json 審查 {len(available_candidates)} 篇候選貼文...")
     passed_candidates, rejected_candidates, exception_candidates = rule_engine.filter_candidates(available_candidates)
 
-    if not passed_candidates:
-        msg = f"候選貼文均未通過規則庫 (淘汰 {len(rejected_candidates)} 篇，例外標註 {len(exception_candidates)} 篇進入每日審查)"
-        print(f"[{acc_id}] ⚠️ {msg}")
-        account_manager.update_account_status(acc_id, "完成", msg, state="SUCCESS")
-        account_manager.mark_account_run_completed(acc_id)
-        return True
+    if passed_candidates:
+        added_count = content_queue.enqueue_candidates(passed_candidates, set(history))
+        print(f"[{acc_id}] 📥 已將 {added_count} 篇優質素材匯入 200 篇容量儲備庫 (目前庫存: {len(content_queue.load_queue())} 篇)")
 
-    # 4. AI 從通過規則的優質候選池中進行最佳素材評選
-    if len(passed_candidates) > 1:
-        account_manager.update_account_status(acc_id, "AI 選材評估", f"AI 流量總監正在從通過規則庫之素材 ({len(passed_candidates)} 篇) 評選最佳爆款...")
-        candidate = select_best_post_material(passed_candidates, strategy_prompt, game_name, ai_config, campaign_status=None)
-    else:
-        candidate = passed_candidates[0]
+    # 4. 時段智慧選品：從 200 篇素材庫中挑選最適合當前時段之熱門/攻略素材
+    candidate = content_queue.pop_next_post_for_slot()
+    if not candidate:
+        if passed_candidates:
+            candidate = passed_candidates[0]
+        else:
+            msg = f"素材庫與當前候選均無可用素材 (淘汰 {len(rejected_candidates)} 篇，例外標註 {len(exception_candidates)} 篇)"
+            print(f"[{acc_id}] ⚠️ {msg}")
+            account_manager.update_account_status(acc_id, "完成", msg, state="SUCCESS")
+            account_manager.mark_account_run_completed(acc_id)
+            return True
 
     # 立即預約鎖定候選貼文至歷史清單，杜絕任何重複發布可能
     account_manager.add_account_history(acc_id, candidate["id"])
 
-    curation_note = f" (理由: {candidate.get('curation_reason')})" if candidate.get('curation_reason') else ""
-    account_manager.update_account_status(acc_id, "鎖定目標", f"鎖定 [{candidate.get('source_platform')}] 爆文：{candidate['title'][:35]}... (👍 {candidate['upvotes']}){curation_note}")
+    prio_tag = " [🔥 建設性攻略/實用乾貨]" if candidate.get("is_priority_guide") else ""
+    account_manager.update_account_status(acc_id, "鎖定目標", f"鎖定 [{candidate.get('source_platform')}]{prio_tag}：{candidate['title'][:35]}... (👍 {candidate['upvotes']})")
 
-    # 4. AI 1:1 道地翻譯 (嚴格不改動內容、不標作者、在地遊戲譯名)
+    # 4. AI 1:1 道地翻譯 (純搬運，嚴格不改動內容、不標作者、在地遊戲譯名)
     try:
         account_manager.update_account_status(acc_id, "AI 道地翻譯", f"傳送至 AI 執行 1:1 忠實翻譯，目標語言：【{account.get('target_region')}】...")
-        localized_text = call_ai_proxy(candidate["full_content"], ai_config)
+        raw_text = candidate.get("full_content") or candidate.get("title")
+        localized_text = call_ai_proxy(raw_text, ai_config)
     except Exception as e:
         account_manager.record_account_error(acc_id, "AI 翻譯階段 (AI Brain Proxy)", e)
         return False
-        account_manager.record_account_error(acc_id, "AI 中轉站翻譯階段 (AI Brain Proxy)", e)
-        return False
+
+    # 智慧長文分段：主內文 + 留言區續篇
+    main_text, comment_text = split_post_for_threads(localized_text)
 
     # 4. 媒體下載階段
     media_path = None
@@ -180,14 +185,14 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
             account_manager.record_account_error(acc_id, "媒體下載與音影合成階段 (Media Downloader)", e)
             return False
 
-    # 5. Playwright 發布階段 (分流 Threads 與 Facebook)
+    # 5. Playwright 發布階段 (分流 Threads 與 Facebook，Threads 支援長文留言續篇)
     try:
         if target_platform.lower() == "facebook":
             account_manager.update_account_status(acc_id, "Facebook 發布", "啟動 Playwright 載入 Facebook Session 並自動發布至動態牆...")
-            await post_to_facebook(localized_text, media_path, session_file=session_path)
+            await post_to_facebook(main_text, media_path, session_file=session_path)
         else:
             account_manager.update_account_status(acc_id, "Threads 發布", "啟動 Playwright 載入 Threads Session 並自動發布至 Threads...")
-            await post_to_threads(localized_text, media_path, session_file=session_path)
+            await post_to_threads(main_text, media_path, session_file=session_path, comment_text=comment_text)
     except Exception as e:
         account_manager.record_account_error(acc_id, f"Playwright 自動發布階段 ({target_platform} Publisher)", e)
         return False

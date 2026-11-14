@@ -56,13 +56,11 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
    - 嚴禁標註原作者 ID、帳號名稱、或來源網站（例如嚴禁出現「作者：xxx」、「轉自 Reddit/Threads」、「Source:」等文字）。
    - 純粹以匿名社群分享內容直接呈現；若原文開頭含有原作者打招呼或自我介紹（例如「嗨我是xxx」、「大家好我是xxx」），或文末含有「(OC)」、「by me」等原創自我標籤，請直接去除，不要保留這些出處或打招呼廢話。
 
-3. 【長文攻略去 AI 味與去說教化守則（Threads 老玩家分享口吻）】：
-   - 【字數死線：全文包含所有文字與標籤，總字數必須控制在 220 ~ 360 字以內，絕對不可超過 450 字！】
-   - 嚴禁寫成冷冰冰的規格說明書、條列填空表或老師說教指南（絕對不要寫「🎯 主力流派：通常彈 ▫️ 武器：xxx ▫️ 核心技能：xxx 💡 關鍵提示：xxx」這種機械死板模板）！
-   - 想像你是一位深愛【{game_name}】的台灣在地資深老獵人，在 Threads 上熱情、興奮地把這套實戰配置「端作業給群組兄弟抄」！
-   - 用詞自然、直爽、愛用玩家社群黑話（例如「兄弟們這套真的香」、「直接把作業端上來給各位抄」、「傷害真的看不懂」、「跟鬼一樣」、「誰用誰知道」）。
-   - 將硬核乾貨（推薦武器、防具套裝、關鍵技能數值、增傷機制）自然融入熱血又實用的日常分享語氣中，文末另起一行附上主題標籤。
-   - 讓讀者讀起來 100% 像真實資深玩家的生活分享，完全沒有任何 AI 生成感與說教感！
+3. 【去 AI 味、去說教化、零自嗨加戲】：
+   - 只能做道地化的繁體中文翻譯，文字格式、圖片、影片直接搬運！
+   - 絕對禁止任何說教感、老師教學腔、或機械化模板（嚴禁輸出「🎯 主力流派... 💡 關鍵提示...」等假正經填空表）。
+   - 絕對禁止人工塞入任何自嗨套話或行銷號口癖（嚴禁硬塞「兄弟們這套真的香」、「直接把作業端上來給各位抄」等突兀加戲詞句）。
+   - 忠實還原原作者真實自然的情緒與筆觸：原文是開玩笑就自然搞笑，原文是實測心得就乾淨呈現心得。
 
 4. 【地區語言與專有名詞極致對齊】：
    - 譯文必須符合【{target_region}】當地玩家日常最自然的母語表達習慣（例如目標為台灣時，必須使用台灣道地繁體中文，嚴禁大陸用語；目標為越南時，使用自然越南語）。
@@ -72,7 +70,7 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
 
 5. 【嚴禁使用任何 Markdown 格式符號（Threads 不支援渲染）】：
    - Threads 平台完全不支援 Markdown！嚴禁輸出任何星號（如 **粗體**、*斜體*、* 條列清單）或 Markdown 標題（#、##、###）！
-   - 所有重點一律以 Emoji（🎯、🏹、💡、📌、▫️）、中文全形標點（【】、「」、：）與自然換行空行呈現，保持社群純文字清爽專業，絕不出現生硬的未渲染代碼符號！
+   - 所有重點一律以社群純文字、中文全形標點（【】、「」、：）與自然換行呈現，保持社群排版清爽，絕不出現生硬的未渲染代碼符號！
 
 6. 【輸出規格】：
    - 直接輸出最終翻譯完成的純文案內容（含末尾標籤），不要有任何多餘的引言、前綴或解釋。
@@ -116,6 +114,67 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
             raise Exception(f"AI 中轉站請求失敗 [HTTP {res.status_code}]: {res.text}")
 
     raise Exception(f"所有候選模型均失敗，最後錯誤: {last_error}")
+
+def split_post_for_threads(full_text: str, max_main_chars: int = 420) -> tuple:
+    """
+    Threads 貼文字數上限為 500 字。
+    若全文 (含標籤) <= 450 字，則直接作為主貼文發布 (comment_text = None)。
+    若超過 450 字，依據自然段落或句尾優雅分段：
+    - 主貼文 (Part 1 <= 420 字)：包含開頭核心內容，文末附上「\n\n（完整內容與細節在底下留言區👇）」
+    - 留言區 (Part 2 <= 480 字)：開頭附上「（接續上文）\n」，包含其餘詳盡內容與標籤
+    """
+    import re
+    cleaned = full_text.strip()
+    if len(cleaned) <= 450:
+        return cleaned, None
+
+    tags = re.findall(r'#([^\s#]+)', cleaned)
+    tag_suffix = ""
+    body_only = cleaned
+    if tags:
+        m = re.search(r'(?:\n\s*|\s+)(#[^\s#]+(?:\s+#[^\s#]+)*)$', cleaned)
+        if m:
+            tag_suffix = "\n\n" + m.group(1).strip()
+            body_only = cleaned[:m.start()].strip()
+
+    paragraphs = body_only.split('\n')
+    main_paragraphs = []
+    comment_paragraphs = []
+    current_len = 0
+    in_comment = False
+
+    for p in paragraphs:
+        p_len = len(p) + 1
+        if not in_comment:
+            if current_len + p_len <= max_main_chars:
+                main_paragraphs.append(p)
+                current_len += p_len
+            else:
+                if not main_paragraphs:
+                    split_idx = max_main_chars
+                    for punct in ["。", "！", "？", "\n", " "]:
+                        pos = p.rfind(punct, 0, max_main_chars)
+                        if pos > 100:
+                            split_idx = pos + 1
+                            break
+                    main_paragraphs.append(p[:split_idx])
+                    comment_paragraphs.append(p[split_idx:])
+                else:
+                    comment_paragraphs.append(p)
+                in_comment = True
+        else:
+            comment_paragraphs.append(p)
+
+    main_text = "\n".join(main_paragraphs).strip() + "\n\n（完整內容與細節在底下留言區👇）"
+    comment_body = "\n".join(comment_paragraphs).strip()
+    comment_text = f"（接續上文）\n{comment_body}"
+    if tag_suffix:
+        comment_text += tag_suffix
+
+    if len(comment_text) > 490:
+        comment_text = comment_text[:480] + "..."
+
+    return main_text, comment_text
 
 def select_best_post_material(candidates: list, strategy_prompt: str, game_name: str, config: dict, campaign_status: dict = None) -> dict:
     """

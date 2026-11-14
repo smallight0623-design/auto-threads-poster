@@ -10,7 +10,15 @@
     "replies_count": 1,
     "is_priority_guide": true,
     "priority_reason": "建設性攻略與實用乾貨最高優先級",
-    "enqueued_at": "2026-11-14 21:31:00"
+    "enqueued_at": "2026-11-14 21:31:00",
+    "timeslot_buckets": [
+      "afternoon",
+      "evening",
+      "lunch",
+      "morning",
+      "night"
+    ],
+    "instant_priority": false
   },
   {
     "id": "baha_5786_178688",
@@ -23,7 +31,14 @@
     "replies_count": 4,
     "is_priority_guide": true,
     "priority_reason": "建設性攻略與實用乾貨最高優先級",
-    "enqueued_at": "2026-11-14 21:31:00"
+    "enqueued_at": "2026-11-14 21:31:00",
+    "timeslot_buckets": [
+      "afternoon",
+      "evening",
+      "lunch",
+      "night"
+    ],
+    "instant_priority": false
   },
   {
     "id": "baha_5786_178672",
@@ -36,7 +51,16 @@
     "replies_count": 7,
     "is_priority_guide": true,
     "priority_reason": "建設性攻略與實用乾貨最高優先級",
-    "enqueued_at": "2026-11-14 21:31:00"
+    "enqueued_at": "2026-11-14 21:31:00",
+    "timeslot_buckets": [
+      "instant",
+      "morning",
+      "lunch",
+      "afternoon",
+      "evening",
+      "night"
+    ],
+    "instant_priority": true
   },
   {
     "id": "baha_5786_178691",
@@ -49,7 +73,14 @@
     "replies_count": 1,
     "is_priority_guide": true,
     "priority_reason": "建設性攻略與實用乾貨最高優先級",
-    "enqueued_at": "2026-11-14 21:31:00"
+    "enqueued_at": "2026-11-14 21:31:00",
+    "timeslot_buckets": [
+      "afternoon",
+      "evening",
+      "lunch",
+      "night"
+    ],
+    "instant_priority": false
   },
   {
     "id": "1xvs5yb",
@@ -62,7 +93,13 @@
     "replies_count": 0,
     "is_priority_guide": false,
     "priority_reason": "",
-    "enqueued_at": "2026-11-14 21:31:00"
+    "enqueued_at": "2026-11-14 21:31:00",
+    "timeslot_buckets": [
+      "afternoon",
+      "morning",
+      "night"
+    ],
+    "instant_priority": false
   },
   {
     "id": "baha_5786_178595",
@@ -75,6 +112,12 @@
     "replies_count": 16,
     "is_priority_guide": false,
     "priority_reason": "",
-    "enqueued_at": "2026-11-14 21:31:00"
+    "enqueued_at": "2026-11-14 21:31:00",
+    "timeslot_buckets": [
+      "afternoon",
+      "morning",
+      "night"
+    ],
+    "instant_priority": false
   }
 ]

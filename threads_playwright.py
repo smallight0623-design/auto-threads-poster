@@ -10,9 +10,10 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-async def post_to_threads(text: str, media_file_path: str = None, session_file: str = "threads_session.json"):
+async def post_to_threads(text: str, media_file_path: str = None, session_file: str = "threads_session.json", comment_text: str = None):
     """
     透過 Playwright 自動載入 Cookie Session，發布文字與本地媒體檔案至 Threads
+    若提供 comment_text，則在主貼文發布後，自動於該貼文留言區送出分段續篇 (支援超長攻略分段)
     """
     username = os.getenv("THREADS_USERNAME", "")
     password = os.getenv("THREADS_PASSWORD", "")
@@ -172,6 +173,79 @@ async def post_to_threads(text: str, media_file_path: str = None, session_file: 
         except Exception:
             print("⚠️ Dialog 未自動關閉，正在等待後台同步...")
             await asyncio.sleep(6)
+
+        # 若有分段長文續篇 (comment_text)，自動於發布後前往該貼文留言區送出
+        if comment_text:
+            print(f"📝 檢測到長文分段續篇 (字數: {len(comment_text)})，正在發布至留言區...")
+            await asyncio.sleep(3)
+            try:
+                # 前往個人主頁以鎖定剛剛發布的首篇貼文
+                profile_url = await page.evaluate('''() => {
+                    const links = Array.from(document.querySelectorAll('a[href*="/@"]'));
+                    for (const a of links) {
+                        if (a.href && !a.href.includes('/post/')) return a.href;
+                    }
+                    return null;
+                }''')
+                if profile_url:
+                    await page.goto(profile_url, wait_until="domcontentloaded")
+                    await asyncio.sleep(3)
+
+                # 鎖定個人主頁第一篇貼文的連結並點擊進入
+                first_post_link = await page.evaluate('''() => {
+                    const postLinks = Array.from(document.querySelectorAll('a[href*="/post/"]'));
+                    return postLinks.length > 0 ? postLinks[0].href : null;
+                }''')
+
+                if first_post_link:
+                    print(f"📍 前往剛發布之貼文頁面留言：{first_post_link}")
+                    await page.goto(first_post_link, wait_until="domcontentloaded")
+                    await asyncio.sleep(2.5)
+
+                # 尋找回覆按鈕或輸入框
+                textbox = page.locator('div[role="textbox"]').first
+                if not await textbox.is_visible():
+                    reply_trigger = page.locator("text='Reply to'").or_(page.locator("div:has-text('Reply to')")).or_(
+                        page.locator('div[role="button"]:has(svg[aria-label*="Reply" i])')
+                    ).or_(
+                        page.locator('div[role="button"]:has(svg[aria-label*="回覆" i])')
+                    ).first
+                    if await reply_trigger.is_visible():
+                        await reply_trigger.click(force=True)
+                        await asyncio.sleep(1.5)
+
+                textbox = page.locator('div[role="textbox"], div[role="dialog"] div[contenteditable="true"]').first
+                await textbox.wait_for(state="visible", timeout=8000)
+
+                # 淨化 Markdown
+                clean_comment = re.sub(r'\*\*(.*?)\*\*', r'\1', comment_text)
+                clean_comment = re.sub(r'^\s*[\*\-]\s+', '▫️ ', clean_comment, flags=re.MULTILINE)
+                clean_comment = re.sub(r'(?<!\w)\*(.*?)\*(?!\w)', r'\1', clean_comment)
+
+                await textbox.click(force=True)
+                await textbox.fill(clean_comment)
+                await asyncio.sleep(1)
+
+                # 點擊 Post / 回覆 按鈕
+                cmt_post_btn = page.locator("div[role='dialog'] div[role='button']:text-is('Post')").or_(
+                    page.locator("div[role='dialog'] div[role='button']:text-is('發佈')")
+                ).or_(
+                    page.locator("div[role='dialog'] div[role='button']:text-is('回覆')")
+                ).or_(
+                    page.locator("div[role='button']:text-is('Post')")
+                ).or_(
+                    page.locator("div[role='button']:text-is('發佈')")
+                ).first
+
+                if await cmt_post_btn.is_visible():
+                    await cmt_post_btn.click(force=True)
+                else:
+                    await page.keyboard.press("Control+Enter")
+
+                print("✅ [長文分段] 續篇內容已成功送出至留言區！")
+                await asyncio.sleep(4)
+            except Exception as ce:
+                print(f"⚠️ 長文續篇留言發送警告 (非致命): {ce}")
 
         # 燈塔三驗證：留存發布後之畫面截圖作為客觀證據 (Lighthouse 3 Verification)
         proof_path = r"C:\Users\d4414\.gemini\antigravity\brain\b07effa5-8267-4988-9eec-6f8f631667d6\threads_lighthouse3_posted_proof.png"
