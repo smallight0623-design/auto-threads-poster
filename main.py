@@ -54,6 +54,7 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
     game_name = account.get("game_name", "遊戲")
     subreddit = account.get("subreddit", "MonsterHunter")
     min_upvotes = int(account.get("min_upvotes", 100))
+    campaign_status = account.get("campaign_status") or {}
 
     # 跨平台搬運互斥原則：如果發布目標是 Threads，絕不從 Threads 搬運；若目標是 Facebook，絕不從 Facebook 搬運
     if target_platform.lower() == "threads" and source_platform.lower() == "threads":

@@ -60,6 +60,7 @@ async def auto_scheduler_daemon():
     loop_count = 0
     while True:
         try:
+            all_accs = account_manager.get_accounts()
             # 1. 常規排程檢測 (每 30 秒)
             due_accounts = account_manager.get_due_accounts()
             for acc in due_accounts:

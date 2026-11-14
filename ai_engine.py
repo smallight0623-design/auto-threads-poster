@@ -171,8 +171,8 @@ def split_post_for_threads(full_text: str, max_main_chars: int = 420) -> tuple:
     if tag_suffix:
         comment_text += tag_suffix
 
-    if len(comment_text) > 490:
-        comment_text = comment_text[:480] + "..."
+    if len(comment_text) > 440:
+        comment_text = comment_text[:435] + "..."
 
     return main_text, comment_text
 

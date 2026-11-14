@@ -37,8 +37,8 @@ def determine_timeslot_buckets(post: Dict[str, Any]) -> List[str]:
     is_guide = post.get("is_priority_guide", False)
 
     # 突發重大情報 / 官方公告 -> 標註 instant，全時段皆可發且享有最高優先級
-    breaking_kws = ["官方公告", "維修", "更新維護", "宣傳片", "trailer", "release date", "發售日", "公測", "demo"]
-    if any(kw in title or kw in content for kw in breaking_kws):
+    breaking_kws = ["官方公告", "維修公告", "緊急維護", "宣傳片", "official trailer", "最新預告", "release date", "正式發售日"]
+    if any(kw in title for kw in breaking_kws):
         return ["instant", "morning", "lunch", "afternoon", "evening", "night"]
 
     buckets = set()

@@ -188,31 +188,30 @@ async def post_to_threads(text: str, media_file_path: str = None, session_file: 
                     return null;
                 }''')
                 if profile_url:
-                    await page.goto(profile_url, wait_until="domcontentloaded")
+                    await page.goto(profile_url, wait_until="networkidle")
+                    await asyncio.sleep(4)
+
+                # 透過主內文開頭片段，精確鎖定剛發布的母貼文，杜絕貼到舊文
+                snippet = body_text.strip().split('\n')[0][:25].strip()
+                target_post = page.locator("div[role='article'], article, div[data-pressable-container='true']").filter(has_text=snippet).first
+                try:
+                    await target_post.wait_for(state="visible", timeout=10000)
+                except Exception:
+                    await page.reload(wait_until="networkidle")
                     await asyncio.sleep(3)
+                    target_post = page.locator("div[role='article'], article, div[data-pressable-container='true']").filter(has_text=snippet).first
+                    await target_post.wait_for(state="visible", timeout=8000)
 
-                # 鎖定個人主頁第一篇貼文的連結並點擊進入
-                first_post_link = await page.evaluate('''() => {
-                    const postLinks = Array.from(document.querySelectorAll('a[href*="/post/"]'));
-                    return postLinks.length > 0 ? postLinks[0].href : null;
-                }''')
-
-                if first_post_link:
-                    print(f"📍 前往剛發布之貼文頁面留言：{first_post_link}")
-                    await page.goto(first_post_link, wait_until="domcontentloaded")
-                    await asyncio.sleep(2.5)
-
-                # 尋找回覆按鈕或輸入框
-                textbox = page.locator('div[role="textbox"]').first
-                if not await textbox.is_visible():
-                    reply_trigger = page.locator("text='Reply to'").or_(page.locator("div:has-text('Reply to')")).or_(
-                        page.locator('div[role="button"]:has(svg[aria-label*="Reply" i])')
-                    ).or_(
-                        page.locator('div[role="button"]:has(svg[aria-label*="回覆" i])')
-                    ).first
-                    if await reply_trigger.is_visible():
-                        await reply_trigger.click(force=True)
-                        await asyncio.sleep(1.5)
+                # 鎖定該目標貼文內部的回覆按鈕
+                reply_btn = target_post.locator('div[role="button"]:has(svg[aria-label*="Reply" i]), div[role="button"]:has(svg[aria-label*="回覆" i])').first
+                if await reply_btn.is_visible():
+                    await reply_btn.click(force=True)
+                    await asyncio.sleep(1.5)
+                else:
+                    post_link = target_post.locator("a[href*='/post/']").first
+                    if await post_link.is_visible():
+                        await post_link.click(force=True)
+                        await asyncio.sleep(2.5)
 
                 textbox = page.locator('div[role="textbox"], div[role="dialog"] div[contenteditable="true"]').first
                 await textbox.wait_for(state="visible", timeout=8000)
@@ -227,22 +226,20 @@ async def post_to_threads(text: str, media_file_path: str = None, session_file: 
                 await asyncio.sleep(1)
 
                 # 點擊 Post / 回覆 按鈕
-                cmt_post_btn = page.locator("div[role='dialog'] div[role='button']:text-is('Post')").or_(
-                    page.locator("div[role='dialog'] div[role='button']:text-is('發佈')")
-                ).or_(
-                    page.locator("div[role='dialog'] div[role='button']:text-is('回覆')")
-                ).or_(
+                cmt_post_btn = page.locator("div[role='button']:has(svg[aria-label*='Post' i]), div[role='button']:has(svg[aria-label*='發佈' i])").or_(
                     page.locator("div[role='button']:text-is('Post')")
                 ).or_(
                     page.locator("div[role='button']:text-is('發佈')")
-                ).first
+                ).or_(
+                    page.locator("div[role='dialog'] div[role='button']:text-is('Post')")
+                ).last
 
                 if await cmt_post_btn.is_visible():
                     await cmt_post_btn.click(force=True)
                 else:
                     await page.keyboard.press("Control+Enter")
 
-                print("✅ [長文分段] 續篇內容已成功送出至留言區！")
+                print("✅ [長文分段] 續篇內容已成功送出至目標貼文留言區！")
                 await asyncio.sleep(4)
             except Exception as ce:
                 print(f"⚠️ 長文續篇留言發送警告 (非致命): {ce}")
