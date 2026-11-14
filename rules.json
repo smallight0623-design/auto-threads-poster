@@ -99,13 +99,13 @@
     {
       "id": "RULE-EX-001",
       "category": "exception_boundary",
-      "name": "多圖超限例外標註 (大於4張)",
-      "description": "當貼文包含超過 4 張圖片時，標記為例外等待裁決或依序裁切前4張",
+      "name": "多圖自動選取核心配圖發布",
+      "description": "當貼文包含多張圖片時，自動選取首張核心配圖發布，確保符合社群發布規格",
       "condition": {
-        "image_count_gt": 4
+        "auto_select_primary_image": true
       },
-      "action": "FLAG_EXCEPTION",
-      "reason": "圖片超過 4 張，需確認是否裁切或分樓發布",
+      "action": "PASS",
+      "reason": "多圖貼文自動選取首張核心配圖發布",
       "status": "ACTIVE"
     },
     {

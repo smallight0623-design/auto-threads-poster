@@ -120,19 +120,22 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
             with urllib.request.urlopen(d_req, timeout=8) as d_resp:
                 detail_html = d_resp.read().decode("utf-8", errors="ignore")
 
-            # 提取正文內容區塊
-            body_m = re.search(r'<div class="c-article__content[^"]*"[^>]*>(.*?)</div>', detail_html, re.DOTALL)
+            # 提取正文內容區塊 (容許巢狀 div 結構，直到作者操作列、簽名檔或回覆區)
+            body_m = re.search(r'class="c-article__content[^"]*"[^>]*>(.*?)(?:<div class="c-article__actions|<div class="c-post__signature|<div class="c-reply)', detail_html, re.DOTALL)
+            if not body_m:
+                body_m = re.search(r'<div class="c-article__content[^"]*"[^>]*>(.*?)</div>', detail_html, re.DOTALL)
             if not body_m:
                 continue
 
             content_html = body_m.group(1)
 
             # 提取圖片 (data-src 或 src)
-            img_m = re.search(r'<img[^>]+(?:data-src|src)="([^"]+)"', content_html)
+            all_imgs = re.findall(r'<img[^>]+(?:data-src|src)="([^"]+)"', content_html)
+            valid_imgs = [img for img in all_imgs if not img.endswith('.gif') and 'emotion' not in img and 'banner' not in img]
             media_type = "TEXT"
             media_url = None
-            if img_m:
-                img_url = img_m.group(1)
+            if valid_imgs:
+                img_url = valid_imgs[0]
                 if not img_url.startswith("http"):
                     img_url = "https:" + img_url if img_url.startswith("//") else ("https://forum.gamer.com.tw/" + img_url)
                 media_type = "IMAGE"
@@ -153,6 +156,7 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
                 "replies_count": item.get("replies_count", 0),
                 "media_type": media_type,
                 "media_url": media_url,
+                "image_count": len(valid_imgs),
                 "permalink": item["url"],
                 "source_platform": "巴哈姆特"
             })
