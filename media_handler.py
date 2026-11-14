@@ -41,15 +41,25 @@ def download_media(media_type: str, media_url: str, post_id: str) -> str:
 
     elif media_type == "VIDEO":
         output_template = os.path.join(downloads_dir, f"{post_id}.%(ext)s")
+        ffmpeg_location = None
+        try:
+            import imageio_ffmpeg
+            ffmpeg_location = imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            pass
+
         ydl_opts = {
             'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'outtmpl': output_template,
             'merge_output_format': 'mp4',
-            'quiet': True,
+            'quiet': False,
             'no_warnings': True
         }
-        
+        if ffmpeg_location:
+            ydl_opts['ffmpeg_location'] = ffmpeg_location
+
         try:
+            print(f"🎬 啟動 yt-dlp 下載影音串流 (ffmpeg: {ffmpeg_location or '系統預設'})...")
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([media_url])
         except Exception as e:
@@ -58,6 +68,7 @@ def download_media(media_type: str, media_url: str, post_id: str) -> str:
 
         final_path = os.path.join(downloads_dir, f"{post_id}.mp4")
         if os.path.exists(final_path):
+            print(f"✅ 影音壓制合成成功: {final_path} (大小: {os.path.getsize(final_path)} bytes)")
             return final_path
 
     return None

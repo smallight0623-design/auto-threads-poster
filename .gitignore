@@ -22,6 +22,7 @@ accounts/**/status.json
 accounts/**/error.json
 accounts/**/threads_post_metrics.json
 accounts/**/viral_knowledge_base.json
+daily_exceptions.json
 accounts/accounts.json
 config.json
 

@@ -71,21 +71,7 @@ async def auto_scheduler_daemon():
                 subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc_id], cwd=BASE_DIR, env=env)
                 await asyncio.sleep(2)
 
-            # 2. 每日固定時間 AI 自動更新 Bio 檢測
-            now_hm = datetime.datetime.now().strftime("%H:%M")
-            today_date = datetime.datetime.now().strftime("%Y-%m-%d")
-            all_accs = account_manager.get_accounts()
-            for acc in all_accs:
-                if acc.get("enabled", True) and acc.get("bio_auto_update", True):
-                    update_time = acc.get("bio_update_time", "09:00")
-                    last_update = acc.get("bio_last_updated_date", "")
-                    if now_hm == update_time and last_update != today_date:
-                        acc["bio_last_updated_date"] = today_date
-                        account_manager.save_account(acc)
-                        print(f"🧬 [Bio Scheduler] 帳號【{acc.get('name')}】到達每日 Bio 更新時間 ({update_time})，啟動自動推演與同步！")
-                        asyncio.create_task(run_daily_bio_sync(acc["id"]))
-
-            # 3. 破裂級爆款雷達插隊檢測 (每 15 分鐘 = 30次輪詢)
+            # 2. 破裂級爆款雷達插隊檢測 (每 15 分鐘 = 30次輪詢)
             loop_count += 1
             if loop_count % 30 == 0:
                 for acc in all_accs:
@@ -94,34 +80,11 @@ async def auto_scheduler_daemon():
                         subprocess.Popen([sys.executable, os.path.join(BASE_DIR, "main.py"), "--account", acc["id"], "--fast-track"], cwd=BASE_DIR, env=env)
                         await asyncio.sleep(2)
 
-            # 4. Threads 獲客海巡留言巡邏 (每 45 分鐘 = 90 次輪詢)
-            if loop_count % 90 == 0:
-                for acc in all_accs:
-                    if acc.get("enabled", True) and acc.get("comment_agent_enabled", True) and acc.get("target_platform", "Threads").lower() == "threads":
-                        try:
-                            t_count = threads_commenter.get_today_comment_count(acc["id"])
-                            d_limit = int(acc.get("comment_daily_limit") or 15)
-                            if t_count < d_limit:
-                                print(f"💬 [Comment Scheduler] 帳號【{acc.get('name')}】啟動定期海巡獲客巡邏 (今日進度 {t_count}/{d_limit})...")
-                                asyncio.create_task(threads_commenter.run_threads_patrol_async(acc["id"], max_comments=int(acc.get("comment_single_limit") or 2)))
-                        except Exception as ce:
-                            print(f"⚠️ [Comment Scheduler] 海巡異常: {ce}")
-
-            # 5. Threads 每日自主偷師與金句庫提煉 (每日凌晨或定期執行)
-            for acc in all_accs:
-                if acc.get("enabled", True) and acc.get("target_platform", "Threads").lower() == "threads":
-                    last_learn = acc.get("last_threads_learn_date", "")
-                    if last_learn != today_date and now_hm in ["02:30", "03:00", "04:00"]:
-                        acc["last_threads_learn_date"] = today_date
-                        account_manager.save_account(acc)
-                        print(f"🧠 [Threads Learner Scheduler] 帳號【{acc.get('name')}】啟動每日爆款偷師巡邏...")
-                        asyncio.create_task(threads_learner.run_daily_threads_learning(acc["id"]))
-
-            # 6. 每 2~3 天個人主頁貼文真實成效巡檢 (讚/留言/轉發/小飛機)
+            # 3. 每 2~3 天個人主頁貼文真實成效巡檢 (讚/留言/轉發/小飛機 - 燈塔三發布驗收)
             if loop_count % 2880 == 180:  # 每 24 小時檢測一次
                 for acc in all_accs:
                     if acc.get("enabled", True) and acc.get("target_platform", "Threads").lower() == "threads":
-                        print(f"📊 [Metrics Scraper Scheduler] 帳號【{acc.get('name')}】執行貼文真實成效數據抓取...")
+                        print(f"📊 [Metrics Scraper] 帳號【{acc.get('name')}】執行貼文真實成效數據抓取...")
                         asyncio.create_task(threads_metrics_scraper.scrape_profile_posts_metrics(acc["id"]))
 
         except Exception as e:
@@ -466,6 +429,47 @@ async def get_threads_metrics_api(acc_id: str):
     })
 
 
+@app.get("/api/exceptions")
+async def get_exceptions_api():
+    """回傳每日待審查例外清單 (燈塔二 Option A)"""
+    import rule_engine
+    return JSONResponse(rule_engine.load_exceptions())
+
+@app.post("/api/exceptions/{ex_id}/resolve")
+async def resolve_exception_api(ex_id: str, request: Request):
+    """人工裁決例外清單中的貼文 (APPROVED / REJECTED)"""
+    import rule_engine
+    data = await request.json()
+    action = data.get("action", "REJECTED")
+    note = data.get("note", "")
+    exs = rule_engine.load_exceptions()
+    found = False
+    for e in exs:
+        if e.get("exception_id") == ex_id:
+            e["status"] = action
+            e["resolution_note"] = note
+            e["resolved_at"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            found = True
+            break
+    if found:
+        rule_engine.save_exceptions(exs)
+        return JSONResponse({"status": "success", "message": f"例外已更新為: {action}"})
+    return JSONResponse({"status": "error", "message": "找不到該例外紀錄"}, status_code=404)
+
+@app.get("/api/rules")
+async def get_rules_api():
+    """回傳當前規則庫 (燈塔二)"""
+    import rule_engine
+    return JSONResponse(rule_engine.load_rules())
+
+@app.post("/api/rules/save")
+async def save_rules_api(request: Request):
+    """保存規則庫更新"""
+    import rule_engine
+    data = await request.json()
+    rule_engine.save_rules(data)
+    return JSONResponse({"status": "success", "message": "規則庫已成功儲存！"})
+
 @app.get("/", response_class=HTMLResponse)
 async def serve_dashboard():
     regions_json = json.dumps(REGIONS, ensure_ascii=False)
@@ -499,24 +503,31 @@ async def serve_dashboard():
                         🚀 Threads & Facebook 跨平台矩陣搬運主控台
                     </h1>
                     <p class="text-xs text-gray-400 mt-1">
-                        跨平台資訊差自動發掘 ‧ 發現時間縮短至 1~2 小時潛力爆文 ‧ 100% 格式語氣照抄在地化 ‧ 零作者標註
+                        依據 LIGHTHOUSE 燈塔規範運作 ‧ 自主發現熱門內容 ‧ 透明規則篩選與例外回報 ‧ 完整在地化發布
                     </p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
+                    <button onclick="openExceptionsModal()" class="bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-rose-600/30 flex items-center gap-1.5">
+                        <span>🚩 每日例外審查</span>
+                        <span id="badge-exception-count" class="bg-black/40 text-[10px] px-1.5 py-0.5 rounded-full font-mono">0</span>
+                    </button>
+                    <button onclick="openRulesModal()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                        <span>📜 篩選規則庫</span>
+                    </button>
                     <button onclick="openAnalyticsModal()" class="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-amber-600/30 flex items-center gap-1.5">
-                        <span>📊 矩陣營運情報簡報</span>
+                        <span>📊 營運情報簡報</span>
                     </button>
                     <button onclick="openGlobalCookiesModal()" class="bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-sky-600/30 flex items-center gap-1.5">
-                        <span>🔑 爬蟲授權管理 (X / FB 爬文)</span>
+                        <span>🔑 爬蟲授權管理</span>
                     </button>
                     <button onclick="openGlobalSettingsModal()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
-                        <span>🧠 AI 中轉大腦設定</span>
+                        <span>🧠 AI 大腦設定</span>
                     </button>
                     <button onclick="openAddAccountModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-indigo-600/30 flex items-center gap-1.5">
-                        <span>➕ 新增社群帳號工作台</span>
+                        <span>➕ 新增工作台</span>
                     </button>
                     <button id="btn-trigger-all" onclick="triggerAllAccounts()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-900/30 flex items-center gap-1.5">
-                        <span>⚡ 一鍵點火所有啟用帳號</span>
+                        <span>⚡ 一鍵點火</span>
                     </button>
                 </div>
             </div>
@@ -1073,112 +1084,67 @@ async def serve_dashboard():
             </div>
         </div>
 
-        <!-- =================== Modal 7: Threads 24H 留言海巡獲客 Agent =================== -->
-        <div id="modal-comment-agent" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div class="bg-gray-900 border border-emerald-800/60 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+        <!-- =================== Modal 7: 每日例外審查工作台 (燈塔二 Option A) =================== -->
+        <div id="modal-exceptions" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-900 border border-rose-800/60 w-full max-w-4xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
                 <div class="flex items-center justify-between border-b border-gray-800 pb-3">
                     <div class="flex items-center gap-2.5">
-                        <span class="text-xl">💬</span>
+                        <span class="text-xl">🚩</span>
                         <div>
-                            <h3 id="comment-modal-title" class="text-sm font-bold text-white flex items-center gap-2">
-                                <span>Threads 24H 留言區海巡獲客 Agent</span>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <span>每日例外審查工作台 (燈塔二 Option A)</span>
                             </h3>
                             <span class="text-[11px] text-gray-400 block mt-0.5">
-                                24 小時雷達巡邏・真人玩家同行者神回覆・自然導流鐵粉・零行銷廣告感
+                                呈現在地化搬運前觸發邊界條件之候選貼文 ‧ 圖片可點擊放大檢視 ‧ 審查結果可轉化為規則
                             </span>
                         </div>
                     </div>
-                    <button onclick="closeCommentModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
+                    <button onclick="closeExceptionsModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
                 </div>
 
-                <!-- 狀態儀表橫條 -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
-                        <span class="text-gray-400 block text-[11px]">今日海巡留言進度</span>
-                        <div class="flex items-baseline gap-1 mt-1">
-                            <span id="comment-today-count" class="text-lg font-extrabold text-emerald-400">0</span>
-                            <span id="comment-today-limit" class="text-xs text-gray-500">/ 15 則上限</span>
-                        </div>
-                    </div>
-                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
-                        <span class="text-gray-400 block text-[11px]">Agent 巡邏狀態</span>
-                        <div class="mt-1 flex items-center gap-1.5">
-                            <span id="comment-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span id="comment-status-text" class="font-bold text-emerald-300">守護巡航中</span>
-                        </div>
-                    </div>
-                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
-                        <span class="text-gray-400 block text-[11px]">🧠 Threads 爆款偷師庫</span>
-                        <div class="mt-1 flex items-baseline gap-1">
-                            <span id="comment-quotes-count" class="text-lg font-extrabold text-purple-400">0</span>
-                            <span class="text-xs text-gray-400">條金句 · </span>
-                            <span id="comment-seeds-count" class="text-xs font-bold text-indigo-400">0</span>
-                            <span class="text-[10px] text-gray-500">個話題</span>
-                        </div>
-                    </div>
-                    <div class="bg-gray-950/80 border border-gray-800 p-3 rounded-xl">
-                        <span class="text-gray-400 block text-[11px]">上次留言發布時間</span>
-                        <span id="comment-last-time" class="font-medium text-gray-300 font-mono block mt-1">尚未執行</span>
-                    </div>
+                <!-- 待審查列表容器 -->
+                <div id="exceptions-list-container" class="space-y-4">
+                    <div class="text-center py-8 text-gray-500 text-xs">正在載入待審查例外...</div>
                 </div>
 
-                <!-- 核心控制與關鍵字設定卡片 -->
-                <div class="bg-gray-950/80 border border-gray-800 p-4 rounded-xl space-y-3.5 text-xs">
-                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-800/80 pb-3">
-                        <div class="flex items-center gap-2.5">
-                            <input type="checkbox" id="chk-comment-agent-enabled" class="w-4 h-4 rounded bg-gray-900 border-gray-700 text-emerald-600 focus:ring-0 cursor-pointer">
-                            <label for="chk-comment-agent-enabled" class="font-bold text-gray-200 cursor-pointer">
-                                啟用 24H Threads 留言區海巡自動獲客
-                            </label>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button type="button" onclick="triggerManualPatrol()" id="btn-manual-patrol" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1">
-                                <span>⚡ 立即海巡留言</span>
-                            </button>
-                            <button type="button" onclick="triggerThreadsLearn()" id="btn-threads-learn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1">
-                                <span>🧠 啟動 Threads 自主偷師</span>
-                            </button>
-                            <button type="button" onclick="triggerScrapeMetrics()" id="btn-scrape-metrics" class="bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold px-3 py-1.5 rounded-lg transition text-xs shadow-md flex items-center gap-1">
-                                <span>📊 抓取個人主頁成效</span>
-                            </button>
-                            <button type="button" onclick="saveCommentAgentSettings()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-700 transition">
-                                💾 儲存設定
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div class="md:col-span-2 space-y-1">
-                            <label class="font-bold text-gray-300 block">監控搜尋關鍵字 (以逗號分隔)：</label>
-                            <input type="text" id="input-comment-keywords" placeholder="例如：魔物獵人, MHWilds, 荒野" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none font-mono">
-                            <span class="text-[10px] text-gray-500">Agent 會定時在 Threads 官方搜尋這些主題，尋找新熱門貼文進行神回覆</span>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="font-bold text-gray-300 block">每日安全上限：</label>
-                            <input type="number" id="input-comment-daily-limit" value="15" min="1" max="30" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-emerald-300 focus:border-emerald-500 focus:outline-none font-mono">
-                            <span class="text-[10px] text-gray-500">保護帳號防範平台封控 (建議 5~15 則)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 近期海巡神回覆記錄 -->
-                <div class="space-y-2 text-xs">
-                    <div class="flex items-center justify-between">
-                        <h4 class="font-bold text-gray-200 flex items-center gap-1.5">
-                            <span>📜 近期海巡獲客留言記錄</span>
-                        </h4>
-                        <span class="text-[10px] text-gray-400">已自動排除自身貼文與重複留言</span>
-                    </div>
-
-                    <div id="comment-history-container" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                        <!-- 動態渲染留言記錄 -->
-                    </div>
-                </div>
-
-                <div class="flex justify-end pt-2 border-t border-gray-800">
-                    <button type="button" onclick="closeCommentModal()" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-xs">關閉視窗</button>
+                <div class="flex justify-between items-center pt-3 border-t border-gray-800">
+                    <span class="text-[11px] text-gray-400">💡 提示：點擊「📋 複製對接摘要」，可直接將該篇特徵複製並在對話中與 AI 討論建立新規則。</span>
+                    <button type="button" onclick="closeExceptionsModal()" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-xs">關閉視窗</button>
                 </div>
             </div>
+        </div>
+
+        <!-- =================== Modal 8: 內容篩選規則庫 (燈塔二) =================== -->
+        <div id="modal-rules" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-gray-900 border border-purple-800/60 w-full max-w-3xl rounded-2xl p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-xl">📜</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <span>內容篩選規則庫 (rules.json - 燈塔二)</span>
+                            </h3>
+                            <span class="text-[11px] text-gray-400 block mt-0.5">
+                                可追溯、可修改、可回退的篩選準則 ‧ 由你與 AI 共同對接累積
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="closeRulesModal()" class="text-gray-400 hover:text-white text-lg font-mono">&times;</button>
+                </div>
+
+                <div id="rules-list-container" class="space-y-3">
+                    <!-- 動態渲染規則列表 -->
+                </div>
+
+                <div class="flex justify-end pt-3 border-t border-gray-800">
+                    <button type="button" onclick="closeRulesModal()" class="px-5 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium text-xs">關閉視窗</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 圖片放大預覽視窗 (Image Zoom) -->
+        <div id="modal-image-zoom" onclick="closeImageZoom()" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 cursor-zoom-out">
+            <img id="zoom-img-element" src="" class="max-w-[90vw] max-h-[90vh] rounded-xl shadow-2xl object-contain border border-gray-700">
         </div>
 
         <script>
@@ -1348,11 +1314,6 @@ async def serve_dashboard():
                                 <div class="flex items-center gap-2">
                                     ${{sessionBadge}}
                                     ${{stateBadge}}
-                                    ${{acc.target_platform === 'Threads' ? `
-                                        <span class="text-[10px] px-2 py-0.5 rounded font-mono ${{acc.today_comments > 0 ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-700/60' : 'bg-gray-900 text-gray-400 border border-gray-800'}}">
-                                            💬 今日海巡: ${{acc.today_comments || 0}} 則
-                                        </span>
-                                    ` : ''}}
                                 </div>
                                 <span class="text-[10px] text-gray-500">${{acc.status?.timestamp || ''}}</span>
                             </div>
@@ -1393,11 +1354,6 @@ async def serve_dashboard():
                                 <button onclick="openPersonaModal('${{acc.id}}')" class="bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900 hover:to-indigo-900 text-purple-200 border border-purple-700/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 shadow-sm">
                                     <span>🧬 AI 人設與覆盤</span>
                                 </button>
-                                ${{acc.target_platform === 'Threads' ? `
-                                    <button onclick="openCommentModal('${{acc.id}}')" class="bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900 hover:to-teal-900 text-emerald-200 border border-emerald-700/60 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 shadow-sm">
-                                        <span>💬 海巡獲客</span>
-                                    </button>
-                                ` : ''}}
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <button onclick="openEditAccountModal('${{acc.id}}')" class="text-gray-400 hover:text-white px-2 py-1 text-xs">
@@ -2199,193 +2155,159 @@ async def serve_dashboard():
                 `).join('');
             }}
 
-            // =================== Threads 留言海巡獲客 Agent Modal ===================
-            let currentCommentAccId = null;
-
-            async function openCommentModal(accId) {{
-                currentCommentAccId = accId;
-                const acc = (currentData?.accounts || []).find(a => a.id === accId);
-                const accName = acc ? acc.name : accId;
-                document.getElementById('comment-modal-title').innerHTML = `<span>Threads 24H 留言區海巡獲客 Agent - 【${{escapeHtml(accName)}}】</span>`;
-                
+            // =================== 每日例外審查工作台 (燈塔二 Option A) ===================
+            async function openExceptionsModal() {{
                 try {{
-                    const res = await fetch(`/api/accounts/${{accId}}/comments`);
-                    const d = await res.json();
-                    
-                    document.getElementById('chk-comment-agent-enabled').checked = d.comment_agent_enabled !== false;
-                    document.getElementById('input-comment-keywords').value = (d.comment_keywords || []).join(', ');
-                    document.getElementById('input-comment-daily-limit').value = d.comment_daily_limit || 15;
-                    document.getElementById('comment-today-count').innerText = d.today_count || 0;
-                    document.getElementById('comment-today-limit').innerText = `/ ${{d.comment_daily_limit || 15}} 則上限`;
-                    document.getElementById('comment-quotes-count').innerText = d.golden_quotes_count || 0;
-                    document.getElementById('comment-seeds-count').innerText = d.topic_seeds_count || 0;
-                    document.getElementById('comment-last-time').innerText = d.last_comment_time || '尚未執行';
-
-                    const dot = document.getElementById('comment-status-dot');
-                    const statusText = document.getElementById('comment-status-text');
-                    if (d.comment_agent_enabled === false) {{
-                        dot.className = "w-2.5 h-2.5 rounded-full bg-gray-500";
-                        statusText.className = "font-bold text-gray-400";
-                        statusText.innerText = "已暫停";
-                    }} else if ((d.today_count || 0) >= (d.comment_daily_limit || 10)) {{
-                        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
-                        statusText.className = "font-bold text-amber-300";
-                        statusText.innerText = "今日上限 (安全休眠)";
-                    }} else {{
-                        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
-                        statusText.className = "font-bold text-emerald-300";
-                        statusText.innerText = "守護巡航中";
-                    }}
-
-                    renderCommentHistory(d.history || []);
-                    document.getElementById('modal-comment-agent').classList.remove('hidden');
+                    const res = await fetch('/api/exceptions');
+                    const exs = await res.json();
+                    renderExceptionsList(exs);
+                    document.getElementById('modal-exceptions').classList.remove('hidden');
                 }} catch (e) {{
-                    alert("載入海巡資料失敗: " + e);
+                    alert("載入例外清單失敗: " + e);
                 }}
             }}
 
-            function closeCommentModal() {{
-                document.getElementById('modal-comment-agent').classList.add('hidden');
+            function closeExceptionsModal() {{
+                document.getElementById('modal-exceptions').classList.add('hidden');
             }}
 
-            async function saveCommentAgentSettings() {{
-                const accId = currentCommentAccId;
-                const rawKws = document.getElementById('input-comment-keywords').value;
-                const kws = rawKws.split(',').map(s => s.trim()).filter(s => s);
-                const dailyLimit = parseInt(document.getElementById('input-comment-daily-limit').value) || 10;
-                const enabled = document.getElementById('chk-comment-agent-enabled').checked;
+            function zoomImage(url) {{
+                if (!url) return;
+                document.getElementById('zoom-img-element').src = url;
+                document.getElementById('modal-image-zoom').classList.remove('hidden');
+            }}
 
+            function closeImageZoom() {{
+                document.getElementById('modal-image-zoom').classList.add('hidden');
+            }}
+
+            async function resolveException(exId, action) {{
                 try {{
-                    const res = await fetch(`/api/accounts/${{accId}}/comments/save`, {{
+                    const res = await fetch(`/api/exceptions/${{exId}}/resolve`, {{
                         method: 'POST',
                         headers: {{ 'Content-Type': 'application/json' }},
-                        body: JSON.stringify({{
-                            comment_agent_enabled: enabled,
-                            comment_keywords: kws,
-                            comment_daily_limit: dailyLimit
-                        }})
+                        body: JSON.stringify({{ action: action }})
                     }});
                     const d = await res.json();
                     if (d.status === 'success') {{
-                        alert("🎉 " + d.message);
+                        openExceptionsModal();
                         fetchDashboardData();
                     }} else {{
-                        alert("⚠️ 儲存失敗: " + d.message);
+                        alert("更新失敗: " + d.message);
                     }}
                 }} catch (e) {{
-                    alert("儲存設定失敗: " + e);
+                    alert("請求失敗: " + e);
                 }}
             }}
 
-            async function triggerManualPatrol() {{
-                const accId = currentCommentAccId;
-                const btn = document.getElementById('btn-manual-patrol');
-                const origHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = `<span>⏳ 正在巡邏 Threads 貼文並留言...</span>`;
-
-                try {{
-                    const res = await fetch(`/api/accounts/${{accId}}/comments/patrol`, {{ method: 'POST' }});
-                    const d = await res.json();
-                    if (d.success) {{
-                        const count = d.commented_count || 0;
-                        if (count > 0) {{
-                            alert(`🎉 海巡巡邏完成！本次已成功神回覆 ${{count}} 則熱門貼文。`);
-                        }} else {{
-                            alert("💡 本次巡邏完畢：未發現符合條件之新熱門貼文，或候選貼文已留言過。");
-                        }}
-                        // 重新載入對話框數據
-                        openCommentModal(accId);
-                        fetchDashboardData();
-                    }} else {{
-                        alert("⚠️ 海巡執行未完成: " + (d.error || "未知原因"));
-                    }}
-                }} catch (e) {{
-                    alert("發送海巡請求出錯: " + e);
-                }} finally {{
-                    btn.disabled = false;
-                    btn.innerHTML = origHtml;
-                }}
+            function copyExceptionSummary(title, platform, permalink, ruleId, reason, score, content) {{
+                const text = `【例外審查與規則提煉討論】\n- 來源平台：${{platform}} (熱度: ${{score}} 讚)\n- 原文標題：${{title}}\n- 原文網址：${{permalink}}\n- 命中例外規則：${{ruleId}} (${{reason}})\n- 內容摘要：${{content}}\n\n我的具體篩選想法與方針：`;
+                navigator.clipboard.writeText(text).then(() => {{
+                    alert("📋 已複製例外貼文摘要至剪貼簿！可直接貼在對話中與我對接討論新規則。");
+                }}).catch(() => {{
+                    alert("複製失敗，請手動複製。");
+                }});
             }}
 
-            async function triggerThreadsLearn() {{
-                const accId = currentCommentAccId;
-                const btn = document.getElementById('btn-threads-learn');
-                const origHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = `<span>⏳ 正在全網 Threads 探索並提煉金句...</span>`;
+            function renderExceptionsList(exs) {{
+                const container = document.getElementById('exceptions-list-container');
+                const badge = document.getElementById('badge-exception-count');
+                const pending = (exs || []).filter(e => e.status === 'PENDING_REVIEW');
+                if (badge) badge.innerText = pending.length;
 
-                try {{
-                    const res = await fetch(`/api/accounts/${{accId}}/learn`, {{ method: 'POST' }});
-                    const d = await res.json();
-                    if (d.success) {{
-                        alert(`🎉 偷師提煉完成！\n收錄金句: ${{d.extracted_comments || 0}} 條\n收錄話題: ${{d.extracted_seeds || 0}} 個\n目前金句庫總量: ${{d.total_golden_quotes || 0}} 條`);
-                        openCommentModal(accId);
-                        fetchDashboardData();
-                    }} else {{
-                        alert("⚠️ 偷師未完成: " + (d.error || "未知原因"));
-                    }}
-                }} catch (e) {{
-                    alert("發送偷師請求出錯: " + e);
-                }} finally {{
-                    btn.disabled = false;
-                    btn.innerHTML = origHtml;
-                }}
-            }}
-
-            async function triggerScrapeMetrics() {{
-                const accId = currentCommentAccId;
-                const btn = document.getElementById('btn-scrape-metrics');
-                const origHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = `<span>⏳ 正在巡檢個人主頁貼文真實成效...</span>`;
-
-                try {{
-                    const res = await fetch(`/api/accounts/${{accId}}/scrape-metrics`, {{ method: 'POST' }});
-                    const d = await res.json();
-                    if (d.success) {{
-                        alert(`🎉 數據抓取完成！成功抓取 ${{d.post_count || 0}} 篇貼文真實成效 (讚數、留言數、轉發數、小飛機分享數、瀏覽量)。`);
-                        openCommentModal(accId);
-                        fetchDashboardData();
-                    }} else {{
-                        alert("⚠️ 數據抓取未完成: " + (d.error || "未知原因"));
-                    }}
-                }} catch (e) {{
-                    alert("發送抓取請求出錯: " + e);
-                }} finally {{
-                    btn.disabled = false;
-                    btn.innerHTML = origHtml;
-                }}
-            }}
-
-            function renderCommentHistory(logs) {{
-                const container = document.getElementById('comment-history-container');
-                if (!logs || logs.length === 0) {{
-                    container.innerHTML = `<div class="text-xs text-gray-500 p-4 bg-gray-950/60 rounded-xl border border-gray-800 text-center">尚無海巡留言記錄。點擊『立即執行一次海巡留言』啟動雷達獲客！</div>`;
+                if (!exs || exs.length === 0) {{
+                    container.innerHTML = `<div class="text-center py-12 text-gray-500 text-xs">目前暫無任何例外標註貼文。所有候選文均正常通過或被既有規則明確淘汰。</div>`;
                     return;
                 }}
 
-                container.innerHTML = logs.map(item => `
-                    <div class="bg-gray-950/90 border border-gray-800 p-3 rounded-xl space-y-1.5 text-xs">
-                        <div class="flex items-center justify-between text-[11px] border-b border-gray-800/80 pb-1 font-mono">
+                container.innerHTML = exs.map(e => `
+                    <div class="bg-gray-950/90 border ${{e.status === 'PENDING_REVIEW' ? 'border-rose-800/80 shadow-md shadow-rose-950/20' : 'border-gray-800'}} p-4 rounded-xl space-y-3 text-xs">
+                        <div class="flex items-center justify-between border-b border-gray-800 pb-2">
                             <div class="flex items-center gap-2">
-                                <span class="text-indigo-400 font-bold">@${{escapeHtml(item.author || '未知用戶')}}</span>
-                                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded text-[10px]">#${{escapeHtml(item.keyword || '')}}</span>
-                                ${{item.post_url ? `<a href="${{item.post_url}}" target="_blank" class="text-blue-400 hover:text-blue-300 underline text-[10px]">🔗 查看原貼文</a>` : ''}}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${{e.status === 'PENDING_REVIEW' ? 'bg-rose-950 text-rose-300 border border-rose-800' : (e.status === 'APPROVED' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-gray-800 text-gray-400')}}">
+                                    ${{e.status === 'PENDING_REVIEW' ? '⏳ 待人工審查' : (e.status === 'APPROVED' ? '✅ 已批准' : '❌ 已淘汰')}}
+                                </span>
+                                <span class="text-indigo-400 font-bold">${{escapeHtml(e.source_platform || '未知')}}</span>
+                                <span class="text-gray-400">👍 ${{e.score || 0}}</span>
+                                <span class="text-gray-500 font-mono text-[10px]">${{e.exception_id || ''}}</span>
                             </div>
-                            <span class="text-gray-500">${{item.created_at || ''}}</span>
+                            <span class="text-gray-500 text-[10px]">${{e.created_at || ''}}</span>
                         </div>
-                        <p class="text-gray-400 text-[11px] line-clamp-1 italic">
-                            「${{escapeHtml(item.post_snippet || '')}}」
-                        </p>
-                        <div class="bg-emerald-950/40 border border-emerald-800/50 p-2 rounded-lg text-emerald-200 text-xs font-sans">
-                            <span class="text-emerald-400 font-bold">💬 真人神回覆：</span>
-                            <span>${{escapeHtml(item.comment_text || '')}}</span>
+
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            ${{e.media_url ? `
+                                <div class="md:col-span-1">
+                                    <img src="${{e.media_url}}" onclick="zoomImage('${{e.media_url}}')" class="w-full h-28 object-cover rounded-lg border border-gray-800 cursor-zoom-in hover:opacity-90 transition" title="點擊放大圖片">
+                                    <span class="text-[10px] text-gray-500 block text-center mt-1">🔍 點擊圖片放大</span>
+                                </div>
+                            ` : ''}}
+                            <div class="${{e.media_url ? 'md:col-span-3' : 'col-span-4'}} space-y-2">
+                                <h4 class="font-bold text-white text-sm">
+                                    ${{e.permalink ? `<a href="${{e.permalink}}" target="_blank" class="hover:underline text-blue-400">${{escapeHtml(e.title || '')}}</a>` : escapeHtml(e.title || '')}}
+                                </h4>
+                                <div class="bg-rose-950/40 border border-rose-800/60 p-2.5 rounded-lg text-rose-200 text-xs">
+                                    <span class="font-bold text-rose-400">⚠️ 例外標註原因 (${{e.rule_id || 'EX'}}): </span>
+                                    <span>${{escapeHtml(e.reason || '')}}</span>
+                                </div>
+                                <p class="text-gray-400 text-xs line-clamp-3 bg-gray-900/60 p-2 rounded border border-gray-800 font-sans">
+                                    ${{escapeHtml(e.full_content || '')}}
+                                </p>
+                            </div>
                         </div>
-                        <div class="flex items-center justify-between text-[10px] pt-0.5">
-                            <span class="${{item.status === 'success' ? 'text-emerald-400' : 'text-red-400'}} font-semibold">
-                                ${{item.status === 'success' ? '✅ 發布成功' : '❌ 發布失敗: ' + escapeHtml(item.error || '')}}
-                            </span>
+
+                        ${{e.status === 'PENDING_REVIEW' ? `
+                            <div class="flex items-center justify-end gap-2 pt-2 border-t border-gray-800/60">
+                                <button onclick="copyExceptionSummary('${{escapeForJs(e.title || '')}}', '${{escapeForJs(e.source_platform || '')}}', '${{escapeForJs(e.permalink || '')}}', '${{escapeForJs(e.rule_id || '')}}', '${{escapeForJs(e.reason || '')}}', '${{e.score || 0}}', '${{escapeForJs(e.full_content || '')}}')" class="bg-gray-800 hover:bg-gray-700 text-purple-300 border border-purple-800/50 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1">
+                                    <span>💬 複製對接摘要 (與 AI 討論建立新規則)</span>
+                                </button>
+                                <button onclick="resolveException('${{e.exception_id}}', 'REJECTED')" class="bg-gray-800 hover:bg-red-950 text-gray-300 hover:text-red-300 border border-gray-700 px-3 py-1.5 rounded-lg text-xs transition">
+                                    <span>❌ 淘汰</span>
+                                </button>
+                                <button onclick="resolveException('${{e.exception_id}}', 'APPROVED')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-1.5 rounded-lg text-xs transition shadow-sm">
+                                    <span>✅ 批准發布</span>
+                                </button>
+                            </div>
+                        ` : ''}}
+                    </div>
+                `).join('');
+            }}
+
+            // =================== 內容篩選規則庫 (燈塔二) ===================
+            async function openRulesModal() {{
+                try {{
+                    const res = await fetch('/api/rules');
+                    const d = await res.json();
+                    renderRulesList(d.rules || []);
+                    document.getElementById('modal-rules').classList.remove('hidden');
+                }} catch (e) {{
+                    alert("載入規則庫失敗: " + e);
+                }}
+            }}
+
+            function closeRulesModal() {{
+                document.getElementById('modal-rules').classList.add('hidden');
+            }}
+
+            function renderRulesList(rules) {{
+                const container = document.getElementById('rules-list-container');
+                if (!rules || rules.length === 0) {{
+                    container.innerHTML = `<div class="text-center py-8 text-gray-500 text-xs">目前暫無規則。</div>`;
+                    return;
+                }}
+
+                container.innerHTML = rules.map(r => `
+                    <div class="bg-gray-950/80 border border-gray-800 p-3.5 rounded-xl space-y-1.5 text-xs">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-bold text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/60">${{r.id}}</span>
+                                <span class="font-bold text-gray-200">${{escapeHtml(r.name || '')}}</span>
+                                <span class="text-[10px] bg-gray-800 text-gray-400 px-1.5 py-0.5 rounded">${{r.category || ''}}</span>
+                            </div>
+                            <span class="text-[10px] px-2 py-0.5 rounded font-mono ${{r.action === 'REJECT' ? 'bg-red-950 text-red-300 border border-red-800' : 'bg-amber-950 text-amber-300 border border-amber-800'}}">${{r.action}}</span>
+                        </div>
+                        <p class="text-gray-400 text-xs">${{escapeHtml(r.description || '')}}</p>
+                        <div class="bg-gray-900/60 p-2 rounded text-[11px] font-mono text-gray-300 border border-gray-800">
+                            <span class="text-gray-500">檢驗條件：</span>${{escapeHtml(JSON.stringify(r.condition || {{}}))}}
                         </div>
                     </div>
                 `).join('');

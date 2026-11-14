@@ -117,14 +117,6 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
         except Exception as e:
             print(f"[{acc_id}] 來源平台 {src_name} 抓取警告: {e}")
 
-    # 一葉知秋：AI 背景嗅探未來重大事件時間線索
-    try:
-        discovered_events = detect_future_events(raw_posts, game_name, ai_config)
-        for disc in discovered_events:
-            account_manager.add_discovered_milestone(acc_id, disc)
-            print(f"💡 [{acc_id}][Event Horizon] 探測到未來重大事件線索：【{disc.get('title')}】({disc.get('target_date')})")
-    except Exception as e:
-        pass
 
     # 2. 去重檢查與破裂級爆款過濾
     history = account_manager.get_account_history(acc_id)
@@ -143,16 +135,24 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
         account_manager.mark_account_run_completed(acc_id)
         return True
 
-    # 3. 戰役階段分析與 AI 流量總監智慧「選材評估」階段
-    campaign_status = account_manager.get_account_campaign_status(acc_id)
-    if campaign_status and campaign_status.get("phase") != "CRUISE":
-        print(f"🎯 [{acc_id}] 戰役階段生效：{campaign_status.get('badge_text')}")
+    # 3. 規則庫透明篩選與例外標註 (Rule Engine - 燈塔二)
+    import rule_engine
+    account_manager.update_account_status(acc_id, "規則篩選", f"正在依據 rules.json 審查 {len(available_candidates)} 篇候選貼文...")
+    passed_candidates, rejected_candidates, exception_candidates = rule_engine.filter_candidates(available_candidates)
 
-    if len(available_candidates) > 1:
-        account_manager.update_account_status(acc_id, "AI 選材評估", f"AI 流量總監正在依據戰役策略評選最佳爆款 ({len(available_candidates)} 篇候選)...")
-        candidate = select_best_post_material(available_candidates, strategy_prompt, game_name, ai_config, campaign_status=campaign_status)
+    if not passed_candidates:
+        msg = f"候選貼文均未通過規則庫 (淘汰 {len(rejected_candidates)} 篇，例外標註 {len(exception_candidates)} 篇進入每日審查)"
+        print(f"[{acc_id}] ⚠️ {msg}")
+        account_manager.update_account_status(acc_id, "完成", msg, state="SUCCESS")
+        account_manager.mark_account_run_completed(acc_id)
+        return True
+
+    # 4. AI 從通過規則的優質候選池中進行最佳素材評選
+    if len(passed_candidates) > 1:
+        account_manager.update_account_status(acc_id, "AI 選材評估", f"AI 流量總監正在從通過規則庫之素材 ({len(passed_candidates)} 篇) 評選最佳爆款...")
+        candidate = select_best_post_material(passed_candidates, strategy_prompt, game_name, ai_config, campaign_status=None)
     else:
-        candidate = available_candidates[0]
+        candidate = passed_candidates[0]
 
     # 立即預約鎖定候選貼文至歷史清單，杜絕任何重複發布可能
     account_manager.add_account_history(acc_id, candidate["id"])

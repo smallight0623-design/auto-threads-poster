@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-11-14T17:30:00+08:00",
+  "description": "Threads 遊戲內容自動篩選規則庫 (依據 LIGHTHOUSE 燈塔二規範建立，可追溯、可修改、可回退)",
+  "rules": [
+    {
+      "id": "RULE-001",
+      "category": "content_type",
+      "name": "排除純新手求助與基礎問答帖",
+      "description": "過濾缺乏普遍社群傳播價值的個人問答、求帶、配裝健檢提問",
+      "condition": {
+        "title_keywords_exclude": ["新手請教", "請問一下", "求帶", "求助", "how do i", "quick question", "any tips for"],
+        "flair_exclude": ["Question", "Help", "求助", "問題"]
+      },
+      "action": "REJECT",
+      "reason": "缺乏全社群傳播與討論共鳴價值",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "RULE-002",
+      "category": "content_type",
+      "name": "排除交易與組隊洗版文",
+      "description": "過濾純交易、徵隊友、公會招募等時效極短且容易洗版的內容",
+      "condition": {
+        "title_keywords_exclude": ["徵隊友", "徵人", "交易", "買賣", "lfg", "looking for group", "trade", "selling"],
+        "flair_exclude": ["LFG", "Trading", "交易", "招募"]
+      },
+      "action": "REJECT",
+      "reason": "純功能性洗版，無社群長尾擴散效益",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "RULE-003",
+      "category": "content_quality",
+      "name": "排除無上下文的純外站連結",
+      "description": "過濾僅貼出外部新聞媒體網址、且作者沒有留下實質討論觀點的導流貼文",
+      "condition": {
+        "is_pure_link": true,
+        "body_length_min": 10
+      },
+      "action": "REJECT",
+      "reason": "缺乏原創討論脈絡，轉發至 Threads 易被判定為內容農場導流",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "RULE-EX-001",
+      "category": "exception_boundary",
+      "name": "多圖超限例外標註 (大於4張)",
+      "description": "當貼文包含超過 4 張圖片時，標記為例外等待裁決或依序裁切前4張",
+      "condition": {
+        "image_count_gt": 4
+      },
+      "action": "FLAG_EXCEPTION",
+      "reason": "圖片超過 4 張，需確認是否裁切或分樓發布",
+      "status": "ACTIVE"
+    },
+    {
+      "id": "RULE-EX-002",
+      "category": "exception_boundary",
+      "name": "作者置頂補充內容標註",
+      "description": "當原作者在留言區第一樓發表了重要置頂補充（如配裝數據、原畫師出處）時標記",
+      "condition": {
+        "has_author_pinned_comment": true
+      },
+      "action": "FLAG_EXCEPTION",
+      "reason": "含有作者置頂補充內容，需合併至正文或二樓發布",
+      "status": "ACTIVE"
+    }
+  ]
+}
