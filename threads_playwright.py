@@ -168,6 +168,15 @@ async def post_to_threads(text: str, media_file_path: str = None, session_file: 
             print("⚠️ Dialog 未自動關閉，正在等待後台同步...")
             await asyncio.sleep(6)
 
+        # 燈塔三驗證：留存發布後之畫面截圖作為客觀證據 (Lighthouse 3 Verification)
+        proof_path = r"C:\Users\d4414\.gemini\antigravity\brain\b07effa5-8267-4988-9eec-6f8f631667d6\threads_lighthouse3_posted_proof.png"
+        try:
+            await asyncio.sleep(3)
+            await page.screenshot(path=proof_path)
+            print(f"📸 [燈塔三驗證] 已保存發布畫面截圖證據：{proof_path}")
+        except Exception as e:
+            print(f"⚠️ 截圖保存警告: {e}")
+
         await browser.close()
 
 async def update_threads_bio(new_bio: str, session_file: str = "threads_session.json") -> bool:
