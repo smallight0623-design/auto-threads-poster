@@ -364,35 +364,57 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
 
                     print(f"\n💡 [海巡選題選中] @{p_author}: {p_text[:60]}...")
                     
-                    # 載入實戰高讚金句庫作 Few-shot 或微調照抄參考
-                    import threads_learner
-                    kb = threads_learner.load_knowledge_base(acc_id)
-                    golden_quotes = kb.get("golden_comments", [])
+                    # 1. 意圖評估器 (借鑑 kaymen99/sales-outreach 意圖狀態機)
+                    import social_seller
+                    intent_res = social_seller.evaluate_lead_intent(p_text, game_name, global_cfg)
+                    is_lead = intent_res.get("should_reply", False)
+                    intent_score = intent_res.get("intent_score", 3)
+                    pain_point = intent_res.get("pain_point", "")
 
-                    # 生成神回覆 (V2 靈動版)
-                    witty_reply = ai_engine.generate_witty_comment(
-                        post_text=p_text,
-                        author=p_author,
-                        game_name=game_name,
-                        persona=persona,
-                        config=global_cfg,
-                        golden_quotes=golden_quotes
-                    )
-                    print(f"💬 [AI 神回覆預覽]: {witty_reply}")
+                    if is_lead:
+                        print(f"🎯 [精準潛在客戶] 命中痛點 ({intent_score}分): {pain_point}")
+                        # 2. 變色龍隱形推銷生成器 (借鑑 AICMO 80/20 黃金推銷提示詞)
+                        target_reply = social_seller.generate_stealth_chameleon_reply(
+                            post_text=p_text,
+                            author=p_author,
+                            pain_point=pain_point,
+                            game_name=game_name,
+                            config=global_cfg
+                        )
+                        print(f"🥷 [變色龍隱形推銷回覆]: {target_reply}")
+                    else:
+                        # 普通日常互動：載入實戰金句庫生成神回覆 (V2 靈動版)
+                        import threads_learner
+                        kb = threads_learner.load_knowledge_base(acc_id)
+                        golden_quotes = kb.get("golden_comments", [])
+                        target_reply = ai_engine.generate_witty_comment(
+                            post_text=p_text,
+                            author=p_author,
+                            game_name=game_name,
+                            persona=persona,
+                            config=global_cfg,
+                            golden_quotes=golden_quotes
+                        )
+                        print(f"💬 [日常高情商神回覆]: {target_reply}")
 
-                    # 執行發布
-                    post_res = await post_thread_reply(page, p_url, witty_reply)
+                    # 3. 執行發布
+                    post_res = await post_thread_reply(page, p_url, target_reply)
                     
                     log_entry = {
                         "post_url": p_url,
                         "author": p_author,
                         "keyword": kw,
                         "post_snippet": p_text[:120],
-                        "comment_text": witty_reply,
+                        "comment_text": target_reply,
+                        "is_sales_lead": is_lead,
+                        "intent_score": intent_score,
+                        "pain_point": pain_point,
                         "status": "success" if post_res["success"] else "failed",
                         "error": post_res.get("error")
                     }
                     log_comment_action(acc_id, log_entry)
+                    if is_lead and post_res["success"]:
+                        social_seller.log_sales_lead(acc_id, log_entry)
                     replied_urls.add(p_url.lower())
 
                     if post_res["success"]:

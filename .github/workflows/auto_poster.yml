@@ -8,7 +8,8 @@ on:
   workflow_dispatch:
   # 保留定時排程作為備援 (UTC 04:00, 10:00, 13:00 對應台灣 12:00, 18:00, 21:00)
   schedule:
-    - cron: '0 4,10,13 * * *'
+    # 支援 GitHub 內建雲端定時 (覆蓋台灣日間與晚間主力時段)
+    - cron: '45 0,2,4,6,8,10,11,13,14 * * *'
 
 permissions:
   contents: write
@@ -23,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install FFmpeg (用於影音壓制)
         run: |
@@ -43,16 +44,17 @@ jobs:
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
           AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
           THREADS_SESSION_DATA: ${{ secrets.THREADS_SESSION_DATA }}
           THREADS_USERNAME: ${{ secrets.THREADS_USERNAME }}
           THREADS_PASSWORD: ${{ secrets.THREADS_PASSWORD }}
         run: |
-          python main.py
+          python main.py --all
 
-      - name: Commit and Push History & Error Logs
+      - name: Commit and Push History & State
         if: always()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add posted_ids.json logs/latest_error.json config.json 2>/dev/null || true
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: sync posting state and logs [skip ci]" && git push)
+          git add accounts/ analytics.json content_queue.json logs/ posted_ids.json 2>/dev/null || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: sync cloud posting state and history [skip ci]" && git push)

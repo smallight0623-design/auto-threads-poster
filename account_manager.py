@@ -588,7 +588,14 @@ def migrate_from_legacy():
 
 def get_global_settings():
     data = load_data()
-    return data.get("global_settings", DEFAULT_GLOBAL)
+    settings = dict(data.get("global_settings", DEFAULT_GLOBAL))
+    if os.getenv("AI_API_KEY"):
+        settings["AI_API_KEY"] = os.getenv("AI_API_KEY")
+    if os.getenv("AI_BASE_URL"):
+        settings["AI_BASE_URL"] = os.getenv("AI_BASE_URL")
+    if os.getenv("AI_MODEL"):
+        settings["AI_MODEL"] = os.getenv("AI_MODEL")
+    return settings
 
 def save_global_settings(settings):
     data = load_data()
@@ -776,8 +783,23 @@ def delete_account(acc_id):
             pass
 
 def get_account_session_path(acc_id):
-    path = os.path.join(ACCOUNTS_DIR, acc_id, "session.json")
-    return path if os.path.exists(path) else None
+    acc_dir = os.path.join(ACCOUNTS_DIR, acc_id)
+    os.makedirs(acc_dir, exist_ok=True)
+    path = os.path.join(acc_dir, "session.json")
+    if not os.path.exists(path):
+        env_session = os.getenv("THREADS_SESSION_DATA", "").strip()
+        if env_session:
+            try:
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(env_session)
+                return path
+            except Exception:
+                pass
+        root_session = os.path.join(BASE_DIR, "threads_session.json")
+        if os.path.exists(root_session):
+            return root_session
+        return None
+    return path
 
 def get_account_session_content(acc_id):
     path = get_account_session_path(acc_id)
