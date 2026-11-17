@@ -120,9 +120,9 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
             print(f"[{acc_id}] 來源平台 {src_name} 抓取警告: {e}")
 
 
-    # 2. 去重檢查與破裂級爆款過濾
-    history = account_manager.get_account_history(acc_id)
-    available_candidates = [p for p in raw_posts if p["id"] not in history]
+    # 2. 去重檢查與破裂級爆款過濾 (雙重校驗：帳號發布歷史 + 全局一週去重緩存)
+    history = set(account_manager.get_account_history(acc_id))
+    available_candidates = [p for p in raw_posts if p["id"] not in history and not content_queue.is_already_posted(p["id"])]
 
     if is_fast_track:
         fast_threshold = int(account.get("fast_track_min_upvotes") or 300)
@@ -160,6 +160,7 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
 
     # 立即預約鎖定候選貼文至歷史清單，杜絕任何重複發布可能
     account_manager.add_account_history(acc_id, candidate["id"])
+    content_queue.record_posted_id(candidate["id"])
 
     prio_tag = " [🔥 建設性攻略/實用乾貨]" if candidate.get("is_priority_guide") else ""
     account_manager.update_account_status(acc_id, "鎖定目標", f"鎖定 [{candidate.get('source_platform')}]{prio_tag}：{candidate['title'][:35]}... (👍 {candidate['upvotes']})")
@@ -200,6 +201,7 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
 
     # 成功寫入去重歷史、成效情報日誌並推算下一次巡航時間
     account_manager.add_account_history(acc_id, candidate["id"])
+    content_queue.record_posted_id(candidate["id"])
     account_manager.log_post_analytics(acc_id, {
         "acc_id": acc_id,
         "acc_name": acc_name,

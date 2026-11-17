@@ -5,8 +5,56 @@ from typing import List, Dict, Any, Optional
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 QUEUE_FILE = os.path.join(BASE_DIR, "content_queue.json")
+POSTED_HISTORY_FILE = os.path.join(BASE_DIR, "posted_ids.json")
 MAX_QUEUE_CAPACITY = 200
 TTL_DAYS = 7  # 素材保鮮期：超過 7 天未發布之非突發素材自動過期修剪
+
+def load_posted_history() -> Dict[str, str]:
+    """載入已發布貼文歷史紀錄 (ID -> 發布時間)"""
+    if not os.path.exists(POSTED_HISTORY_FILE):
+        return {}
+    try:
+        with open(POSTED_HISTORY_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if isinstance(data, list):
+                # 兼容舊版純 ID 陣列
+                return {pid: datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") for pid in data}
+            return data
+    except Exception as e:
+        print(f"⚠️ 載入 posted_ids.json 失敗: {e}")
+        return {}
+
+def save_posted_history(data: Dict[str, str]):
+    with open(POSTED_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def record_posted_id(post_id: str):
+    """將發布完成之貼文 ID 納入歷史黑名單，保留一週防止再次抓取"""
+    data = load_posted_history()
+    data[post_id] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # 清理超過 7 天之超時過期 ID
+    now = datetime.datetime.now()
+    cleaned = {}
+    for pid, t_str in data.items():
+        try:
+            dt = datetime.datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
+            if (now - dt).days <= TTL_DAYS:
+                cleaned[pid] = t_str
+        except Exception:
+            cleaned[pid] = t_str
+    save_posted_history(cleaned)
+
+def is_already_posted(post_id: str) -> bool:
+    """檢查貼文是否在過去一週內已被發布過"""
+    data = load_posted_history()
+    if post_id not in data:
+        return False
+    t_str = data[post_id]
+    try:
+        dt = datetime.datetime.strptime(t_str, "%Y-%m-%d %H:%M:%S")
+        return (datetime.datetime.now() - dt).days <= TTL_DAYS
+    except Exception:
+        return True
 
 def load_queue() -> List[Dict[str, Any]]:
     if not os.path.exists(QUEUE_FILE):
@@ -106,7 +154,7 @@ def enqueue_candidates(candidates: List[Dict[str, Any]], history_ids: set) -> in
 
     for post in candidates:
         p_id = post.get("id")
-        if not p_id or p_id in history_ids or p_id in existing_ids:
+        if not p_id or p_id in history_ids or p_id in existing_ids or is_already_posted(p_id):
             continue
 
         timeslot_buckets = determine_timeslot_buckets(post)
@@ -173,6 +221,7 @@ def pop_next_post_for_slot(slot_name: Optional[str] = None) -> Optional[Dict[str
     if instant_idx >= 0:
         chosen = queue.pop(instant_idx)
         save_queue(queue)
+        record_posted_id(chosen["id"])
         print(f"🚨 [素材挑選] 觸發【突發重大情報插隊】：{chosen.get('title')[:30]}...")
         return chosen
 
@@ -196,6 +245,7 @@ def pop_next_post_for_slot(slot_name: Optional[str] = None) -> Optional[Dict[str
         # 從原始隊列中移除
         queue.pop(best_idx)
         save_queue(queue)
+        record_posted_id(chosen["id"])
         print(f"🎯 [素材挑選] 匹配時段【{slot_name}】最佳素材：{chosen.get('title')[:30]}... (👍 {chosen.get('upvotes')})")
         return chosen
 
@@ -203,6 +253,7 @@ def pop_next_post_for_slot(slot_name: Optional[str] = None) -> Optional[Dict[str
     print(f"⚠️ [素材挑選] 時段【{slot_name}】無匹配素材，啟動防開天窗降級機制，提取全庫最高熱度素材...")
     chosen = queue.pop(0)
     save_queue(queue)
+    record_posted_id(chosen["id"])
     return chosen
 
 def pop_next_post() -> Optional[Dict[str, Any]]:

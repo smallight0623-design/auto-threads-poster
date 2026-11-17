@@ -16,15 +16,9 @@ x_session.json
 *.session.json
 session.json
 accounts/**/session.json
-accounts/**/history.json
-accounts/**/comment_history.json
-accounts/**/status.json
-accounts/**/error.json
-accounts/**/threads_post_metrics.json
-accounts/**/viral_knowledge_base.json
-daily_exceptions.json
 accounts/accounts.json
 config.json
+.env
 
 # Local temporary media and logs
 downloads/

@@ -1,0 +1,19 @@
+[
+  {
+    "exception_id": "EX-20261114173631-p4",
+    "post_id": "p4",
+    "title": "全14種武器官方最新招式動態展示圖 (超長圖組)",
+    "source_platform": "Reddit",
+    "media_type": "IMAGE",
+    "media_url": "https://i.redd.it/test.jpg",
+    "permalink": "",
+    "full_content": "整理了官方推特發布的所有細節截圖...",
+    "score": 340,
+    "rule_id": "RULE-EX-001",
+    "reason": "圖片超過 4 張，需確認是否裁切或分樓發布",
+    "flags": [],
+    "status": "PENDING_REVIEW",
+    "created_at": "2026-11-14 17:36:31",
+    "resolution_note": ""
+  }
+]
