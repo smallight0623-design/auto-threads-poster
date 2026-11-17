@@ -11,10 +11,42 @@
       "enabled": true,
       "target_region": "台灣 (繁體中文)",
       "game_name": "Monster Hunter Wilds",
-      "source_platform": "Reddit",
+      "source_platform": "巴哈姆特",
       "subreddit": "MonsterHunter",
       "min_upvotes": 100,
-      "created_at": "2026-11-12 14:00:00"
+      "created_at": "2026-11-12 14:06:44",
+      "target_platform": "Threads",
+      "discovery_mode": "rising",
+      "custom_tags": "#魔物獵人旅人 #魔物獵人 #MonsterHunterWilds",
+      "source_platforms": [
+        "巴哈姆特",
+        "Reddit",
+        "X",
+        "Twitch"
+      ],
+      "strategy_prompt": "先以熱門程度判別，然後思考對於我們受眾有沒有吸引力即可。",
+      "schedule_type": "fixed_times",
+      "interval_minutes": 95,
+      "fixed_times": "08:45, 10:30, 12:15, 14:00, 16:00, 18:00, 19:45, 21:15, 22:45, 23:59",
+      "last_run": "2026-11-14 17:38:07",
+      "next_run": "2026-11-17 17:00:00",
+      "enable_fast_track": true,
+      "fast_track_min_upvotes": 300,
+      "cooldown_minutes": 45,
+      "persona": {
+        "identity": "每天上班摸魚的大劍老獵犬",
+        "tone_style": "幽默、自嘲、熱血、愛用玩家社群黑話與生活感",
+        "catchphrase": "假單已經送出去了",
+        "current_bio": "🎮 每天上班摸魚的老獵犬 ｜ 專抓全網最頂高光與極限貓車\n怕野團坐牢？進群組隊、連線語音、分享捏臉數據一起嗨 🍻\nhttps://discord.gg/wY9rsY8pV"
+      },
+      "comment_agent_enabled": true,
+      "comment_daily_limit": 15,
+      "comment_single_limit": 2,
+      "comment_keywords": [
+        "魔物獵人",
+        "MHWilds",
+        "荒野"
+      ]
     }
   ]
 }

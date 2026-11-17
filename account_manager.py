@@ -497,17 +497,21 @@ def save_global_cookie(platform: str, cookie_data_str: str) -> bool:
 
 def load_data():
     ensure_accounts_dir()
+    example_path = os.path.join(ACCOUNTS_DIR, "accounts.example.json")
+
     if not os.path.exists(ACCOUNTS_CONFIG_FILE):
+        if os.path.exists(example_path):
+            try:
+                with open(example_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                with open(ACCOUNTS_CONFIG_FILE, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                return data
+            except Exception:
+                pass
         # 檢查並自動從舊版 config.json 與 threads_session.json 進行無痛遷移
         migrate_from_legacy()
 
-    if not os.path.exists(ACCOUNTS_CONFIG_FILE) and os.path.exists(os.path.join(ACCOUNTS_DIR, "accounts.example.json")):
-        try:
-            with open(os.path.join(ACCOUNTS_DIR, "accounts.example.json"), "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    
     if os.path.exists(ACCOUNTS_CONFIG_FILE):
         try:
             with open(ACCOUNTS_CONFIG_FILE, "r", encoding="utf-8") as f:
