@@ -1,6 +1,6 @@
 {
-  "state": "RUNNING",
-  "step": "雷達掃描",
-  "message": "正在掃描 X (Twitter) [Monster Hunter Wilds] 即時推文 (門檻 100 讚)...",
-  "timestamp": "2026-11-15 19:01:33"
+  "state": "SUCCESS",
+  "step": "發布成功",
+  "message": "貼文 [baha_5786_178672] 已順利同步至 Threads！",
+  "timestamp": "2026-11-17 13:13:47"
 }
