@@ -794,11 +794,16 @@ def get_account_session_path(acc_id):
         env_session = os.getenv("THREADS_SESSION_DATA", "").strip()
         if env_session:
             try:
+                if not env_session.startswith("{"):
+                    import base64
+                    env_session = base64.b64decode(env_session).decode("utf-8")
+                # Verify JSON integrity
+                json.loads(env_session)
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(env_session)
                 return path
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[account_manager] Warning: Failed to parse THREADS_SESSION_DATA: {e}")
         root_session = os.path.join(BASE_DIR, "threads_session.json")
         if os.path.exists(root_session):
             return root_session
