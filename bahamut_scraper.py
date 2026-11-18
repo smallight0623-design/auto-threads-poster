@@ -50,22 +50,25 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
     優勢：台灣玩家第一手真實討論、在地迷因、無 Cloudflare 防爬蟲阻擋、秒級高速擷取。
     """
     bsn = resolve_bsn(board_or_keyword)
-    list_url = f"https://forum.gamer.com.tw/B.php?bsn={bsn}"
-
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         "Referer": "https://forum.gamer.com.tw/"
     }
 
-    try:
-        req = urllib.request.Request(list_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=12) as resp:
-            list_html = resp.read().decode("utf-8", errors="ignore")
-    except Exception as e:
-        raise Exception(f"無法載入巴哈姆特哈啦板 (BSN: {bsn}): {str(e)}")
+    # 同步爬取第 1 頁與第 2 頁，確保足量本土最新話題
+    pages_to_crawl = [1, 2]
+    rows = []
+    for page_num in pages_to_crawl:
+        list_url = f"https://forum.gamer.com.tw/B.php?bsn={bsn}&page={page_num}"
+        try:
+            req = urllib.request.Request(list_url, headers=headers)
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                list_html = resp.read().decode("utf-8", errors="ignore")
+                page_rows = re.findall(r'<tr class="b-list__row[^"]*"[^>]*>(.*?)</tr>', list_html, re.DOTALL)
+                rows.extend(page_rows)
+        except Exception as e:
+            print(f"⚠️ [巴哈爬蟲] 第 {page_num} 頁載入跳過: {e}")
 
-    # 解析文章列表列 (b-list__row)
-    rows = re.findall(r'<tr class="b-list__row[^"]*"[^>]*>(.*?)</tr>', list_html, re.DOTALL)
     candidates = []
 
     for r in rows:

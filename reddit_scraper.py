@@ -36,11 +36,21 @@ async def fetch_top_reddit_posts(subreddit: str, min_upvotes: int = 100, limit: 
         await page.add_init_script("delete Object.getPrototypeOf(navigator).webdriver")
 
         try:
-            await page.goto(url, wait_until="domcontentloaded", timeout=25000)
-            await page.wait_for_selector("shreddit-post", timeout=25000)
+            await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+            await page.wait_for_selector("shreddit-post", timeout=15000)
         except Exception as e:
-            await browser.close()
-            raise Exception(f"無法載入 Reddit r/{subreddit} 頁面: {str(e)}")
+            # 若潛力榜 (rising) 暫無貼文或逾時，自動無縫降級至熱門榜 (hot)
+            if clean_sort != "hot":
+                print(f"⚠️ [Reddit 爬蟲] {clean_sort} 載入逾時，自動退回 hot 熱門榜...")
+                try:
+                    await page.goto(f"https://www.reddit.com/r/{subreddit}/hot/", wait_until="domcontentloaded", timeout=20000)
+                    await page.wait_for_selector("shreddit-post", timeout=15000)
+                except Exception as hot_e:
+                    await browser.close()
+                    raise Exception(f"無法載入 Reddit r/{subreddit} 頁面: {str(hot_e)}")
+            else:
+                await browser.close()
+                raise Exception(f"無法載入 Reddit r/{subreddit} 頁面: {str(e)}")
 
         raw_posts = await page.eval_on_selector_all(
             "shreddit-post",

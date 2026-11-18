@@ -131,8 +131,8 @@ async def post_thread_reply(page, post_url: str, reply_text: str) -> dict:
             pass
 
         if not is_tb_ready:
-            # 尋找並點擊回覆對話框觸發器 ("Reply to ...")
-            reply_trigger = page.locator("text='Reply to'").or_(page.locator("div:has-text('Reply to')")).first
+            # 尋找並點擊回覆對話框觸發器 ("Reply to ...", "回覆", "留個言吧", "留言")
+            reply_trigger = page.locator("text='Reply to'").or_(page.locator("text='回覆'")).or_(page.locator("text='留個言吧'")).or_(page.locator("text='留言'")).first
             has_trigger = False
             try:
                 has_trigger = await reply_trigger.is_visible()
@@ -282,8 +282,8 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
     if target_platform != "Threads":
         return {"success": False, "error": f"此帳號目標平台為 {target_platform}，海巡留言僅支援 Threads"}
 
-    session_file = os.path.join(BASE_DIR, "accounts", acc_id, "session.json")
-    if not os.path.exists(session_file):
+    session_file = account_manager.get_account_session_path(acc_id)
+    if not session_file or not os.path.exists(session_file):
         return {"success": False, "error": f"帳號尚未綁定有效 Session (找不到 {session_file})"}
 
     # 讀取海巡相關設定

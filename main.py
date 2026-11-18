@@ -25,6 +25,20 @@ import content_queue
 
 ACTIVE_RUNNING_ACCOUNTS = set()
 
+async def run_patrol_task(acc_id: str, account: dict):
+    """執行自動巡航獲客留言 (AI 社群推銷員)"""
+    if not account.get("comment_agent_enabled", True):
+        return
+    try:
+        import threads_commenter
+        max_cmt = int(account.get("comment_single_limit") or 2)
+        print(f"\n💬 [{acc_id}] 啟動 Threads 自動巡航獲客留言 (單次上限: {max_cmt} 則)...")
+        patrol_res = await threads_commenter.run_threads_patrol_async(acc_id, max_comments=max_cmt)
+        comments_sent = patrol_res.get("commented_count", 0)
+        print(f"[{acc_id}] 🎯 Threads 海巡獲客週期完成：成功發布 {comments_sent} 則留言")
+    except Exception as e:
+        print(f"⚠️ [{acc_id}] Threads 海巡獲客執行異常: {e}")
+
 async def run_for_account(acc_id: str, is_fast_track: bool = False):
     """專門為指定的社群帳號工作台執行一次搬運與發布"""
     if acc_id in ACTIVE_RUNNING_ACCOUNTS:
@@ -103,8 +117,9 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
                     x_session = "x_session.json"
                 p_list = await fetch_top_x_tweets(game_name, min_likes=min_upvotes, session_file=x_session, sort_recent=(discovery_mode == "rising"))
             elif "巴哈" in src_name or "bahamut" in src_name.lower():
-                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描巴哈姆特哈啦板 [{game_name}] 本土爆文 (門檻 {min_upvotes} GP)...")
-                p_list = await fetch_top_bahamut_posts(subreddit or game_name, min_gp=min_upvotes)
+                baha_threshold = min(int(min_upvotes or 100), 20)
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描巴哈姆特哈啦板 [{game_name}] 本土爆文 (門檻 {baha_threshold} GP)...")
+                p_list = await fetch_top_bahamut_posts(subreddit or game_name, min_gp=baha_threshold)
             elif "twitch" in src_name.lower():
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Twitch 熱門短片 [{game_name}] (門檻 {min_upvotes} 觀看)...")
                 p_list = fetch_top_twitch_clips(game_name, min_views=min_upvotes)
@@ -132,30 +147,31 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
             return True
         print(f"🚨 [{acc_id}][Fast-Track] 發現 {len(available_candidates)} 篇破裂級超速爆文！打破常規排程提前插隊發布！")
 
-    if not available_candidates:
-        account_manager.update_account_status(acc_id, "完成", "目前各來源平台無符合門檻之全新未發布貼文。", state="SUCCESS")
-        account_manager.mark_account_run_completed(acc_id)
-        return True
+    passed_candidates = []
+    if available_candidates:
+        # 3. 規則庫透明篩選與例外標註 (Rule Engine - 燈塔二)
+        import rule_engine
+        account_manager.update_account_status(acc_id, "規則篩選", f"正在依據 rules.json 審查 {len(available_candidates)} 篇候選貼文...")
+        passed_candidates, rejected_candidates, exception_candidates = rule_engine.filter_candidates(available_candidates)
 
-    # 3. 規則庫透明篩選與例外標註 (Rule Engine - 燈塔二)
-    import rule_engine
-    account_manager.update_account_status(acc_id, "規則篩選", f"正在依據 rules.json 審查 {len(available_candidates)} 篇候選貼文...")
-    passed_candidates, rejected_candidates, exception_candidates = rule_engine.filter_candidates(available_candidates)
+        if passed_candidates:
+            added_count = content_queue.enqueue_candidates(passed_candidates, set(history))
+            print(f"[{acc_id}] 📥 已將 {added_count} 篇優質素材匯入 200 篇容量儲備庫 (目前庫存: {len(content_queue.load_queue())} 篇)")
+    else:
+        print(f"[{acc_id}] ℹ️ 本次來源平台暫無全新未發布貼文，直接由 200 篇素材儲備庫挑選排程文章發布。")
 
-    if passed_candidates:
-        added_count = content_queue.enqueue_candidates(passed_candidates, set(history))
-        print(f"[{acc_id}] 📥 已將 {added_count} 篇優質素材匯入 200 篇容量儲備庫 (目前庫存: {len(content_queue.load_queue())} 篇)")
-
-    # 4. 時段智慧選品：從 200 篇素材庫中挑選最適合當前時段之熱門/攻略素材
+    # 4. 時段智慧選品：無論本次有無抓到新文章，均從 200 篇素材庫中挑選最適合當前時段之熱門/攻略素材
     candidate = content_queue.pop_next_post_for_slot()
     if not candidate:
         if passed_candidates:
             candidate = passed_candidates[0]
         else:
-            msg = f"素材庫與當前候選均無可用素材 (淘汰 {len(rejected_candidates)} 篇，例外標註 {len(exception_candidates)} 篇)"
+            msg = "素材庫與當前候選均無可用素材，等待下一次巡航。"
             print(f"[{acc_id}] ⚠️ {msg}")
             account_manager.update_account_status(acc_id, "完成", msg, state="SUCCESS")
             account_manager.mark_account_run_completed(acc_id)
+            if account.get("comment_agent_enabled", True) and not is_fast_track:
+                await run_patrol_task(acc_id, account)
             return True
 
     # 立即預約鎖定候選貼文至歷史清單，杜絕任何重複發布可能
@@ -219,6 +235,11 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
     track_badge = " [🚨爆款自主插隊]" if is_fast_track else ""
     account_manager.update_account_status(acc_id, "發布成功", f"貼文 [{candidate['id']}]{track_badge} 已順利同步至 {target_platform}！", state="SUCCESS")
     print(f"🎉 帳號【{acc_name}】在 {target_platform}{track_badge} 任務圓滿完成！")
+
+    # 6. 自動巡航獲客留言 (AI 社群推銷員)
+    if account.get("comment_agent_enabled", True) and not is_fast_track:
+        await run_patrol_task(acc_id, account)
+
     return True
 
 async def main():
