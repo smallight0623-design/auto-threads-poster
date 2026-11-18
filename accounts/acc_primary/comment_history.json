@@ -392,5 +392,33 @@
     "error": null,
     "id": "cmt_20261118140316_385",
     "created_at": "2026-11-18 14:03:16"
+  },
+  {
+    "post_url": "https://www.threads.net/@miosocute/post/DfzniaEmgiS",
+    "author": "miosocute",
+    "keyword": "魔物獵人",
+    "post_snippet": "miosocute\nNintendo\n2d\n世代交替\n玩了九年夠值了🥹\n這期間也收了不少遊戲\n傳承二代繼續玩下去🥹\n本來想撐到明年再換\n但依然敵不過台X大的客服猛烈狂call攻勢😌  \nTranslate\nPokemon Yellow Th",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118150317_732",
+    "created_at": "2026-11-18 15:03:17"
+  },
+  {
+    "post_url": "https://www.threads.net/@joyu_1101/post/Df1RZ97H-HB",
+    "author": "joyu_1101",
+    "keyword": "魔物獵人",
+    "post_snippet": "joyu_1101\n1d\n出貨啦#魔物獵人旅人",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118150406_696",
+    "created_at": "2026-11-18 15:04:06"
   }
 ]
