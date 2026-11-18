@@ -336,5 +336,33 @@
     "error": null,
     "id": "cmt_20261118120558_623",
     "created_at": "2026-11-18 12:05:58"
+  },
+  {
+    "post_url": "https://www.threads.net/@fc3slu/post/DfEMVinj6Nk",
+    "author": "fc3slu",
+    "keyword": "魔物獵人",
+    "post_snippet": "fc3slu\n魔物獵人旅人\n10/29/26\n魔物獵人:旅人\n開服啦\n誰也在玩的？？\n你們都選什麼武器？？？  \nTranslate\n33\n28\n1",
+    "comment_text": "太刀居合抓不到判定真的會氣死，建議集中模式直接尻弱點比較穩。武器首推大劍跟輕弩，拓荒舒服很多。另外野團真的太容易血壓飆高，我後來都直接在 DC 語音群找固定隊友，裡面一堆老獵人報招帶飛，打起來順超多，供參。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "尋找一起玩的隊友與武器選擇",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118130324_173",
+    "created_at": "2026-11-18 13:03:24"
+  },
+  {
+    "post_url": "https://www.threads.net/@poca.1031/post/Dfy0Me0nwE3",
+    "author": "poca.1031",
+    "keyword": "魔物獵人",
+    "post_snippet": "poca.1031\n明日方舟\n2d\n60抽了 這就是魔物獵人合作嗎\n魔物（龍）跟（深海）獵人  \nTranslate\n \n1\n/\n2\n9\n3",
+    "comment_text": "沒辦法，我們這邊的獵人都在忙著看雌火龍發燙。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "抽卡60抽未出",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118130358_476",
+    "created_at": "2026-11-18 13:03:58"
   }
 ]
