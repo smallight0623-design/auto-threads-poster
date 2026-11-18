@@ -364,5 +364,33 @@
     "error": null,
     "id": "cmt_20261118130358_476",
     "created_at": "2026-11-18 13:03:58"
+  },
+  {
+    "post_url": "https://www.threads.net/@wawa_so0308/post/Df4qpItnyqR",
+    "author": "wawa_so0308",
+    "keyword": "魔物獵人",
+    "post_snippet": "wawa_so0308\n魔物獵人旅人\n4m\n湯咪到底你在哪。。。。。  \nTranslate",
+    "comment_text": "湯咪可能還在聚魔之地迷路啦笑死，這代野團真的水很深，遇到雷隊友血壓直接飆到最高。我之前也是邊緣人打到快起普，後來乾脆跑去一個魔物獵人荒野的 DC 群，每天晚上都有滿編語音，一堆老獵人直接開麥報招帶飛，不坐牢還順便交換了一堆神仙捏臉數據，打起來爽度真的差超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "找不到固定隊友湯咪一起玩",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118140247_548",
+    "created_at": "2026-11-18 14:02:47"
+  },
+  {
+    "post_url": "https://www.threads.net/@ccheng_202/post/DfUqz5nCUDh",
+    "author": "ccheng_202",
+    "keyword": "魔物獵人",
+    "post_snippet": "ccheng_202\n魔物獵人旅人\n11/04/26\n魔物獵人根本沒有這種龍  \nTranslate\n6.3K\n170\n94\n2K",
+    "comment_text": "那隻是還沒出DLC的封面怪，等發售就有了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118140316_385",
+    "created_at": "2026-11-18 14:03:16"
   }
 ]

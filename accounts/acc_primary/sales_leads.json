@@ -68,5 +68,19 @@
     "error": null,
     "id": "lead_20261118130324_328",
     "created_at": "2026-11-18 13:03:24"
+  },
+  {
+    "post_url": "https://www.threads.net/@wawa_so0308/post/Df4qpItnyqR",
+    "author": "wawa_so0308",
+    "keyword": "魔物獵人",
+    "post_snippet": "wawa_so0308\n魔物獵人旅人\n4m\n湯咪到底你在哪。。。。。  \nTranslate",
+    "comment_text": "湯咪可能還在聚魔之地迷路啦笑死，這代野團真的水很深，遇到雷隊友血壓直接飆到最高。我之前也是邊緣人打到快起普，後來乾脆跑去一個魔物獵人荒野的 DC 群，每天晚上都有滿編語音，一堆老獵人直接開麥報招帶飛，不坐牢還順便交換了一堆神仙捏臉數據，打起來爽度真的差超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "找不到固定隊友湯咪一起玩",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261118140247_990",
+    "created_at": "2026-11-18 14:02:47"
   }
 ]
