@@ -40,5 +40,19 @@
     "error": null,
     "id": "lead_20261118100447_700",
     "created_at": "2026-11-18 10:04:47"
+  },
+  {
+    "post_url": "https://www.threads.net/@brawlalittle/post/Df0wGsYjl9d",
+    "author": "brawlalittle",
+    "keyword": "荒野",
+    "post_snippet": "brawlalittle\n1d\n只有我覺得最近荒野好無聊嗎。。？\n都沒動力玩  \nTranslate\n1.5K\n60\n19\n49",
+    "comment_text": "真的懂，刷完素材荒野後期真的會進入精神高壓鍋，野團又常常遇到貓車地獄，打到血壓飆高真的會直接不想開遊戲。\n\n我之前也是跟你一樣快退坑，後來乾脆直接去 Discord 語音群找固定團，裡面每天晚上都有滿編房，一堆老獵人直接開麥報招帶飛，不坐牢還能順便偷學配裝跟捏臉，氣氛好很多，動力又找回來了啦。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "內容枯燥缺乏動力",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261118120503_210",
+    "created_at": "2026-11-18 12:05:03"
   }
 ]

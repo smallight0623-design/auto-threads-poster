@@ -308,5 +308,33 @@
     "error": null,
     "id": "cmt_20261118110533_958",
     "created_at": "2026-11-18 11:05:33"
+  },
+  {
+    "post_url": "https://www.threads.net/@brawlalittle/post/Df0wGsYjl9d",
+    "author": "brawlalittle",
+    "keyword": "荒野",
+    "post_snippet": "brawlalittle\n1d\n只有我覺得最近荒野好無聊嗎。。？\n都沒動力玩  \nTranslate\n1.5K\n60\n19\n49",
+    "comment_text": "真的懂，刷完素材荒野後期真的會進入精神高壓鍋，野團又常常遇到貓車地獄，打到血壓飆高真的會直接不想開遊戲。\n\n我之前也是跟你一樣快退坑，後來乾脆直接去 Discord 語音群找固定團，裡面每天晚上都有滿編房，一堆老獵人直接開麥報招帶飛，不坐牢還能順便偷學配裝跟捏臉，氣氛好很多，動力又找回來了啦。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "內容枯燥缺乏動力",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118120503_702",
+    "created_at": "2026-11-18 12:05:03"
+  },
+  {
+    "post_url": "https://www.threads.net/@mrpikebs/post/Df1uEmkklxK",
+    "author": "mrpikebs",
+    "keyword": "荒野",
+    "post_snippet": "mrpikebs\n荒野亂鬥\n1d\n【荒野新聞】怪奇物語造型最後購買機會！\n商店現在最後一次上架怪奇物語的聯名造型啦👋\n🎫 當時的通行券造型「伊萊雯露米」也有販售\n💎 全部10款造型都能用寶石買！\n💰 SC商店也有販售，會有額外閃光幣\n📅 販",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118120558_623",
+    "created_at": "2026-11-18 12:05:58"
   }
 ]
