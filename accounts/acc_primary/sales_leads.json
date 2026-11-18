@@ -12,5 +12,33 @@
     "error": null,
     "id": "lead_20261118090445_892",
     "created_at": "2026-11-18 09:04:45"
+  },
+  {
+    "post_url": "https://www.threads.net/@r_shiou_/post/DfYg_BemEqQ",
+    "author": "r_shiou_",
+    "keyword": "魔物獵人",
+    "post_snippet": "r_shiou_\n11/06/26\n最近玩魔物獵人世界把主線破完進冰原\n很多人其實不推薦玩蟲棍，但我覺得蟲棍好好玩，但怕打不過不知道要不要玩下去\n（放個前期拍的圖）  \nTranslate\n \n1\n/\n2\n214\n137\n25",
+    "comment_text": "懂玩！冰原蟲棍雖然飛天刮痧，但打點準、三燈維持好其實輸出很浪漫。只要記得配出體力增強跟耳塞，基本上不太會坐牢。\n\n話說當初我拓荒冰原也是邊打邊抖，後來受不了野團各種貓車，乾脆去揪了個 DC 群的車。裡面一堆老獵人整天開麥報招帶飛，打不贏直接進語音抱大腿，過圖順超多，供參啦！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "擔心蟲棍打不過，不知是否續玩",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261118100401_122",
+    "created_at": "2026-11-18 10:04:01"
+  },
+  {
+    "post_url": "https://www.threads.net/@cici0502_0602/post/Df3aKpaDWdg",
+    "author": "cici0502_0602",
+    "keyword": "魔物獵人",
+    "post_snippet": "cici0502_0602\n7h\n哇嗚～～，我又換衣服了！\n但..狩力還是沒上去～，繼續努力💪  \nTranslate\n5",
+    "comment_text": "嘿嘿，換衣服只是第一步啦！狩力要上去，除了配裝，技能組合跟對魔物招式理解更重要。Wilds初期熟練度比裝備數字關鍵，多練走位迴避很有感！以前我也卡關，後來發現野團血壓高，直接在DC語音群找老獵人報招帶飛，邊打邊學，進步超快，打起來舒服太多了！",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "狩力提升困難",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261118100447_700",
+    "created_at": "2026-11-18 10:04:47"
   }
 ]
