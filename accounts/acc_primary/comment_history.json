@@ -196,5 +196,33 @@
     "error": null,
     "id": "cmt_20261114022013_543",
     "created_at": "2026-11-14 02:20:13"
+  },
+  {
+    "post_url": "https://www.threads.net/@wasd_1464/post/DfzWJrxEuEs",
+    "author": "wasd_1464",
+    "keyword": "荒野",
+    "post_snippet": "wasd_1464\n荒野亂鬥\n1d\n超級細胞出增益吊飾是為了讓資源平均 看來他們真的有做到  \nTranslate\n4.1K\n44\n12\n71",
+    "comment_text": "你朋友有在玩荒野，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 1,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118082555_700",
+    "created_at": "2026-11-18 08:25:55"
+  },
+  {
+    "post_url": "https://www.threads.net/@kiwi.l2025/post/Df1xk8ilE_p",
+    "author": "kiwi.l2025",
+    "keyword": "荒野",
+    "post_snippet": "kiwi.l2025\n荒野亂鬥\n21h\n各位偉大的脆友￼，這皮膚值得入手嗎？  \nTranslate\n278\n12\n12",
+    "comment_text": "你朋友有在玩荒野，你就去買魔物獵人荒野",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118082625_773",
+    "created_at": "2026-11-18 08:26:25"
   }
 ]
