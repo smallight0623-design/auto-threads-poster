@@ -224,5 +224,33 @@
     "error": null,
     "id": "cmt_20261118082625_773",
     "created_at": "2026-11-18 08:26:25"
+  },
+  {
+    "post_url": "https://www.threads.net/@gao_u.li_/post/DfFygJvkhEc",
+    "author": "gao_u.li_",
+    "keyword": "魔物獵人",
+    "post_snippet": "gao_u.li_\nGaming Threads\n10/29/26\n為什麼我現在才知道魔物獵人\n這！麼！好！玩！\n完蛋了明天早上九點半要上班🫪\n玩到現在都睡不著🫣  \nTranslate\n \n1\n/\n2\n931\n176\n3\n550",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118090353_515",
+    "created_at": "2026-11-18 09:03:53"
+  },
+  {
+    "post_url": "https://www.threads.net/@just_an_beaver/post/Dfyx32QHaXS",
+    "author": "just_an_beaver",
+    "keyword": "魔物獵人",
+    "post_snippet": "just_an_beaver\n2d\n有人還沒玩過魔物獵人世界嗎？（pc)\n我覺得最好玩的一代\n可以開新角色跟你一起從頭玩  \nTranslate\n18\n9",
+    "comment_text": "這隻等牠大招硬直再抓破綻打。野團真的太看臉，我後來都找語音固定團打，有人報招輕鬆超多。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "缺乏同伴一起從頭玩",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261118090445_402",
+    "created_at": "2026-11-18 09:04:45"
   }
 ]
