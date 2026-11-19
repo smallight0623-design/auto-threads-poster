@@ -504,5 +504,33 @@
     "error": null,
     "id": "cmt_20261119020330_708",
     "created_at": "2026-11-19 02:03:30"
+  },
+  {
+    "post_url": "https://www.threads.net/@mrpikebs/post/Df4kHv3khyl",
+    "author": "mrpikebs",
+    "keyword": "荒野",
+    "post_snippet": "mrpikebs\n荒野亂鬥\n14h\n在荒野亂鬥裡，什麼都可以！\nIn Brawl, you can!  \nTranslate\n198\n5\n2\n8",
+    "comment_text": "我的荒野只能被魔物亂鬥...",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119030304_136",
+    "created_at": "2026-11-19 03:03:04"
+  },
+  {
+    "post_url": "https://www.threads.net/@yellow.j12_8/post/Df4lcZPE7k2",
+    "author": "yellow.j12_8",
+    "keyword": "荒野",
+    "post_snippet": "yellow.j12_8\n13h\n畫荒野亂鬥的時候沒人看還好\n但畫死亡筆記本沒人看就有點那個了\n因為沒有朋友可以跟我聊死筆😭  \nTranslate\n \n1\n/\n2\n18\n3",
+    "comment_text": "畫個荒野魔物，保證一堆人跟你聊。",
+    "is_sales_lead": false,
+    "intent_score": 1,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119030352_860",
+    "created_at": "2026-11-19 03:03:52"
   }
 ]
