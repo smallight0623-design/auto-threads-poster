@@ -588,5 +588,33 @@
     "error": null,
     "id": "cmt_20261119050347_359",
     "created_at": "2026-11-19 05:03:47"
+  },
+  {
+    "post_url": "https://www.threads.net/@daemon_kaixo/post/Df6SzTSk5nB",
+    "author": "daemon_kaixo",
+    "keyword": "MHWilds",
+    "post_snippet": "daemon_kaixo\n54m\nOuttakes - Die Monster Hunter Wilds Spielefilmserie\n#monsterhunter #mhworld #mhwilds #monsterhuntergame",
+    "comment_text": "AI生成但這畫質太真實，我還以為荒野已經出真人電影了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119060253_859",
+    "created_at": "2026-11-19 06:02:53"
+  },
+  {
+    "post_url": "https://www.threads.net/@leijoalan/post/DH2iRfTPy3c",
+    "author": "leijoalan",
+    "keyword": "MHWilds",
+    "post_snippet": "leijoalan\nMH Wilds\n03/31/25\n繪師就是能把兇狠醜陋的魔物\n變成可愛生物的魔法師！\n沼噴龍寶寶也太可愛！！\n原作者X: @CBomochi  \nTranslate\n784\n7\n20\n77",
+    "comment_text": "等一下發售的時候，希望它揍我不要那麼痛",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119060324_696",
+    "created_at": "2026-11-19 06:03:24"
   }
 ]
