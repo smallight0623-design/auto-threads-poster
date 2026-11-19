@@ -448,5 +448,33 @@
     "error": null,
     "id": "cmt_20261119000320_539",
     "created_at": "2026-11-19 00:03:20"
+  },
+  {
+    "post_url": "https://www.threads.net/@nekoya_chika/post/DGsw1Tiy-eL",
+    "author": "nekoya_chika",
+    "keyword": "MHWilds",
+    "post_snippet": "nekoya_chika\nMH Wilds\n03/02/25\n貓貓也太屁了整隻飛走超可愛w\nMHWilds  \nTranslate\n840\n7\n26\n354",
+    "comment_text": "這隻貓比我還懂職場摸魚，直接原地失聯",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119010250_313",
+    "created_at": "2026-11-19 01:02:50"
+  },
+  {
+    "post_url": "https://www.threads.net/@icreatedthisshit/post/Df058sEgaNO",
+    "author": "icreatedthisshit",
+    "keyword": "MHWilds",
+    "post_snippet": "icreatedthisshit\n1d\nNothing beats hunting with one which I created....The most terrifying father-daughter duo in Wyveria",
+    "comment_text": "捏出這麼漂亮的父女，結果進場直接被闢獸當羽毛球打",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119010321_155",
+    "created_at": "2026-11-19 01:03:21"
   }
 ]
