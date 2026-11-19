@@ -420,5 +420,33 @@
     "error": null,
     "id": "cmt_20261118150406_696",
     "created_at": "2026-11-18 15:04:06"
+  },
+  {
+    "post_url": "https://www.threads.net/@iamlw14/post/Df1qgzaD-Pb",
+    "author": "iamlw14",
+    "keyword": "MHWilds",
+    "post_snippet": "iamlw14\nGaming Threads\n1d\nmonster hunter wilds has a very low barrier to accessibility. this video is an example. please",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119000249_407",
+    "created_at": "2026-11-19 00:02:49"
+  },
+  {
+    "post_url": "https://www.threads.net/@sixth_hav3n/post/DfzpGWIEnFj",
+    "author": "sixth_hav3n",
+    "keyword": "MHWilds",
+    "post_snippet": "sixth_hav3n\n2d\nIf Ed was in Monster Hunter #ededdneddy #monsterhunterwilds #mhw #monsterhunter #mhwilds\n25\n2",
+    "comment_text": "這隻魔物應該是直接吃木板跟一整顆下水道吧",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119000320_539",
+    "created_at": "2026-11-19 00:03:20"
   }
 ]
