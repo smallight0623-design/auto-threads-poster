@@ -476,5 +476,33 @@
     "error": null,
     "id": "cmt_20261119010321_155",
     "created_at": "2026-11-19 01:03:21"
+  },
+  {
+    "post_url": "https://www.threads.net/@coyotewildfire/post/Df4m7xBDz19",
+    "author": "coyotewildfire",
+    "keyword": "MHWilds",
+    "post_snippet": "coyotewildfire\nMonster Hunter Wilds Ascendance\n12h\nTwo Horns, Zero Mercy: 8-Star Zoh Shia gets melted in style\nDuo Hunti",
+    "comment_text": "雙狩獵笛這畫面太美，怪直接原地聽音樂聽到融化",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119020246_445",
+    "created_at": "2026-11-19 02:02:46"
+  },
+  {
+    "post_url": "https://www.threads.net/@iceyayyz/post/Df4XFnSHOng",
+    "author": "iceyayyz",
+    "keyword": "MHWilds",
+    "post_snippet": "iceyayyz\n14h\nI Love a live service game especially Monster Hunter Wilds\n#gaming #mhwilds #destiny2 #monsterhunter #gamin",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119020330_708",
+    "created_at": "2026-11-19 02:03:30"
   }
 ]
