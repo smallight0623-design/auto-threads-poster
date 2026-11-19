@@ -616,5 +616,33 @@
     "error": null,
     "id": "cmt_20261119060324_696",
     "created_at": "2026-11-19 06:03:24"
+  },
+  {
+    "post_url": "https://www.threads.net/@xiaochu0503/post/DGzkrqAT01L",
+    "author": "xiaochu0503",
+    "keyword": "MHWilds",
+    "post_snippet": "xiaochu0503\nMH Wilds\n03/05/25\n欸不是你禮貌嗎？？\n氣到爆粗口🤣🤣\n-\n魔物獵人荒野 MHWilds  \nTranslate\n43\n13\n2",
+    "comment_text": "這隻等牠大招硬直再抓破綻打。野團真的太看臉，我後來都找語音固定團打，有人報招輕鬆超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "野團遭遇挫折或魔物搞心态",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119070307_496",
+    "created_at": "2026-11-19 07:03:07"
+  },
+  {
+    "post_url": "https://www.threads.net/@mhw_vivi/post/Df6AZVwlGsp",
+    "author": "mhw_vivi",
+    "keyword": "MHWilds",
+    "post_snippet": "mhw_vivi\n4h\nMomo♥︎\n#MHWilds\n#MonsterHunter\n#fashionhunter\n#gaming\n#capcom\n1",
+    "comment_text": "Cannot wait! That being said, take your time, no rush!",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119070339_773",
+    "created_at": "2026-11-19 07:03:39"
   }
 ]
