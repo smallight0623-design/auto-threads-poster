@@ -532,5 +532,33 @@
     "error": null,
     "id": "cmt_20261119030352_860",
     "created_at": "2026-11-19 03:03:52"
+  },
+  {
+    "post_url": "https://www.threads.net/@oldmanazriel/post/Df3tFYGI1wV",
+    "author": "oldmanazriel",
+    "keyword": "MHWilds",
+    "post_snippet": "oldmanazriel\nMonster Hunter Wilds\n23h\nEverytime my Anxiety spikes, I head over to Savage Omega and beat it as much as I ",
+    "comment_text": "Omega真的適合拿大劍或槌子去敲頭，那種一刀入魂的感覺最解壓，抓好牠衝鋒後的硬直尻頭超爽！不過啊，有時候自己刷真的會有點悶，尤其野團遇到雷包更是直接血壓飆高。我後來都直接在 DC 語音群找固定隊友，裡面一堆老屁股帶飛，打起來不坐牢，還能邊聊邊打超chill。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "焦慮情緒，需透過遊戲宣洩",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119040313_527",
+    "created_at": "2026-11-19 04:03:13"
+  },
+  {
+    "post_url": "https://www.threads.net/@myrantdomhobbies/post/De_mu64iItL",
+    "author": "myrantdomhobbies",
+    "keyword": "MHWilds",
+    "post_snippet": "myrantdomhobbies\nMonster Hunter Wilds\n10/27/26\nMe, asking my daughter what her favorite monster/quest is in MH Wilds.\nHe",
+    "comment_text": "女兒懂玩！Omega Planetes才是真愛！",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261119040359_234",
+    "created_at": "2026-11-19 04:03:59"
   }
 ]
