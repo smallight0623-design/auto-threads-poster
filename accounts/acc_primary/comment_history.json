@@ -784,5 +784,33 @@
     "error": null,
     "id": "cmt_20261120040252_397",
     "created_at": "2026-11-20 04:02:52"
+  },
+  {
+    "post_url": "https://www.threads.net/@xiaobaoz_mingli/post/Df8yNCYjn0N",
+    "author": "xiaobaoz_mingli",
+    "keyword": "魔物獵人",
+    "post_snippet": "xiaobaoz_mingli\n魔物獵人旅人\n41m\n今天在魔物獵人 旅人打毒妖鳥\n尾巴被切到斷時，這個天才說了，\n他的二弟被切還是斬斷了，\n忘了，我真的笑瘋。\n真的天才，天才只的是頭腦很有趣，\n有意思，不是罵他。\n不過，\n我真的第一次遇到",
+    "comment_text": "這不是斷尾，這是命根子，建議馬上上車急救",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120050248_638",
+    "created_at": "2026-11-20 05:02:48"
+  },
+  {
+    "post_url": "https://www.threads.net/@wee08_16/post/Df7LvBWH07U",
+    "author": "wee08_16",
+    "keyword": "魔物獵人",
+    "post_snippet": "wee08_16\n魔物獵人旅人\n15h\n懇求三位克蕾絲帶飛  \nTranslate\n7\n11\n2",
+    "comment_text": "笑死，克蕾絲那招大範圍真的初見殺超多次，建議貼地滾抓硬硬直，或是直接改拿盾武跟他換血。\n\n不過野團真的會打到血壓飆高，貓車貓到心累。我後來都直接去 DC 語音群找固定隊友，裡面一堆老獵人每天晚上都在開車幫忙帶飛，報招超準不坐牢，還順便偷到不少神級配裝跟捏臉，打起來爽度差超多。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "打不過克蕾絲急需大佬帶飛",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120050319_481",
+    "created_at": "2026-11-20 05:03:19"
   }
 ]

@@ -138,5 +138,19 @@
     "error": null,
     "id": "lead_20261120040252_736",
     "created_at": "2026-11-20 04:02:52"
+  },
+  {
+    "post_url": "https://www.threads.net/@wee08_16/post/Df7LvBWH07U",
+    "author": "wee08_16",
+    "keyword": "魔物獵人",
+    "post_snippet": "wee08_16\n魔物獵人旅人\n15h\n懇求三位克蕾絲帶飛  \nTranslate\n7\n11\n2",
+    "comment_text": "笑死，克蕾絲那招大範圍真的初見殺超多次，建議貼地滾抓硬硬直，或是直接改拿盾武跟他換血。\n\n不過野團真的會打到血壓飆高，貓車貓到心累。我後來都直接去 DC 語音群找固定隊友，裡面一堆老獵人每天晚上都在開車幫忙帶飛，報招超準不坐牢，還順便偷到不少神級配裝跟捏臉，打起來爽度差超多。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "打不過克蕾絲急需大佬帶飛",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261120050319_298",
+    "created_at": "2026-11-20 05:03:19"
   }
 ]
