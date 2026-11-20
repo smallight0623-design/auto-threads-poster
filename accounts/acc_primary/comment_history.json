@@ -756,5 +756,33 @@
     "error": null,
     "id": "cmt_20261120030750_421",
     "created_at": "2026-11-20 03:07:50"
+  },
+  {
+    "post_url": "https://www.threads.net/@edisonthiefcat/post/Df60wS9j_X8",
+    "author": "edisonthiefcat",
+    "keyword": "魔物獵人",
+    "post_snippet": "edisonthiefcat\n魔物獵人旅人\n17h\n主角大劍\n果然給你主宰你給我砍出一個世界  \nTranslate\n41\n1\n19",
+    "comment_text": "果然主宰玩完，下一款直接精神時光屋",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120040225_231",
+    "created_at": "2026-11-20 04:02:25"
+  },
+  {
+    "post_url": "https://www.threads.net/@corn.owo/post/Dfxdt_Onyee",
+    "author": "corn.owo",
+    "keyword": "魔物獵人",
+    "post_snippet": "corn.owo\n魔物獵人荒野\n4d\n最近因為明年的DLC回來玩萌夯\n查了一下現在畢業套裝都是要打過巨戟龍\n有進去挑戰過一次 沒概念一下就貓完了\n今天才剛摸到100等…還在新手村\n以前有朋友帶覺得什麼都很好玩\n現在一個人常常打幾場就不想玩了",
+    "comment_text": "巨戟龍初見真的會被油彈跟大招初見殺啦，100等還在新手村很正常，別給自己太大壓力。這隻建議配裝抗震要拉滿，尾巴掃過來時往內側滾比較好躲。\n\n另外野團打這隻真的血壓飆高，我後來都直接去 DC 語音群找固定隊友，裡面一堆老獵人每天晚上都開團報招帶飛，才終於擺脫坐牢命運，打起來順超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "單人打巨戟龍卡關且缺乏朋友陪伴",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120040252_397",
+    "created_at": "2026-11-20 04:02:52"
   }
 ]
