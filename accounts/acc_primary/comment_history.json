@@ -672,5 +672,33 @@
     "error": null,
     "id": "cmt_20261120000313_904",
     "created_at": "2026-11-20 00:03:13"
+  },
+  {
+    "post_url": "https://www.threads.net/@_3.yu____/post/Df8a10ykk1a",
+    "author": "_3.yu____",
+    "keyword": "魔物獵人",
+    "post_snippet": "_3.yu____\n魔物獵人旅人\n5m\n彌多律超正的我要瘋了✋🏻😭🤚🏻  \nTranslate\n1",
+    "comment_text": "最屌的是這種遊戲可以不太耗電、發燙，我覺得贏很多手遊了🤣",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120010239_640",
+    "created_at": "2026-11-20 01:02:39"
+  },
+  {
+    "post_url": "https://www.threads.net/@myosotis_alpestris_/post/Df7mdZnow3v",
+    "author": "myosotis_alpestris_",
+    "keyword": "魔物獵人",
+    "post_snippet": "myosotis_alpestris_\n魔物獵人旅人\n7h\n不可能台服跟日服是分開的吧，卡普空你自遊戲給我做好了啊  \nTranslate",
+    "comment_text": "跨平台連線搞成這樣，卡普空你是怕我們嫌太順是不是",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120010322_120",
+    "created_at": "2026-11-20 01:03:22"
   }
 ]
