@@ -812,5 +812,33 @@
     "error": null,
     "id": "cmt_20261120050319_481",
     "created_at": "2026-11-20 05:03:19"
+  },
+  {
+    "post_url": "https://www.threads.net/@kid.chi/post/Df8AprVpcI4",
+    "author": "kid.chi",
+    "keyword": "MHWilds",
+    "post_snippet": "kid.chi\nGaming Threads\n9h\nBeing a gs main switching to using a bow recently I’m actually enjoying the change of pace mhw",
+    "comment_text": "大劍換成弓，你這是從苦行僧直接還俗了吧",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120061331_976",
+    "created_at": "2026-11-20 06:13:31"
+  },
+  {
+    "post_url": "https://www.threads.net/@coyotewildfire/post/Df7LK1Rk1mM",
+    "author": "coyotewildfire",
+    "keyword": "MHWilds",
+    "post_snippet": "coyotewildfire\nMonster Hunter Wilds Ascendance\n16h\nDO YOU NEED end-game gear to be a good Hunting Horn?\nCarting is part ",
+    "comment_text": "這隻等牠大招硬直再抓破綻打。野團真的太看臉，我後來都找語音固定團打，有人報招輕鬆超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "野團三貓與自身技術落差",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120061424_890",
+    "created_at": "2026-11-20 06:14:24"
   }
 ]
