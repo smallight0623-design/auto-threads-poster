@@ -700,5 +700,33 @@
     "error": null,
     "id": "cmt_20261120010322_120",
     "created_at": "2026-11-20 01:03:22"
+  },
+  {
+    "post_url": "https://www.threads.net/@you__.0422/post/DfMH5uwEuLz",
+    "author": "you__.0422",
+    "keyword": "魔物獵人",
+    "post_snippet": "you__.0422\n魔物獵人荒野\n11/01/26\n剛入手魔物獵人荒野 有啥要注意的  \nTranslate\n11\n21",
+    "comment_text": "新手先別急著血壓飆高！開荒期最重要的是善用「集中模式」抓弱點，別貪刀，魔物硬直超短，貪一下直接貓車。還有記得常換營地吃飯。\n\n另外野團真滴常遇到雷包，打久心很累。我後來都直接去 DC 語音群找車隊，裡面一堆大老每天晚上都開滿編房直接帶飛，順暢超多還能順便偷學配裝，過任務根本像呼吸一樣簡單。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "剛入坑新手求推薦注意事項",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120020250_490",
+    "created_at": "2026-11-20 02:02:50"
+  },
+  {
+    "post_url": "https://www.threads.net/@chihhao.wang.77/post/De_Qfn9kwea",
+    "author": "chihhao.wang.77",
+    "keyword": "魔物獵人",
+    "post_snippet": "chihhao.wang.77\n魔物獵人崛起\n10/27/26\n還有人在玩崛起 破曉嗎\n原初爵銀龍是最後魔物了嗎  \nTranslate\n46\n16",
+    "comment_text": "建議世界，不然崛起玩完之後會覺得世界動作很慢",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "舊作版本進度確認",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120020321_515",
+    "created_at": "2026-11-20 02:03:21"
   }
 ]
