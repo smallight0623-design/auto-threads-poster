@@ -840,5 +840,33 @@
     "error": null,
     "id": "cmt_20261120061424_890",
     "created_at": "2026-11-20 06:14:24"
+  },
+  {
+    "post_url": "https://www.threads.net/@kousei_b/post/Df8DPJHG2Jt",
+    "author": "kousei_b",
+    "keyword": "MHWilds",
+    "post_snippet": "kousei_b\n9h\n#monsterhunterwilds #mhwilds #capcon #NightRaiders\n1",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120070321_693",
+    "created_at": "2026-11-20 07:03:21"
+  },
+  {
+    "post_url": "https://www.threads.net/@bohan33/post/Df9ATjgE4Qc",
+    "author": "bohan33",
+    "keyword": "魔物獵人",
+    "post_snippet": "bohan33\n魔物獵人旅人\n39m\n遊戲日常：\n狩力14500終於贏了🎉\n不枉我之前用主弓閃來避去練肌肉記憶\n最後還是沒辦法…攻擊力不足…\n結果還是彌多律強打太多了！\n九分半\n我覺得我很棒👍  \nTranslate\n3",
+    "comment_text": "用弓閃半天發現暴力解最實在，這很獵人",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261120070414_368",
+    "created_at": "2026-11-20 07:04:14"
   }
 ]
