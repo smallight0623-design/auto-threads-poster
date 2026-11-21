@@ -1008,5 +1008,33 @@
     "error": null,
     "id": "cmt_20261121040307_276",
     "created_at": "2026-11-21 04:03:07"
+  },
+  {
+    "post_url": "https://www.threads.net/@jack.neroro/post/Df_Um0ozzXw",
+    "author": "jack.neroro",
+    "keyword": "魔物獵人",
+    "post_snippet": "jack.neroro\n魔物獵人旅人\n1h\n魔物獵人旅人\n《魔物獵人：旅人》幫兄弟工商，工商到一半當場倒地…然後發現自己沒錢 #CD喜德 #魔物獵人旅人 #魔物獵人 #工商翻車 #手遊  \nTranslate\n1",
+    "comment_text": "工商到一半直接貓車，這很獵人",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "手遊工商翻車沒錢",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121050233_229",
+    "created_at": "2026-11-21 05:02:33"
+  },
+  {
+    "post_url": "https://www.threads.net/@vestine09/post/Df9MGpbkjdF",
+    "author": "vestine09",
+    "keyword": "魔物獵人",
+    "post_snippet": "vestine09\n佩佩\n20h\n魔物獵人 旅人\n今日份的討伐：融光種蠻顎龍 難度10+3\n佩佩 🔫💦  \nTranslate\n12\n16\n6",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121050317_585",
+    "created_at": "2026-11-21 05:03:17"
   }
 ]
