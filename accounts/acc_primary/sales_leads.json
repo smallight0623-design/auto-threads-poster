@@ -180,5 +180,19 @@
     "error": null,
     "id": "lead_20261121000313_792",
     "created_at": "2026-11-21 00:03:13"
+  },
+  {
+    "post_url": "https://www.threads.net/@cijin_kant/post/Df-i91qE6wS",
+    "author": "cijin_kant",
+    "keyword": "魔物獵人",
+    "post_snippet": "cijin_kant\n魔物獵人旅人\n4h\n請問 各位大佬\n弓跟弩裝備能共用嗎？\n原本練弓 ）已經全屬性各一套\n有點想玩弩看看\n另找冒險團活躍的加入 有DC佳\n我無課玩家 但很認真在玩😭  \nTranslate\n3",
+    "comment_text": "裝備不能共用啦，弓是屬性流，輕重弩有些吃貫通或散彈，防具技能完全兩回事，你全屬性弓畢業轉過去素材會直接破產XD。\n\n另外野團真的坐牢坐到血壓飆高，我後來都直接去 DC 語音群找固定隊友，每天晚上都有滿編車廂老獵人帶飛，分享配裝和捏臉超熱鬧，主頁有傳送門自己來看啦。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "想轉武器且缺乏活躍冒險團",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261121010316_319",
+    "created_at": "2026-11-21 01:03:16"
   }
 ]
