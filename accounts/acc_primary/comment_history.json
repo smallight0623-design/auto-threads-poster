@@ -980,5 +980,33 @@
     "error": null,
     "id": "cmt_20261121030340_939",
     "created_at": "2026-11-21 03:03:40"
+  },
+  {
+    "post_url": "https://www.threads.net/@s365698881/post/Df-Ah-HExYo",
+    "author": "s365698881",
+    "keyword": "魔物獵人",
+    "post_snippet": "s365698881\n12h\n圈內也有人玩魔物獵人旅人嗎 有的話可以交流和幫忙一下\nMHOAPXSFKF3QB  \nTranslate\n3\n1",
+    "comment_text": "手遊那個跑圖跟採集真的會農到心態炸裂，尤其是遇到機車的大型魔物，單人打真的跟坐牢沒兩樣。\n\n講真的，野團遇到雷隊友血壓還會直線飆高。我後來都直接躲去 DC 語音群打，裡面一堆肝魔物的老獵人，不只開場直接報招提醒，還能直接拉人連線帶飛，舒服很多。自己一個人玩太孤單了啦！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "尋求手遊魔物獵人旅人玩家交流與幫忙",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121040232_920",
+    "created_at": "2026-11-21 04:02:32"
+  },
+  {
+    "post_url": "https://www.threads.net/@kristrhedog/post/DfzkWGDk4BI",
+    "author": "kristrhedog",
+    "keyword": "魔物獵人",
+    "post_snippet": "kristrhedog\n4d\n昨天去買槍彈的時候 看到了打到骨折的魔物獵人 還剛好是打折的最後一天 只能說時間是不會給你猶豫的機會的  \nTranslate\n \n1\n/\n3\n3\n3",
+    "comment_text": "這不是打到骨折，這是被雄火龍甩尾直接打到骨折",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121040307_276",
+    "created_at": "2026-11-21 04:03:07"
   }
 ]
