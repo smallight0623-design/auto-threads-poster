@@ -952,5 +952,33 @@
     "error": null,
     "id": "cmt_20261121020318_251",
     "created_at": "2026-11-21 02:03:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@delete70745277/post/Df9hp5ZgdNi",
+    "author": "delete70745277",
+    "keyword": "魔物獵人",
+    "post_snippet": "delete70745277\n魔物獵人\n15h\n被夾子夾住的魔物又有新成員了！\n這次是恐暴龍！之前有人留言點名，於是就把牠做出來了\n目前這個系列又多了一隻，不知道最後會累積到多少隻……\n真的是大黃瓜配色？  \nTranslate\n \n1\n/",
+    "comment_text": "這大黃瓜看起來醃得夠入味，建議直接配醬油",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121030307_465",
+    "created_at": "2026-11-21 03:03:07"
+  },
+  {
+    "post_url": "https://www.threads.net/@mr_clothespeg/post/Df891CrE3eE",
+    "author": "mr_clothespeg",
+    "keyword": "魔物獵人",
+    "post_snippet": "mr_clothespeg\n21h\n為了這個，我要把買來很久沒動的世界拿出來玩完  \nTranslate\n4\n1",
+    "comment_text": "建議先玩世界，不然荒野玩完之後會覺得世界動作很慢",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "放置很久的遊戲需要重新打完",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121030340_939",
+    "created_at": "2026-11-21 03:03:40"
   }
 ]
