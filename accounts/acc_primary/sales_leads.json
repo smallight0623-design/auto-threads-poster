@@ -166,5 +166,19 @@
     "error": null,
     "id": "lead_20261120061424_272",
     "created_at": "2026-11-20 06:14:24"
+  },
+  {
+    "post_url": "https://www.threads.net/@yli87957/post/Df9tV40EtPW",
+    "author": "yli87957",
+    "keyword": "荒野",
+    "post_snippet": "yli87957\n11h\n在荒野買過最沒用的東西（  \nTranslate\n462\n2\n1\n1",
+    "comment_text": "笑死，真的會買到一堆佔格子還不知道幹嘛的垃圾道具。\n\n開荒期真的不要亂花點數，前期把營地解開跟基礎彈藥備好比較實際。講到這個，野團打上位魔物真的常常遇到貓車地獄，血壓飆超高。\n\n我後來都直接去DC語音群找固定隊友，裡面一堆老獵人每天晚上都在開房帶飛，不只報招超準還不用坐牢，打起來真的順超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "買到無用道具感到踩雷或抱怨",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261121000313_792",
+    "created_at": "2026-11-21 00:03:13"
   }
 ]
