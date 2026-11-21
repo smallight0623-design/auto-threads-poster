@@ -194,5 +194,33 @@
     "error": null,
     "id": "lead_20261121010316_319",
     "created_at": "2026-11-21 01:03:16"
+  },
+  {
+    "post_url": "https://www.threads.net/@htnameisyi1119/post/Df-7bxyEr7J",
+    "author": "htnameisyi1119",
+    "keyword": "荒野",
+    "post_snippet": "htnameisyi1119\n1h\n荒野可以禁止韓國人玩嗎😭\n1",
+    "comment_text": "笑死，野團遇到水準不整齊的真的會中風，有些雷包見切失敗或閃光彈亂丟，血壓直接飆高。\n另外野團真的很常坐牢，我後來都直接去 DC 語音群找固定隊友打，裡面一堆老獵人報招帶飛，每天晚上都有滿編房，打起來順超多，配裝跟捏臉交流也快，真的舒服很多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "野團遇到特定地區玩家體驗差",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261121020244_150",
+    "created_at": "2026-11-21 02:02:44"
+  },
+  {
+    "post_url": "https://www.threads.net/@hashi._.4312/post/Df-f4RkEg_G",
+    "author": "hashi._.4312",
+    "keyword": "荒野",
+    "post_snippet": "hashi._.4312\n5h\n我是不是太著急認識人了（\n剛剛看到兩個一起打過荒野的兩個大師上線\n有個之前好像+過唉居 另一個沒有\n結果問一問要不要+後 他們退掉了...\n是因為我是女生 還是我打太爛嗎😭\n我只是想認識一樣打荒野的人🥲 挺難",
+    "comment_text": "拍拍，別想太多啦！野團本來就一堆怪怪的人，絕對不是妳的問題。\n\n荒野這代魔物動作那麼動態，野房溝通不良真的超容易貓車。妳只是想找個同溫層一起農素材而已，遇到這種沒禮貌的乾脆放寬心。\n\n另外野團真的血壓會飆高，我後來都直接去一個荒野開荒DC群打，裡面每天晚上都有滿編語音房，一堆老獵人帶飛不坐牢，還能順便看大家分享奇葩捏臉跟配裝，打起來真的舒服很多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "想找荒野同伴卻遭拒絕而難過",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261121020318_260",
+    "created_at": "2026-11-21 02:03:18"
   }
 ]
