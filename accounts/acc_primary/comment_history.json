@@ -1064,5 +1064,33 @@
     "error": null,
     "id": "cmt_20261121060350_787",
     "created_at": "2026-11-21 06:03:50"
+  },
+  {
+    "post_url": "https://www.threads.net/@coyotewildfire/post/Df9z0foE99d",
+    "author": "coyotewildfire",
+    "keyword": "MHWilds",
+    "post_snippet": "coyotewildfire\nMonster Hunter Wilds Ascendance\n17h\nWHEN is it time to PEEL BACK the comfy skills to increase DPS?\nAs we ",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "如何捨棄生存技能提升DPS",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121070257_536",
+    "created_at": "2026-11-21 07:02:57"
+  },
+  {
+    "post_url": "https://www.threads.net/@afrvnsh/post/Df9diZoEsga",
+    "author": "afrvnsh",
+    "keyword": "MHWilds",
+    "post_snippet": "afrvnsh\n20h\nRemote Play PS on IPad, playing MHWilds\n14",
+    "comment_text": "iPad 遠端玩荒野，下一秒畫面延遲直接變特大號貓車",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121070349_993",
+    "created_at": "2026-11-21 07:03:49"
   }
 ]
