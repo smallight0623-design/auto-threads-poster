@@ -1036,5 +1036,33 @@
     "error": null,
     "id": "cmt_20261121050317_585",
     "created_at": "2026-11-21 05:03:17"
+  },
+  {
+    "post_url": "https://www.threads.net/@junh_1212/post/Df_hfjjn8aG",
+    "author": "junh_1212",
+    "keyword": "荒野",
+    "post_snippet": "junh_1212\n荒野亂鬥\n9m\n世紀慘案  \nTranslate\n2\n1",
+    "comment_text": "還以為是魔物獵人荒野，結果是手遊，害我連假單都打好了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121060313_477",
+    "created_at": "2026-11-21 06:03:13"
+  },
+  {
+    "post_url": "https://www.threads.net/@gruher7485/post/Df_h3xao725",
+    "author": "gruher7485",
+    "keyword": "荒野",
+    "post_snippet": "gruher7485\n荒野亂鬥\n6m\n荒野亂鬥2026全球總決賽太扯\n種子目前全敗💀💀💀💀  \nTranslate\n7\n2",
+    "comment_text": "打錯了吧，你各位是在等荒野大鏢客3嗎？",
+    "is_sales_lead": false,
+    "intent_score": 1,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261121060350_787",
+    "created_at": "2026-11-21 06:03:50"
   }
 ]
