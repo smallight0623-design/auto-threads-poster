@@ -1204,5 +1204,33 @@
     "error": null,
     "id": "cmt_20261122030318_517",
     "created_at": "2026-11-22 03:03:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@cchin._.02/post/DgB3osWmhLc",
+    "author": "cchin._.02",
+    "keyword": "魔物獵人",
+    "post_snippet": "cchin._.02\n魔物獵人旅人\n17m\n有冇人知點解影相任務做唔到，其他地區都做到，但俱朽之淵兩個就做唔到￼ ？？？  \nTranslate",
+    "comment_text": "這隻等牠大招硬直再抓破綻打。野團真的太看臉，我後來都找語音固定團打，有人報招輕鬆超多。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "俱朽之淵影相任務無法完成",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122040251_265",
+    "created_at": "2026-11-22 04:02:51"
+  },
+  {
+    "post_url": "https://www.threads.net/@5566_bos/post/DgAIRk7klK4",
+    "author": "5566_bos",
+    "keyword": "魔物獵人",
+    "post_snippet": "5566_bos\n魔物獵人旅人\n16h\n刀刀致命\n21\n4\n5",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122040322_668",
+    "created_at": "2026-11-22 04:03:22"
   }
 ]
