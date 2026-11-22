@@ -1176,5 +1176,33 @@
     "error": null,
     "id": "cmt_20261122020310_868",
     "created_at": "2026-11-22 02:03:10"
+  },
+  {
+    "post_url": "https://www.threads.net/@itohchen/post/DgAr3FHiZJ6",
+    "author": "itohchen",
+    "keyword": "魔物獵人",
+    "post_snippet": "itohchen\n10h\n看到這張圖的第一個反應\n斷尾 破翼 兩階段斷角 古龍大寶玉  \nTranslate\n31\n4\n1\n6",
+    "comment_text": "這張圖旁邊是不是還有一台發爐的PS5",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122030248_651",
+    "created_at": "2026-11-22 03:02:48"
+  },
+  {
+    "post_url": "https://www.threads.net/@alvinorange/post/DgAQsUkE-be",
+    "author": "alvinorange",
+    "keyword": "魔物獵人",
+    "post_snippet": "alvinorange\n14h\n其實呢隻game啲平衡好差，雙劍女8千幾狩力就可以屈贏主宰級尾王。\n（但因為係Monster Hunter，同埋無DEI元素，所以都會繼續玩嘅😅）  \nTranslate\n18\n9\n13",
+    "comment_text": "只要沒DEI，畫面糊一點我也甘願繼續坐牢。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "平衡差",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122030318_517",
+    "created_at": "2026-11-22 03:03:18"
   }
 ]
