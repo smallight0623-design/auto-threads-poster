@@ -1260,5 +1260,33 @@
     "error": null,
     "id": "cmt_20261122050320_681",
     "created_at": "2026-11-22 05:03:20"
+  },
+  {
+    "post_url": "https://www.threads.net/@youlun_bs/post/DgCAXtXjznT",
+    "author": "youlun_bs",
+    "keyword": "荒野",
+    "post_snippet": "youlun_bs\n荒野亂鬥\n1h\n「第一次打贏Hmble😭」  \nTranslate\n255\n1\n2\n18",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122060258_175",
+    "created_at": "2026-11-22 06:02:58"
+  },
+  {
+    "post_url": "https://www.threads.net/@kuanguan_123/post/DgB8bNdEhWn",
+    "author": "kuanguan_123",
+    "keyword": "荒野",
+    "post_snippet": "kuanguan_123\n荒野亂鬥brawlstars\n1h\n以後金庫出龍蝦不會被罵了😛  \nTranslate\n55\n2\n2",
+    "comment_text": "希望荒野的金庫防衛戰也能順便更新一隻大龍蝦",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122060329_929",
+    "created_at": "2026-11-22 06:03:29"
   }
 ]
