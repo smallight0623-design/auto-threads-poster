@@ -1120,5 +1120,33 @@
     "error": null,
     "id": "cmt_20261122000317_932",
     "created_at": "2026-11-22 00:03:17"
+  },
+  {
+    "post_url": "https://www.threads.net/@zenith_r7_/post/DgBUeWwDroy",
+    "author": "zenith_r7_",
+    "keyword": "MHWilds",
+    "post_snippet": "zenith_r7_\n2h\nOutfit name: shagaru magala inspired ( updated )\n-\n-\n-\n-\n#monsterhunterwilds #monsterhunterfashion #monste",
+    "comment_text": "天衣無縫是吧，但我還是會被天回龍一發炸飛",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122010241_691",
+    "created_at": "2026-11-22 01:02:41"
+  },
+  {
+    "post_url": "https://www.threads.net/@h030901101124/post/DgAbFBtFJXd",
+    "author": "h030901101124",
+    "keyword": "MHWilds",
+    "post_snippet": "h030901101124\n10h\n爆言 code開頭的荒野名字帳號 大部分都純糖  \nTranslate\n1\n1",
+    "comment_text": "每次看到這串代碼就直接PTSD，純糖區真的救不了開荒苦難",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122010316_414",
+    "created_at": "2026-11-22 01:03:16"
   }
 ]
