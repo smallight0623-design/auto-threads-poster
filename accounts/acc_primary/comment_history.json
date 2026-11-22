@@ -1232,5 +1232,33 @@
     "error": null,
     "id": "cmt_20261122040322_668",
     "created_at": "2026-11-22 04:03:22"
+  },
+  {
+    "post_url": "https://www.threads.net/@riphtency/post/Dfi3rTdE7Fd",
+    "author": "riphtency",
+    "keyword": "MHWilds",
+    "post_snippet": "riphtency\n11/10/26\nJust one gog run….just one…. #mhwilds #monsterhunter #monsterhunterwilds #gaming #gamer\n9\n3",
+    "comment_text": "笑死，懂那個痛！打巨戟龍只要野團有兩個近戰頭鐵一直吃油，直接變大型燒烤現場，打到心態崩潰只想下班。\n\n另外野團真的太容易血壓飆高，我後來都直接去 DC 語音群找固定隊友打，裡面一堆老獵人專門報招帶飛，不只素材農超快，還不用坐牢，順便還可以看大家分享的奇葩捏臉數據XDD",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "反覆刷巨戟龍(Gog)卻一直不出貨/不順",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122050233_116",
+    "created_at": "2026-11-22 05:02:33"
+  },
+  {
+    "post_url": "https://www.threads.net/@landsharkrosa/post/DgBCCTbDjGm",
+    "author": "landsharkrosa",
+    "keyword": "MHWilds",
+    "post_snippet": "landsharkrosa\n9h\nPeak Collab and Peak quest?👀\n#reels #gaming #monsterhunterwilds #monsterhunter\n1",
+    "comment_text": "Cannot wait! That being said, take your time, no rush!",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122050320_681",
+    "created_at": "2026-11-22 05:03:20"
   }
 ]
