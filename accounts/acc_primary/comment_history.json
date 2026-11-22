@@ -1092,5 +1092,33 @@
     "error": null,
     "id": "cmt_20261121070349_993",
     "created_at": "2026-11-21 07:03:49"
+  },
+  {
+    "post_url": "https://www.threads.net/@venom_blade9921/post/DgBT2ldDwIu",
+    "author": "venom_blade9921",
+    "keyword": "MHWilds",
+    "post_snippet": "venom_blade9921\n1h\nJust playing around Ark since he can't touch this. Lol.\n2",
+    "comment_text": "Cannot wait! That being said, take your time, no rush!",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122000238_316",
+    "created_at": "2026-11-22 00:02:38"
+  },
+  {
+    "post_url": "https://www.threads.net/@spookyrodo/post/DgBKki7ktFl",
+    "author": "spookyrodo",
+    "keyword": "MHWilds",
+    "post_snippet": "spookyrodo\nMonster Hunter Wilds\n2h\nI actually got to participate in the Halloween events this year 🎃\n2",
+    "comment_text": "太爽了吧，今年萬聖節直接不用扮裝，走出去人家就知道你是斬龍了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122000317_932",
+    "created_at": "2026-11-22 00:03:17"
   }
 ]
