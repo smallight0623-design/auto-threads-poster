@@ -1288,5 +1288,33 @@
     "error": null,
     "id": "cmt_20261122060329_929",
     "created_at": "2026-11-22 06:03:29"
+  },
+  {
+    "post_url": "https://www.threads.net/@theykillmymeowmeow/post/DgAbiQaE1M9",
+    "author": "theykillmymeowmeow",
+    "keyword": "魔物獵人",
+    "post_snippet": "theykillmymeowmeow\n16h\n人家說玩鍵盤是邪門歪道\n結果我邊玩搖桿邊玩鍵盤\n沒辦法 玩輕弩我用搖桿瞄的好爛。\n所以我平常操作用搖桿 打龍用鍵盤😂😂😂\n然後還聽中配。  \nTranslate\n20\n5\n1",
+    "comment_text": "這已經不是獵人了吧，這是左右腦在打架。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122070256_710",
+    "created_at": "2026-11-22 07:02:56"
+  },
+  {
+    "post_url": "https://www.threads.net/@fish.uu_/post/Df___k_EluD",
+    "author": "fish.uu_",
+    "keyword": "魔物獵人",
+    "post_snippet": "fish.uu_\n魔物獵人\n20h\n神之手就讓我抽到了  \nTranslate\n6\n3\n1",
+    "comment_text": "明天醒來發現只是作夢",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261122070341_907",
+    "created_at": "2026-11-22 07:03:41"
   }
 ]
