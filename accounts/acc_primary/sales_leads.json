@@ -236,5 +236,19 @@
     "error": null,
     "id": "lead_20261121040232_432",
     "created_at": "2026-11-21 04:02:32"
+  },
+  {
+    "post_url": "https://www.threads.net/@hades_bs/post/DgAcTtKGCJT",
+    "author": "hades_bs",
+    "keyword": "荒野",
+    "post_snippet": "hades_bs\n荒野亂鬥\n11h\nDay2花了4600台幣\n錢包在哭泣  \nTranslate\n72\n11\n1\n3",
+    "comment_text": "兄弟這代荒野開荒真的燒腦又燒錢，但4600下去太狠了吧！不過說真的，與其野團跟路人貓車坐牢、看他們配裝搞得血壓飆高，不如去dc語音找人。我之前也是自己刷到快崩潰，後來跑去一個老獵人開的荒野群，每天晚上都有滿編房，老手直接語音幫看配裝跟報招帶飛，順到不行，體驗差超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "課金花費高心痛的遊戲日常",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261122020310_148",
+    "created_at": "2026-11-22 02:03:10"
   }
 ]
