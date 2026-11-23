@@ -1428,5 +1428,33 @@
     "error": null,
     "id": "cmt_20261123030332_986",
     "created_at": "2026-11-23 03:03:32"
+  },
+  {
+    "post_url": "https://www.threads.net/@jujuu_ovo/post/DgELSfYE785",
+    "author": "jujuu_ovo",
+    "keyword": "荒野",
+    "post_snippet": "jujuu_ovo\n荒野亂鬥\n2h\n笑死荒野亂鬥這是怎麼了。  \nTranslate\n13\n1",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123040257_724",
+    "created_at": "2026-11-23 04:02:57"
+  },
+  {
+    "post_url": "https://www.threads.net/@chen1126._/post/DgEXDaJk7Kq",
+    "author": "chen1126._",
+    "keyword": "荒野",
+    "post_snippet": "chen1126._\n奶蛙\n1h\n玩正版的荒野亂鬥好緊張喔  \nTranslate\n237\n2\n7\n169",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123040351_608",
+    "created_at": "2026-11-23 04:03:51"
   }
 ]
