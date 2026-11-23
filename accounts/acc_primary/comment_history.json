@@ -1400,5 +1400,33 @@
     "error": null,
     "id": "cmt_20261123020258_539",
     "created_at": "2026-11-23 02:02:58"
+  },
+  {
+    "post_url": "https://www.threads.net/@faseeh.khan.10/post/DgALLLyk_NX",
+    "author": "faseeh.khan.10",
+    "keyword": "荒野",
+    "post_snippet": "faseeh.khan.10\n1d\nDrage打開荒野pro結算 東西一堆沒領\n之後被刪也沒關係 很感謝能有當到好友過😋  \nTranslate\n288\n5\n3\n5",
+    "comment_text": "東西沒領沒關係，但記得把魔物素材留給我摸一下再走。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123030246_389",
+    "created_at": "2026-11-23 03:02:46"
+  },
+  {
+    "post_url": "https://www.threads.net/@c_ikj.01/post/DgC9_eLj4YE",
+    "author": "c_ikj.01",
+    "keyword": "荒野",
+    "post_snippet": "c_ikj.01\n13h\n搭好荒野女依舊沒市場  \nTranslate\n24\n11\n2",
+    "comment_text": "男獵人捏得像鬼一樣，誰要看女依舊",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123030332_986",
+    "created_at": "2026-11-23 03:03:32"
   }
 ]
