@@ -1316,5 +1316,33 @@
     "error": null,
     "id": "cmt_20261122070341_907",
     "created_at": "2026-11-22 07:03:41"
+  },
+  {
+    "post_url": "https://www.threads.net/@yi_mitsuru_021/post/DgDI8t7GD0Z",
+    "author": "yi_mitsuru_021",
+    "keyword": "荒野",
+    "post_snippet": "yi_mitsuru_021\n荒野亂鬥brawlstars\n8h\n經典留存\n決勝局上車失敗的Batman  \nTranslate\n49\n1\n3",
+    "comment_text": "還好這代有騎鷺鷹龍，不然Batman大概又要摔車了",
+    "is_sales_lead": false,
+    "intent_score": 2,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123000233_891",
+    "created_at": "2026-11-23 00:02:33"
+  },
+  {
+    "post_url": "https://www.threads.net/@qpowi.owo.mi/post/DgDQU71nWlr",
+    "author": "qpowi.owo.mi",
+    "keyword": "荒野",
+    "post_snippet": "qpowi.owo.mi\n7h\n上次是荒野這次是go，又要被刪了😂  \nTranslate\n4\n2\n2",
+    "comment_text": "上次荒野這次又來，卡普空是不是跟你的硬碟有仇啊😂",
+    "is_sales_lead": false,
+    "intent_score": 2,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123000301_365",
+    "created_at": "2026-11-23 00:03:01"
   }
 ]
