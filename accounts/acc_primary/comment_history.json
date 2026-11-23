@@ -1484,5 +1484,33 @@
     "error": null,
     "id": "cmt_20261123050301_298",
     "created_at": "2026-11-23 05:03:01"
+  },
+  {
+    "post_url": "https://www.threads.net/@bohan33/post/DgEazCLExQW",
+    "author": "bohan33",
+    "keyword": "魔物獵人",
+    "post_snippet": "bohan33\n魔物獵人旅人\n2h\n狩獵日常：\n剛打完魔物\n還不等他躺下就開選單點調查筆記\n回來就變這bug樣了😂😂  \nTranslate\n4\n1",
+    "comment_text": "這不是狩獵，這是靈魂出竅吧",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123060336_930",
+    "created_at": "2026-11-23 06:03:36"
+  },
+  {
+    "post_url": "https://www.threads.net/@sensenpeipei/post/DgEMfISkfex",
+    "author": "sensenpeipei",
+    "keyword": "魔物獵人",
+    "post_snippet": "sensenpeipei\n魔物獵人\n4h\n今天巧遇魔物獵人特斯拉粉絲，欣賞上面的雷狼龍跟金獅子😆  \nTranslate\nAI content\n9",
+    "comment_text": "這台車開在路上，隨時準備送全車的人去貓車吧",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261123060410_410",
+    "created_at": "2026-11-23 06:04:10"
   }
 ]
