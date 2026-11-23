@@ -278,5 +278,19 @@
     "error": null,
     "id": "lead_20261122050233_365",
     "created_at": "2026-11-22 05:02:33"
+  },
+  {
+    "post_url": "https://www.threads.net/@sachi0w0/post/DgCtAbxj9s5",
+    "author": "sachi0w0",
+    "keyword": "魔物獵人",
+    "post_snippet": "sachi0w0\n13h\n差蕾達線！第一部四通😇好痛苦（快樂的痛苦\n12月有MH😇到底何年何日何時才可以玩到時之笛  \nTranslate\n9",
+    "comment_text": "蕾達線真的初見殺惡夢，那招大範圍雷擊沒抓好撲倒無敵幀直接蒸發，黑角龍也是各種糞掉。\n\n野團打這個真的血壓飆到腦中風。我之前也是卡到懷疑人生，後來跑去跟 DC 語音群的老獵人打，才發現大家都在那邊開台抱團取暖，老屁股直接教怎麼抓硬直打頭，從此再也沒有坐過牢。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "通關卡線且痛苦",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261123010301_633",
+    "created_at": "2026-11-23 01:03:01"
   }
 ]
