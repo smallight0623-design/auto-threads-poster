@@ -1540,5 +1540,33 @@
     "error": null,
     "id": "cmt_20261123070421_618",
     "created_at": "2026-11-23 07:04:21"
+  },
+  {
+    "post_url": "https://www.threads.net/@coyotewildfire/post/DgFzA_QCNQI",
+    "author": "coyotewildfire",
+    "keyword": "MHWilds",
+    "post_snippet": "coyotewildfire\nMonster Hunter Wilds Ascendance\n7h\nI FORGOT to change my Hunting Horn... Hilt Stab still carried anyway, ",
+    "comment_text": "忘記換武器還能靠戳柄打贏，這就叫肌肉記憶救了笨蛋一命。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124000243_433",
+    "created_at": "2026-11-24 00:02:43"
+  },
+  {
+    "post_url": "https://www.threads.net/@zeroxama27.ig/post/DeweoLxlvYq",
+    "author": "zeroxama27.ig",
+    "keyword": "MHWilds",
+    "post_snippet": "zeroxama27.ig\n10/21/26\nHunter's Logbook: Mizutsune HR Longsword\nMonster Hunter Wilds.\n#monsterhunterwilds #mhwilds #mons",
+    "comment_text": "泡澡狐龍都還沒打到，你連線已經先斷九次了是吧",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124000309_535",
+    "created_at": "2026-11-24 00:03:09"
   }
 ]
