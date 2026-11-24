@@ -334,5 +334,19 @@
     "error": null,
     "id": "lead_20261124020315_482",
     "created_at": "2026-11-24 02:03:15"
+  },
+  {
+    "post_url": "https://www.threads.net/@pieminstervt/post/DgGMIp3CYAf",
+    "author": "pieminstervt",
+    "keyword": "MHWilds",
+    "post_snippet": "pieminstervt\nMonster Hunter Wilds\n7h\nMon Hun Monday is back~\nAnd we have Both Itsuki and \n@spidershiivt\n joining us!\nWan",
+    "comment_text": "Mon Hun Monday 必須推啦！今晚開打記得注意魔物的轉頭硬直，有些招式判定真的蠻偷的，沒抓好節奏很容易貓車。\n\n另外講真的，野團打這個血壓真的會飆高，我後來都直接去 DC 語音群找固定隊友，裡面一堆老獵人帶飛超安心，每天晚上都有滿編房不用坐牢，還可以順便抄配裝跟捏臉，打起來爽度差超多，今晚開荒順利啦！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "正在揪團找隊友一起狩獵",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261124030312_499",
+    "created_at": "2026-11-24 03:03:12"
   }
 ]
