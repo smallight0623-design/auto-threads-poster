@@ -1652,5 +1652,33 @@
     "error": null,
     "id": "cmt_20261124030312_707",
     "created_at": "2026-11-24 03:03:12"
+  },
+  {
+    "post_url": "https://www.threads.net/@dyu_186/post/DgG-CpOkh8J",
+    "author": "dyu_186",
+    "keyword": "魔物獵人",
+    "post_snippet": "dyu_186\n魔物獵人旅人\n45m\n有夠難打 還得是克雷牛逼  \nTranslate",
+    "comment_text": "真的，這代有些初見怪初看真的很躁，NPC坦度夠的時候真的像神一樣。\n\n不過NPC輸出還是慢了點。另外野團真的常常遇到貓車地獄，我後來都直接去 DC 群跟車，每天晚上都有滿編房，老獵人報招帶飛完全不坐牢，順便還能看大家分享各種神仙捏臉跟配裝，遊戲體驗差超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "魔物太難打卡關需靠NPC",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124040245_794",
+    "created_at": "2026-11-24 04:02:45"
+  },
+  {
+    "post_url": "https://www.threads.net/@jeremy_130101/post/DgFm8pfoyUQ",
+    "author": "jeremy_130101",
+    "keyword": "魔物獵人",
+    "post_snippet": "jeremy_130101\n魔物獵人旅人\n13h\n究竟我呢啲裝備啱唔啱？我要用啲咩裝備？好似唔係好夠傷  \nTranslate\n2\n2\n3",
+    "comment_text": "開荒期傷害不夠正常啦，武器派生沒上去前大家都刮痧。建議先撐滿攻擊跟弱點特效，武器客製跟珠子搭配好，循環輸出才打得出來。\n\n另外野團真的常打到血壓飆高，我後來都直接去 DC 語音群找固定隊友，裡面一堆老獵人帶飛超爽，不只配裝有解，連貓車都能直接救回來，打起來順暢太多了。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "裝備搭配迷茫且輸出不足",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124040314_543",
+    "created_at": "2026-11-24 04:03:14"
   }
 ]
