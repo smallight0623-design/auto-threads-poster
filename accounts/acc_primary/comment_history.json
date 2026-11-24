@@ -1596,5 +1596,33 @@
     "error": null,
     "id": "cmt_20261124010318_160",
     "created_at": "2026-11-24 01:03:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@egghead_bro/post/DgGwidckvZY",
+    "author": "egghead_bro",
+    "keyword": "魔物獵人",
+    "post_snippet": "egghead_bro\n魔物獵人旅人\n43m\n熬了3個小時 練習走位 練習攻擊站位。\n把裝備會心衝到最好 武器用到最高！\n光凌龍終於最難的破關了  \nTranslate\n2",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124020241_158",
+    "created_at": "2026-11-24 02:02:41"
+  },
+  {
+    "post_url": "https://www.threads.net/@ms_0745903/post/DgG04cPknD_",
+    "author": "ms_0745903",
+    "keyword": "魔物獵人",
+    "post_snippet": "ms_0745903\n魔物獵人旅人\n5m\n死鋼龍😑",
+    "comment_text": "這隻真的初見殺惡夢，全畫面冰屬性判定有夠躁，尤其是那招大範圍吐息，沒看好動作直接貓車。\n\n野團打這個真的很容易血壓飆高，各種無意義坐牢。我後來都直接去 DC 語音群找固定隊友打，裡面一堆老獵人隨便報招直接帶飛，順超多，打完還能順便看大家分享的捏臉。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "打死鋼龍受挫",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124020315_564",
+    "created_at": "2026-11-24 02:03:15"
   }
 ]
