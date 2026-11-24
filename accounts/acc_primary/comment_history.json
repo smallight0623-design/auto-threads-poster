@@ -1708,5 +1708,33 @@
     "error": null,
     "id": "cmt_20261124050402_220",
     "created_at": "2026-11-24 05:04:02"
+  },
+  {
+    "post_url": "https://www.threads.net/@priller/post/DgHQw9aI9nG",
+    "author": "priller",
+    "keyword": "魔物獵人",
+    "post_snippet": "priller\n1m\n老婆看我玩了幾天GTA6，她覺得很有趣也想玩，剛才去下單實體版給她（我在玩的GTA6她有贊助1000），明天到😁\n還好當初為了魔物獵人買了兩台PS5 Pro  \nTranslate\n1",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124060311_973",
+    "created_at": "2026-11-24 06:03:11"
+  },
+  {
+    "post_url": "https://www.threads.net/@s365698881/post/DgHOZebE63d",
+    "author": "s365698881",
+    "keyword": "魔物獵人",
+    "post_snippet": "s365698881\n22m\n這場景真的好美啊…\n這樣的狩獵環境\n還是會有人一直抱怨手遊跟桌機\n有時候真搞不懂他們腦袋在想什麼\n一個是買斷的遊戲\n一個是免費讓你玩公司要賺錢要不要課金看你個人\n而且這款遊戲戰力不像一堆戰爭遊戲玩家互打打趴\n課",
+    "comment_text": "等一下，你玩的到底是魔物獵人還是原神？",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124060407_183",
+    "created_at": "2026-11-24 06:04:07"
   }
 ]
