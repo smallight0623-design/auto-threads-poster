@@ -1736,5 +1736,33 @@
     "error": null,
     "id": "cmt_20261124060407_183",
     "created_at": "2026-11-24 06:04:07"
+  },
+  {
+    "post_url": "https://www.threads.net/@super__professor/post/DgGz8Yrpe1v",
+    "author": "super__professor",
+    "keyword": "MHWilds",
+    "post_snippet": "super__professor\nGaming Threads\n5h\nStream will be live tomorrow (Tuesday) at 830am Pacific / 1130am Eastern.\nI'll be bac",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124070258_802",
+    "created_at": "2026-11-24 07:02:58"
+  },
+  {
+    "post_url": "https://www.threads.net/@turnsintocroc/post/DfCS2ezj_U2",
+    "author": "turnsintocroc",
+    "keyword": "MHWilds",
+    "post_snippet": "turnsintocroc\n10/28/26\nSeregios Hunt - MH Wilds Fanart\nThe Steve terrorizes my chicken 😠🐓\n#monsterhunter #monsterhunterf",
+    "comment_text": "笑死，那隻雞看起來隨時準備好送貓車了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124070349_820",
+    "created_at": "2026-11-24 07:03:49"
   }
 ]
