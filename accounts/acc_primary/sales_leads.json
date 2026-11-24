@@ -376,5 +376,19 @@
     "error": null,
     "id": "lead_20261124040314_822",
     "created_at": "2026-11-24 04:03:14"
+  },
+  {
+    "post_url": "https://www.threads.net/@chiu_chiu0205/post/DgFoyDCkhUp",
+    "author": "chiu_chiu0205",
+    "keyword": "荒野",
+    "post_snippet": "chiu_chiu0205\n14h\n我是不是玩到盜版的荒野了\n6.9K\n30\n230\n1.8K",
+    "comment_text": "這隻等牠大招硬直再抓破綻打。野團真的太看臉，我後來都找語音固定團打，有人報招輕鬆超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "遊戲體驗異常或難度過高懷疑人生",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261124050304_592",
+    "created_at": "2026-11-24 05:03:04"
   }
 ]
