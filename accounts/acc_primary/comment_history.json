@@ -1568,5 +1568,33 @@
     "error": null,
     "id": "cmt_20261124000309_535",
     "created_at": "2026-11-24 00:03:09"
+  },
+  {
+    "post_url": "https://www.threads.net/@tony519._/post/DgFzll7GEtd",
+    "author": "tony519._",
+    "keyword": "魔物獵人",
+    "post_snippet": "tony519._\n魔物獵人旅人\n8h\n找隊友 一起極難16星 越殺越上頭\n傷害很夠 其他隻還沒自己試 怕時間不夠😅  \nTranslate\n5\n2",
+    "comment_text": "16星那個血量跟攻擊力真的不是開玩笑，稍不注意直接原地升天，太神啦能單刷到這裡！傷害夠的話，最怕野團遇到貓車大隊或莫名其妙断尾。另外說真的，野團血壓真的會飆高，我後來都直接去 DC 語音群找固定車隊，一堆老獵人直接開麥報招帶飛，不坐牢又有效率，打起來順超多，供你參考啦！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "尋找隊友挑戰極難16星",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124010244_406",
+    "created_at": "2026-11-24 01:02:44"
+  },
+  {
+    "post_url": "https://www.threads.net/@taiwanstrict/post/DgGayCND-dS",
+    "author": "taiwanstrict",
+    "keyword": "魔物獵人",
+    "post_snippet": "taiwanstrict\n2h\n有人有用手機手把玩遊戲嗎？，我是在玩魔物獵人 旅人，想買一個但是不知道是不是有這個必要，有人有介紹的嗎？  \nTranslate\n1\n4",
+    "comment_text": "手遊觸控玩魔物真的會玩到手指抽筋，尤其要精準滾地跟蓄力根本反人類。認真建議手把必買，不然魔物一個甩尾你就直接貓車。\n\n我自己用下來手感差超多。另外講個題外話，野團遇到雷隊友真的會血壓飆高，我後來都直接去 DC 語音群找人，裡面一堆老獵人隨便喊都有，直接帶飛不坐牢，刷素材舒服多了。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "猶豫是否該買手機手把",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261124010318_160",
+    "created_at": "2026-11-24 01:03:18"
   }
 ]
