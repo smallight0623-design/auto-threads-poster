@@ -1,24 +1,5 @@
 [
   {
-    "id": "twitch_SillyLivelyMarjoramTF2John-Rc7oBoVrU-0HKSCc",
-    "title": "อยากกลับบ้าน",
-    "full_content": "อยากกลับบ้าน",
-    "source_platform": "Twitch",
-    "media_type": "VIDEO",
-    "media_url": "https://clips.twitch.tv/SillyLivelyMarjoramTF2John-Rc7oBoVrU-0HKSCc",
-    "upvotes": 45,
-    "replies_count": 0,
-    "is_priority_guide": false,
-    "priority_reason": "",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "lunch",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 12:33:59"
-  },
-  {
     "id": "twitch_CredulousOnerousBubbleteaDeIlluminati-rn5yZMjy9jTcD3FT",
     "title": "everyone's playing gta man no one listened to me",
     "full_content": "everyone's playing gta man no one listened to me",
