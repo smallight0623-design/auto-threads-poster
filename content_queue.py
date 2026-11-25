@@ -179,10 +179,11 @@ def enqueue_candidates(candidates: List[Dict[str, Any]], history_ids: set) -> in
         existing_ids.add(p_id)
         added_count += 1
 
-    # 排序：突發最高優先 (instant_priority) -> 攻略乾貨優先 (is_priority_guide) -> 社群熱度 (upvotes) 降序
+    # 排序：突發最高優先 (instant_priority) -> 圖文並茂/影音優先 (IMAGE/VIDEO) -> 攻略乾貨優先 (is_priority_guide) -> 社群熱度 (upvotes) 降序
     queue.sort(
         key=lambda x: (
             x.get("instant_priority", False),
+            x.get("media_type") in ("IMAGE", "VIDEO") and bool(x.get("media_url")),
             x.get("is_priority_guide", False),
             x.get("upvotes", 0)
         ),
@@ -233,9 +234,10 @@ def pop_next_post_for_slot(slot_name: Optional[str] = None) -> Optional[Dict[str
             slot_matches.append((idx, item))
 
     if slot_matches:
-        # 在符合時段的素材中，挑選攻略優先度最高、熱度最高者
+        # 在符合時段的素材中，優先挑選圖文並茂 (IMAGE/VIDEO)，其次攻略優先度與熱度
         slot_matches.sort(
             key=lambda x: (
+                x[1].get("media_type") in ("IMAGE", "VIDEO") and bool(x[1].get("media_url")),
                 x[1].get("is_priority_guide", False),
                 x[1].get("upvotes", 0)
             ),

@@ -117,12 +117,13 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
                     x_session = "x_session.json"
                 p_list = await fetch_top_x_tweets(game_name, min_likes=min_upvotes, session_file=x_session, sort_recent=(discovery_mode == "rising"))
             elif "巴哈" in src_name or "bahamut" in src_name.lower():
-                baha_threshold = min(int(min_upvotes or 100), 20)
+                baha_threshold = min(int(min_upvotes or 100), 5)
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描巴哈姆特哈啦板 [{game_name}] 本土爆文 (門檻 {baha_threshold} GP)...")
                 p_list = await fetch_top_bahamut_posts(subreddit or game_name, min_gp=baha_threshold)
             elif "twitch" in src_name.lower():
-                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Twitch 熱門短片 [{game_name}] (門檻 {min_upvotes} 觀看)...")
-                p_list = fetch_top_twitch_clips(game_name, min_views=min_upvotes)
+                twitch_threshold = min(int(min_upvotes or 100), 20)
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Twitch 熱門短片 [{game_name}] (門檻 {twitch_threshold} 觀看)...")
+                p_list = fetch_top_twitch_clips(game_name, min_views=twitch_threshold)
             else: # 預設 Reddit
                 mode_desc = "潛力榜 (Rising)" if discovery_mode == "rising" else "熱門榜 (Hot)"
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Reddit r/{subreddit} {mode_desc} (門檻 {min_upvotes} 讚)...")

@@ -44,7 +44,7 @@ def resolve_bsn(query: str) -> str:
             return bsn
     return "5786" # 預設魔物獵人
 
-async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit: int = 15):
+async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 5, limit: int = 30):
     """
     採集台灣最大遊戲社群【巴哈姆特哈啦板】熱門爆文 (GP ≥ min_gp)。
     優勢：台灣玩家第一手真實討論、在地迷因、無 Cloudflare 防爬蟲阻擋、秒級高速擷取。
@@ -55,8 +55,8 @@ async def fetch_top_bahamut_posts(board_or_keyword: str, min_gp: int = 30, limit
         "Referer": "https://forum.gamer.com.tw/"
     }
 
-    # 同步爬取第 1 頁與第 2 頁，確保足量本土最新話題
-    pages_to_crawl = [1, 2]
+    # 同步爬取第 1~3 頁，確保足量本土最新圖文話題
+    pages_to_crawl = [1, 2, 3]
     rows = []
     for page_num in pages_to_crawl:
         list_url = f"https://forum.gamer.com.tw/B.php?bsn={bsn}&page={page_num}"
