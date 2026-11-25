@@ -1848,5 +1848,33 @@
     "error": null,
     "id": "cmt_20261125020400_328",
     "created_at": "2026-11-25 02:04:00"
+  },
+  {
+    "post_url": "https://www.threads.net/@samuelkkc94/post/DgJYEmLI6PO",
+    "author": "samuelkkc94",
+    "keyword": "魔物獵人",
+    "post_snippet": "samuelkkc94\n魔物獵人旅人\n1h\n用呢把屠龍，咩古龍都打得死（利申：自己整ai圖）  \nTranslate\nAI content\n2",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125030333_575",
+    "created_at": "2026-11-25 03:03:33"
+  },
+  {
+    "post_url": "https://www.threads.net/@_chyayo.22y/post/DgJgQIXky-R",
+    "author": "_chyayo.22y",
+    "keyword": "魔物獵人",
+    "post_snippet": "_chyayo.22y\n8m\n怪太軟只能單刷才能打課題..  \nTranslate",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125030432_645",
+    "created_at": "2026-11-25 03:04:32"
   }
 ]
