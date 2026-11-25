@@ -1,24 +1,5 @@
 [
   {
-    "id": "twitch_TalentedTiredPlumberLitFam-EyQUkFhEJlybKcbS",
-    "title": "That was a four minute joke",
-    "full_content": "That was a four minute joke",
-    "source_platform": "Twitch",
-    "media_type": "VIDEO",
-    "media_url": "https://clips.twitch.tv/TalentedTiredPlumberLitFam-EyQUkFhEJlybKcbS",
-    "upvotes": 59,
-    "replies_count": 0,
-    "is_priority_guide": false,
-    "priority_reason": "",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "lunch",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 12:33:59"
-  },
-  {
     "id": "twitch_SillyLivelyMarjoramTF2John-Rc7oBoVrU-0HKSCc",
     "title": "อยากกลับบ้าน",
     "full_content": "อยากกลับบ้าน",
