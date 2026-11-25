@@ -1876,5 +1876,33 @@
     "error": null,
     "id": "cmt_20261125030432_645",
     "created_at": "2026-11-25 03:04:32"
+  },
+  {
+    "post_url": "https://www.threads.net/@bad.shepherd.gaming/post/DgHzZLykTg7",
+    "author": "bad.shepherd.gaming",
+    "keyword": "MHWilds",
+    "post_snippet": "bad.shepherd.gaming\nGaming Threads\n16h\nScraggly plants and scoured rocks in the sandy dunes of the Windward Plains.\n🎮 Mo",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125040300_520",
+    "created_at": "2026-11-25 04:03:00"
+  },
+  {
+    "post_url": "https://www.threads.net/@darkpoetstridex1/post/DgISmWukdKW",
+    "author": "darkpoetstridex1",
+    "keyword": "MHWilds",
+    "post_snippet": "darkpoetstridex1\nGaming Threads\n12h\nI'm gonna continue the unicorn overlord game. I'm downloading cyberpunk 2077. I stil",
+    "comment_text": "Cannot wait! That being said, take your time, no rush!",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125040350_111",
+    "created_at": "2026-11-25 04:03:50"
   }
 ]
