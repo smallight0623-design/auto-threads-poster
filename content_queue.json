@@ -228,6 +228,25 @@
     "enqueued_at": "2026-11-25 14:03:01"
   },
   {
+    "id": "twitch_CallousHedonisticSoymilkPJSalt-bUtlWaQ723PD049l",
+    "title": "Fancy高光時刻",
+    "full_content": "Fancy高光時刻",
+    "source_platform": "Twitch",
+    "media_type": "VIDEO",
+    "media_url": "https://clips.twitch.tv/CallousHedonisticSoymilkPJSalt-bUtlWaQ723PD049l",
+    "upvotes": 30,
+    "replies_count": 0,
+    "is_priority_guide": false,
+    "priority_reason": "",
+    "instant_priority": false,
+    "timeslot_buckets": [
+      "afternoon",
+      "lunch",
+      "night"
+    ],
+    "enqueued_at": "2026-11-25 21:02:24"
+  },
+  {
     "id": "baha_5786_178654",
     "title": "【密技】額頭插一根沖天炮的金獅子",
     "full_content": "【密技】額頭插一根沖天炮的金獅子\n\n這個艾路很會:3\n\n..優質的圖片分享應該不用湊滿版規寫的100字對吧🫠\n\n探索主題\n遊戲截圖\n\n金獅子\n\n艾路\n\n魔物獵人崛起\n\n魔物生態\n    \n    \n\n        \n\n    \n        \n            \n                                \n                                \n                    \n                    \n                    \n                    \n                    \n                \n            \n        \n        19\n    \n    \n        \n            \n                                \n                            \n        \n        -\n    \n    \n    \n        \n                                                \n                \n                    ",
@@ -356,26 +375,6 @@
     "timeslot_buckets": [
       "afternoon",
       "morning",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 12:33:59"
-  },
-  {
-    "id": "baha_5786_178658",
-    "title": "【閒聊】回復瓶充能斧挑戰上位獰猛金火龍〔遊玩紀錄〕",
-    "full_content": "【閒聊】回復瓶充能斧挑戰上位獰猛金火龍〔遊玩紀錄〕\n\n穿了G位鎧龍套裝和還沒升級滿的強屬性瓶充能斧打上位獰猛化金火龍，挑戰好幾次後……才打贏這一場而且好幾次都是運氣好躲過傷害才沒又三貓回復瓶這個技能在超特規格的魔物，大概完全沒作用就是了。\n但一般狩獵的時候這種減少輸出應該生存能力的專屬技能我都蠻喜歡的\n裝備技能心眼防禦性能+2防禦強化耐力回復攻擊力〔小〕\n\n探索主題\n狩獵記錄\n\n獰猛金火龍\n\n遊戲心得\n\n魔物獵人XX\n\n充能斧\n    \n    \n\n        \n\n    \n        \n            \n                                \n                                \n                    \n                    \n                    \n                    \n                    \n                \n            \n        \n        6\n    \n    \n        \n            \n                                \n                            \n        \n        -\n    \n    \n    \n        \n                                                \n                \n                    ",
-    "source_platform": "巴哈姆特",
-    "media_type": "TEXT",
-    "media_url": null,
-    "upvotes": 6,
-    "replies_count": 1,
-    "is_priority_guide": true,
-    "priority_reason": "建設性攻略與實用乾貨最高優先級",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "evening",
-      "lunch",
       "night"
     ],
     "enqueued_at": "2026-11-25 12:33:59"
