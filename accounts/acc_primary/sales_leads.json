@@ -390,5 +390,19 @@
     "error": null,
     "id": "lead_20261124050304_592",
     "created_at": "2026-11-24 05:03:04"
+  },
+  {
+    "post_url": "https://www.threads.net/@yoman919/post/DgHyYzmE6nf",
+    "author": "yoman919",
+    "keyword": "魔物獵人",
+    "post_snippet": "yoman919\n魔物獵人旅人\n13h\n有職業野圖探險隊嗎  \nTranslate\n1",
+    "comment_text": "野團打歷戰真的會氣死，遇到狂貓車的直接血壓飆高。我之前也是邊緣人開荒到快自閉，後來直接跑去 DC 語音群找固定隊友，裡面一堆老獵人帶飛，報招超準不坐牢，還能順便偷看別人的神仙捏臉跟配裝，遊戲體驗差超多！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "找不到固定野圖探險隊",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261125000307_151",
+    "created_at": "2026-11-25 00:03:07"
   }
 ]
