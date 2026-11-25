@@ -1792,5 +1792,33 @@
     "error": null,
     "id": "cmt_20261125000307_823",
     "created_at": "2026-11-25 00:03:07"
+  },
+  {
+    "post_url": "https://www.threads.net/@sir.up_/post/DgJBZyOEgIb",
+    "author": "sir.up_",
+    "keyword": "MHWilds",
+    "post_snippet": "sir.up_\nGaming Threads\n2h\nNew Movesett LS MHGU - Mod MHWilds\nShagaru Magala | Monster Hunter Generations Ultimate",
+    "comment_text": "把天迴龍的招式搬進荒野，我看你是嫌PS5的風扇還不够大聲。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125010236_354",
+    "created_at": "2026-11-25 01:02:36"
+  },
+  {
+    "post_url": "https://www.threads.net/@coyotewildfire/post/DgIM2yqEvDh",
+    "author": "coyotewildfire",
+    "keyword": "MHWilds",
+    "post_snippet": "coyotewildfire\n10h\nFORGET Nergigante and Zinogre, THIS monster needs to return in Ascendance\nWhat returning monsters are",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125010303_235",
+    "created_at": "2026-11-25 01:03:03"
   }
 ]
