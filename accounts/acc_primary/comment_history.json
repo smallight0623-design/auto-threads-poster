@@ -1932,5 +1932,33 @@
     "error": null,
     "id": "cmt_20261125050353_232",
     "created_at": "2026-11-25 05:03:53"
+  },
+  {
+    "post_url": "https://www.threads.net/@1dk3du3/post/DgJtfEfDxIT",
+    "author": "1dk3du3",
+    "keyword": "荒野",
+    "post_snippet": "1dk3du3\n1h\n妈的有个人打荒野乱斗已经疯魔了  \nTranslate\n1\n2",
+    "comment_text": "不是，他玩的是荒野還是荒野？",
+    "is_sales_lead": false,
+    "intent_score": 1,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125060301_535",
+    "created_at": "2026-11-25 06:03:01"
+  },
+  {
+    "post_url": "https://www.threads.net/@ckdesu_owo/post/DgJB2b2ktP8",
+    "author": "ckdesu_owo",
+    "keyword": "荒野",
+    "post_snippet": "ckdesu_owo\n7h\n好像快一個月沒打荒野了  \nTranslate\n10\n12",
+    "comment_text": "一個月沒開，回去發現自己還在創角畫面吧",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125060336_367",
+    "created_at": "2026-11-25 06:03:36"
   }
 ]
