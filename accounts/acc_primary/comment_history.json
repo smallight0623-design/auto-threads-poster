@@ -1960,5 +1960,33 @@
     "error": null,
     "id": "cmt_20261125060336_367",
     "created_at": "2026-11-25 06:03:36"
+  },
+  {
+    "post_url": "https://www.threads.net/@jester___thefool/post/DgExBk-Ixhb",
+    "author": "jester___thefool",
+    "keyword": "魔物獵人",
+    "post_snippet": "jester___thefool\nMH\n2d\n單人狩獵模式。終於搞掂隻極難16融光慘爪。  \nTranslate\n11\n10",
+    "comment_text": "你在玩未來版嗎？我都還在等荒野上市欸",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "單人打過極難魔物",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125070308_800",
+    "created_at": "2026-11-25 07:03:08"
+  },
+  {
+    "post_url": "https://www.threads.net/@samuelkkc94/post/DgJX0W_o_Ar",
+    "author": "samuelkkc94",
+    "keyword": "魔物獵人",
+    "post_snippet": "samuelkkc94\n魔物獵人\n5h\n用呢把屠龍，咩古龍都打得死 (利申：自己整AI圖）  \nTranslate\nAI content\n14\n4",
+    "comment_text": "AI生出來的武器，打到古龍也是直接變AI幻影吧🤣",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125070333_328",
+    "created_at": "2026-11-25 07:03:33"
   }
 ]
