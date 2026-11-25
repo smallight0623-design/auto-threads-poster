@@ -1820,5 +1820,33 @@
     "error": null,
     "id": "cmt_20261125010303_235",
     "created_at": "2026-11-25 01:03:03"
+  },
+  {
+    "post_url": "https://www.threads.net/@monsterhuntersquare/post/DgI_XWunSOl",
+    "author": "monsterhuntersquare",
+    "keyword": "MHWilds",
+    "post_snippet": "monsterhuntersquare\n3h\nGogmazios Ultimate Nova is Amazing!\nFull vid by Kogi MH on YT\n~Cla² Square\nMonster Hunter Square ",
+    "comment_text": "這大招華麗到我以為顯卡在燒高香",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125020300_112",
+    "created_at": "2026-11-25 02:03:00"
+  },
+  {
+    "post_url": "https://www.threads.net/@sir_andriu/post/DbWL98DGnPx",
+    "author": "sir_andriu",
+    "keyword": "MHWilds",
+    "post_snippet": "sir_andriu\nMonster Hunter\n07/28/26\nI prefer slayed to myself before you mount me, hunter!! \n@monsterhuntergame\n #funny #",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125020400_328",
+    "created_at": "2026-11-25 02:04:00"
   }
 ]
