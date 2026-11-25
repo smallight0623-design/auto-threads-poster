@@ -1,24 +1,5 @@
 [
   {
-    "id": "twitch_ExpensiveFineBearDoritosChip-nfeNbAPUA6cIUVx5",
-    "title": "LAY NOOOOO",
-    "full_content": "LAY NOOOOO",
-    "source_platform": "Twitch",
-    "media_type": "VIDEO",
-    "media_url": "https://clips.twitch.tv/ExpensiveFineBearDoritosChip-nfeNbAPUA6cIUVx5",
-    "upvotes": 60,
-    "replies_count": 0,
-    "is_priority_guide": false,
-    "priority_reason": "",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "lunch",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 12:33:59"
-  },
-  {
     "id": "twitch_TalentedTiredPlumberLitFam-EyQUkFhEJlybKcbS",
     "title": "That was a four minute joke",
     "full_content": "That was a four minute joke",
