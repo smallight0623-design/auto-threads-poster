@@ -1,6 +1,6 @@
 {
-  "state": "FAILED",
-  "step": "AI 翻譯階段 (AI Brain Proxy)",
-  "message": "執行失敗: AI 中轉站連線逾時或網路錯誤: HTTPSConnectionPool(host='api.relayrouter.ai', port=443): Read timed out. (read timeout=60)",
-  "timestamp": "2026-11-25 22:03:31"
+  "state": "SUCCESS",
+  "step": "發布成功",
+  "message": "貼文 [twitch_AwkwardShinyVampireRaccAttack-OfoSLyajPP6o42Pt] 已順利同步至 Threads！",
+  "timestamp": "2026-11-25 23:02:50"
 }
