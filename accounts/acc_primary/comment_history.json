@@ -1904,5 +1904,33 @@
     "error": null,
     "id": "cmt_20261125040350_111",
     "created_at": "2026-11-25 04:03:50"
+  },
+  {
+    "post_url": "https://www.threads.net/@iamlw14/post/DgJsYXPDR8c",
+    "author": "iamlw14",
+    "keyword": "MHWilds",
+    "post_snippet": "iamlw14\nGaming Threads\n21m\nwhat a lapse of concentration leads to #monsterhunterwilds\n2",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125050305_668",
+    "created_at": "2026-11-25 05:03:05"
+  },
+  {
+    "post_url": "https://www.threads.net/@noirskull_/post/Dfn_VDbknfR",
+    "author": "noirskull_",
+    "keyword": "MHWilds",
+    "post_snippet": "noirskull_\nMonster Hunter Rise\n11/12/26\nSo... since I'm taking a break from MH Wilds and returning to MH Rise on Switch,",
+    "comment_text": "建議世界，不然崛起玩完之後會覺得世界動作很慢",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261125050353_232",
+    "created_at": "2026-11-25 05:03:53"
   }
 ]
