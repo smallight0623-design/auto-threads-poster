@@ -2016,5 +2016,33 @@
     "error": null,
     "id": "cmt_20261126000337_808",
     "created_at": "2026-11-26 00:03:37"
+  },
+  {
+    "post_url": "https://www.threads.net/@yun._.5_22/post/DgK54jJEkll",
+    "author": "yun._.5_22",
+    "keyword": "荒野",
+    "post_snippet": "yun._.5_22\n9h\n有沒有人有玩荒野 或許可以考慮跟我一起玩一下 不嫌棄的話啦～～  \nTranslate\n \n1\n/\n3\n6\n11",
+    "comment_text": "推啦！荒野這代太刀見切跟集中弱點打起來超爽，但野團打上位魔物真的常遇到貓車地獄，血壓飆超高。我後來都直接去 DC 語音群找固定隊友，每天晚上都有人滿編開車，老獵人還會直接幫忙報招帶飛，不管是拓荒還是農素材都順超多，打起來舒服多了啦！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "找不到人一起連線遊玩",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126010332_637",
+    "created_at": "2026-11-26 01:03:32"
+  },
+  {
+    "post_url": "https://www.threads.net/@an_811125/post/DgKx-VJIdej",
+    "author": "an_811125",
+    "keyword": "荒野",
+    "post_snippet": "an_811125\n10h\n誰可以陪我打遊戲啊\n傳說荒野cod啥都行TT\n熟了我可以送造型聖典要啥都好\n只是我很弱不嫌棄就好😭  \nTranslate\n \n1\n/\n2\n63\n34\n7",
+    "comment_text": "荒野開荒真的蠻多初見殺的啦，尤其沒位移的武器打上位魔物血壓都會直接飆高，會死真的不是妳的錯，多貓幾次才會變老司機！\n\n另外野團真的太痛苦，我後來都直接在 DC 語音群找固定隊友打，裡面一堆老獵人每天晚上都整團在報招帶飛，打起來順超多，還能順便偷看別人的神仙捏臉跟配裝。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "找不到人一起玩且覺得自己很弱",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126010357_107",
+    "created_at": "2026-11-26 01:03:57"
   }
 ]
