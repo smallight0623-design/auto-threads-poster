@@ -2100,5 +2100,33 @@
     "error": null,
     "id": "cmt_20261126030505_362",
     "created_at": "2026-11-26 03:05:05"
+  },
+  {
+    "post_url": "https://www.threads.net/@mieayummy12320/post/DgKhqofmdMC",
+    "author": "mieayummy12320",
+    "keyword": "MHWilds",
+    "post_snippet": "mieayummy12320\nMonster Hunter Wilds\n15h\nMy friend invited me to buy and play Monster Hunter Wilds, give me reasons why I",
+    "comment_text": "別怕啦！這代《荒野》的動態天氣跟傷口破壞系統超爽，新手只要抓對怪物的硬直區間，太刀見切或盾斧解解放下去成就感直接拉滿！\n\n而且講真的，野團開荒常常遇到貓車地獄，血壓真的會飆高。我後來都直接去 DC 語音群找固定車隊，裡面一堆老獵人隨便喊一聲就飛過來帶打，不只不用坐牢，還能順便偷學配裝跟神仙捏臉，體驗直接升天。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "猶豫是否入坑且朋友很少",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126040308_273",
+    "created_at": "2026-11-26 04:03:08"
+  },
+  {
+    "post_url": "https://www.threads.net/@elephant.3043257/post/DgL-qWTk6Cx",
+    "author": "elephant.3043257",
+    "keyword": "荒野",
+    "post_snippet": "elephant.3043257\n2h\n這位木瓜payaya 把掛關了吧\n玩個有還要開掛真沒意思\n開個外掛把滿季pro打到自閉了\n按讚有小丑🤡  \nTranslate\n31\n5\n7",
+    "comment_text": "難怪我看他大招蓄力不用集氣，原來是新出的DLC太刀外掛嗎",
+    "is_sales_lead": false,
+    "intent_score": 2,
+    "pain_point": "遇到外掛玩家破壞遊戲體驗",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126040347_957",
+    "created_at": "2026-11-26 04:03:47"
   }
 ]
