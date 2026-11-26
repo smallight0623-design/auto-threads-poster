@@ -2184,5 +2184,33 @@
     "error": null,
     "id": "cmt_20261126060339_651",
     "created_at": "2026-11-26 06:03:39"
+  },
+  {
+    "post_url": "https://www.threads.net/@weizhi12_18/post/DgLAMPNE17x",
+    "author": "weizhi12_18",
+    "keyword": "魔物獵人",
+    "post_snippet": "weizhi12_18\n魔物獵人旅人\n14h\n怕你們還不知道什麼是路加大人  \nTranslate\n62\n12\n3\n66",
+    "comment_text": "路大人是誰不重要，我只知道我的太刀已經準備好居合了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126070313_868",
+    "created_at": "2026-11-26 07:03:13"
+  },
+  {
+    "post_url": "https://www.threads.net/@yehdaya/post/DgK3usTEsWd",
+    "author": "yehdaya",
+    "keyword": "魔物獵人",
+    "post_snippet": "yehdaya\n魔物獵人旅人\n15h\n換個大劍試試手感\n還是不習慣手機玩法  \nTranslate\n \n1\n/\n2\n1",
+    "comment_text": "最屌的是這種遊戲可以不太耗電、發燙，我覺得贏很多手遊了🤣",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "不習慣手機遊戲玩法",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126070340_510",
+    "created_at": "2026-11-26 07:03:40"
   }
 ]
