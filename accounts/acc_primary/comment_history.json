@@ -2156,5 +2156,33 @@
     "error": null,
     "id": "cmt_20261126050346_447",
     "created_at": "2026-11-26 05:03:46"
+  },
+  {
+    "post_url": "https://www.threads.net/@youcheng872/post/DgL7WwUgLDr",
+    "author": "youcheng872",
+    "keyword": "荒野",
+    "post_snippet": "youcheng872\n荒野亂鬥\n4h\n有人一起打荒野嗎？  \nTranslate\n5\n4",
+    "comment_text": "推荒野真的要慎選野團，上次遇到貓車俠直接原地腦溢血血壓飆高。\n我後來都直接去 DC 語音群找固定隊友，每天晚上都有滿編房，裡面一堆老獵人開麥報招直接帶飛，打素材快超多，還能順便吸一堆神仙捏臉數據，遊戲體驗差超多！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "徵求一起連線打怪的隊友",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126060308_150",
+    "created_at": "2026-11-26 06:03:08"
+  },
+  {
+    "post_url": "https://www.threads.net/@ntu_supercell_club/post/DgMKJOmEiib",
+    "author": "ntu_supercell_club",
+    "keyword": "荒野",
+    "post_snippet": "ntu_supercell_club\n荒野亂鬥\n2h\n什麼！？台大荒野社的比賽社居然有 \n@powertechwhite\n !?  \nTranslate\n \n1\n/\n2\n203\n28\n21\n263",
+    "comment_text": "不是啊，這部《魔物獵人：荒野》到底何時才能玩到？",
+    "is_sales_lead": false,
+    "intent_score": 1,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126060339_651",
+    "created_at": "2026-11-26 06:03:39"
   }
 ]
