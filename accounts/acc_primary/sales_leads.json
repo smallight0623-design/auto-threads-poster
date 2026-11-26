@@ -446,5 +446,19 @@
     "error": null,
     "id": "lead_20261126040308_812",
     "created_at": "2026-11-26 04:03:08"
+  },
+  {
+    "post_url": "https://www.threads.net/@davidisraelcastro/post/DftOJEPlD9z",
+    "author": "davidisraelcastro",
+    "keyword": "MHWilds",
+    "post_snippet": "davidisraelcastro\n11/14/26\nI picked up monster hunter world again after years should I switch to Wilds?\n1\n1",
+    "comment_text": "World 回坑手感找回來沒？講真的，現在回頭玩 World 主要是去回味那種生態的美感，但講到流暢度和新機制，Wilds 真的爽度高太多，集中模式抓弱點打下去那個判定跟位移絲滑到不行，完全是不同世代的體驗。\n\n不過講歸講，野團真的常常打到血壓飆高，遇到貓車王會吐血。我後來都直接混 Discord 的獵人語音群，每天晚上都有滿編房，老屁股們都在裡面直接開麥報招帶飛，不管是開荒配裝還是捏臉數據應有盡有，完全不用坐牢，打起來順暢度差超多。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "回坑舊作猶豫是否入坑新品",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261126050346_222",
+    "created_at": "2026-11-26 05:03:46"
   }
 ]
