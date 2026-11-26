@@ -2044,5 +2044,33 @@
     "error": null,
     "id": "cmt_20261126010357_107",
     "created_at": "2026-11-26 01:03:57"
+  },
+  {
+    "post_url": "https://www.threads.net/@mitsuki.mhr.2000/post/DgL2hhBAEMy",
+    "author": "mitsuki.mhr.2000",
+    "keyword": "MHWilds",
+    "post_snippet": "mitsuki.mhr.2000\n1h\n2026.11.25撮影\nオメガ〜✨(にわとりも映ってるけどねw)\nあと15体、倒して勲章🎖️を取りたいっ！\n重ね着素材も足らない！12月はオメガ月間になりそうだ😢\n昨日はぷちゃさんとひと足早いサンタ",
+    "comment_text": "12月直接宣告破產，錢包跟肝都要被卡普空搬空了笑死",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "刷素材缺素材與差15隻拿勲章",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126020351_850",
+    "created_at": "2026-11-26 02:03:51"
+  },
+  {
+    "post_url": "https://www.threads.net/@trenovaldo/post/DgKZss1k5An",
+    "author": "trenovaldo",
+    "keyword": "MHWilds",
+    "post_snippet": "trenovaldo\nMonster Hunter Wilds\n14h\nWeathermon the Tombguard\n[Shangri La Frontier]\nThanks to kurometami from X for the l",
+    "comment_text": "穿這樣去打荒野，我看怪還沒打到自己先熱射病死在沙地裡",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126020418_834",
+    "created_at": "2026-11-26 02:04:18"
   }
 ]
