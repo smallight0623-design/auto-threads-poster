@@ -133,6 +133,25 @@
     "enqueued_at": "2026-11-26 03:03:31"
   },
   {
+    "id": "twitch_CleanMistyEggMikeHogu-DowqXFZmKN8HZEiq",
+    "title": "clipped by DatSaltyGuy",
+    "full_content": "clipped by DatSaltyGuy",
+    "source_platform": "Twitch",
+    "media_type": "VIDEO",
+    "media_url": "https://clips.twitch.tv/CleanMistyEggMikeHogu-DowqXFZmKN8HZEiq",
+    "upvotes": 31,
+    "replies_count": 0,
+    "is_priority_guide": false,
+    "priority_reason": "",
+    "instant_priority": false,
+    "timeslot_buckets": [
+      "afternoon",
+      "lunch",
+      "night"
+    ],
+    "enqueued_at": "2026-11-26 10:07:49"
+  },
+  {
     "id": "twitch_CallousHedonisticSoymilkPJSalt-bUtlWaQ723PD049l",
     "title": "Fancy高光時刻",
     "full_content": "Fancy高光時刻",
@@ -188,25 +207,6 @@
       "night"
     ],
     "enqueued_at": "2026-11-25 23:02:22"
-  },
-  {
-    "id": "baha_5786_178692",
-    "title": "【情報】CAPCOM 於官方X帳號宣布《魔物獵人物語3 ～命運雙龍～》銷量突破100萬份",
-    "full_content": "【情報】CAPCOM 於官方X帳號宣布《魔物獵人物語3 ～命運雙龍～》銷量突破100萬份\n\n今天上午看到官方賀圖於1小時前發布而得知這件事。https://twitter.com/monsterhunter/status/2120320691526418666本作2026年3月13日於平台　任天堂Switch 2、PlayStation 5、Xbox Series X/S、Windows發售，於今日2026年11月11日於X（舊推特）宣布本作銷售100萬份，相隔243天。※趕不上最近的財報。\n作為比較對象，《魔物獵人物語2 ～破滅之翼～》2021年7月9日於平台　任天堂Switch、Microsoft Windows發售，2021年7月20日，官方推特宣布本作銷量已達100萬，相隔11天。※PS4平台於2024年6月14日發售。目前物語2累積銷量於2026年8月約260萬份。\n《魔物獵人物語》約120萬份。不愧是良三的力作，私心滿滿出了這麼大的力氣（製作成員超過1000人）終究還是能突破100萬的。所以能告訴我為什麼DLC的滅盡龍不能騎呢？在荒野暴死後還願意追過來的騎士們都很困惑喔？\n附錄：專版過往文章【情報】《魔物獵人物語3》製作人專訪：刻意追加遊戲深度 辻本製作人堅持要噗吱豬【情報】捷報：物語3反應大好 將追加推出夏季免費更新【情報】物語3 媒體讚譽宣傳片\n\n探索主題\nCAPCOM\n\n遊戲情報\n\n銷量突破\n\n魔物獵人\n\n魔物獵人物語3\n    \n    \n\n        \n\n    \n        \n            \n                                \n                                \n                    \n                    \n                    \n                    \n                    \n                \n            \n        \n        9\n    \n    \n        \n            \n                                \n                            \n        \n        -\n    \n    \n    \n        \n                                                \n                \n                    ",
-    "source_platform": "巴哈姆特",
-    "media_type": "IMAGE",
-    "media_url": "https://pbs.twimg.com/media/HWzkbobXQAEXUmY.jpg",
-    "upvotes": 9,
-    "replies_count": 1,
-    "is_priority_guide": false,
-    "priority_reason": "",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "morning",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 12:33:59"
   },
   {
     "id": "baha_5786_178666",
