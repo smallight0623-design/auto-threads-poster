@@ -38,6 +38,25 @@
     "enqueued_at": "2026-11-26 03:03:31"
   },
   {
+    "id": "twitch_ResourcefulLachrymosePorpoiseKappaWealth-MmjdxdaX-P6GpPIu",
+    "title": "Name one thing you want refined in Wilds... Focus strike.",
+    "full_content": "Name one thing you want refined in Wilds... Focus strike.",
+    "source_platform": "Twitch",
+    "media_type": "VIDEO",
+    "media_url": "https://clips.twitch.tv/ResourcefulLachrymosePorpoiseKappaWealth-MmjdxdaX-P6GpPIu",
+    "upvotes": 32,
+    "replies_count": 0,
+    "is_priority_guide": false,
+    "priority_reason": "",
+    "instant_priority": false,
+    "timeslot_buckets": [
+      "afternoon",
+      "lunch",
+      "night"
+    ],
+    "enqueued_at": "2026-11-26 19:02:20"
+  },
+  {
     "id": "twitch_CleanMistyEggMikeHogu-DowqXFZmKN8HZEiq",
     "title": "clipped by DatSaltyGuy",
     "full_content": "clipped by DatSaltyGuy",
@@ -112,25 +131,5 @@
       "night"
     ],
     "enqueued_at": "2026-11-25 23:02:22"
-  },
-  {
-    "id": "baha_5786_178664",
-    "title": "【問題】崛起破曉武器推薦問題",
-    "full_content": "【問題】崛起破曉武器推薦問題\n\n想問下有什麼適合手殘或是無腦打的武器嗎最近是都練斬斧但後來我用斬斧打金獅子30分鐘打不到十下GP斬也常揮空..有點想放棄了\n\n\n探索主題\n破曉\n\n遊戲心得\n\n魔物獵人崛起\n\n新手教學\n\n武器推薦\n    \n    \n\n        \n\n    \n        \n            \n                                \n                                \n                    \n                    \n                    \n                    \n                    \n                \n            \n        \n        1\n    \n    \n        \n            \n                                \n                            \n        \n        -\n    \n    \n    \n        \n                                                \n                \n                    ",
-    "source_platform": "巴哈姆特",
-    "media_type": "TEXT",
-    "media_url": null,
-    "upvotes": 5,
-    "replies_count": 3,
-    "is_priority_guide": true,
-    "priority_reason": "建設性攻略與實用乾貨最高優先級",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "evening",
-      "lunch",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 12:33:59"
   }
 ]
