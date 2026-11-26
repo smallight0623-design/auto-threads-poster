@@ -2072,5 +2072,33 @@
     "error": null,
     "id": "cmt_20261126020418_834",
     "created_at": "2026-11-26 02:04:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@maico_fenrir/post/DgJ_LlJEs7X",
+    "author": "maico_fenrir",
+    "keyword": "MHWilds",
+    "post_snippet": "maico_fenrir\n19h\n8⭐️Brute Tigrex #monsterhunternow #monsterhunter #monsterhunterwilds #gaming #viral\n2",
+    "comment_text": "建議世界，不然崛起玩完之後會覺得世界動作很慢",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126030426_803",
+    "created_at": "2026-11-26 03:04:26"
+  },
+  {
+    "post_url": "https://www.threads.net/@coyotewildfire/post/DgKxOickjs9",
+    "author": "coyotewildfire",
+    "keyword": "MHWilds",
+    "post_snippet": "coyotewildfire\nMonster Hunter Wilds Ascendance\n12h\nWhy the GRAND HUB is peak Monster Hunter\nHunters sitting around the f",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126030505_362",
+    "created_at": "2026-11-26 03:05:05"
   }
 ]
