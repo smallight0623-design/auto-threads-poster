@@ -1,24 +1,5 @@
 [
   {
-    "id": "twitch_CallousHedonisticSoymilkPJSalt-bUtlWaQ723PD049l",
-    "title": "Fancy高光時刻",
-    "full_content": "Fancy高光時刻",
-    "source_platform": "Twitch",
-    "media_type": "VIDEO",
-    "media_url": "https://clips.twitch.tv/CallousHedonisticSoymilkPJSalt-bUtlWaQ723PD049l",
-    "upvotes": 30,
-    "replies_count": 0,
-    "is_priority_guide": false,
-    "priority_reason": "",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "lunch",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 21:02:24"
-  },
-  {
     "id": "twitch_CulturedKawaiiQuailHotPokket-kSHP0M1gudb2ADXN",
     "title": "This actually competes",
     "full_content": "This actually competes",
