@@ -1988,5 +1988,33 @@
     "error": null,
     "id": "cmt_20261125070333_328",
     "created_at": "2026-11-25 07:03:33"
+  },
+  {
+    "post_url": "https://www.threads.net/@yike.yuwan/post/DgKz8kZmLxn",
+    "author": "yike.yuwan",
+    "keyword": "荒野",
+    "post_snippet": "yike.yuwan\n荒野亂鬥\n8h\n挑戰畫荒野亂鬥角色Day23 愛德加  \nTranslate\n \n1\n/\n2\n34\n7\n2",
+    "comment_text": "這裡不是卡普空，你跑錯棚了啦！",
+    "is_sales_lead": false,
+    "intent_score": 1,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126000306_921",
+    "created_at": "2026-11-26 00:03:06"
+  },
+  {
+    "post_url": "https://www.threads.net/@shamn_0503/post/DgKvEddn0Xf",
+    "author": "shamn_0503",
+    "keyword": "荒野",
+    "post_snippet": "shamn_0503\n荒野亂鬥\n9h\n求一個荒野強隊友上艾謎巔峰二  \nTranslate\n7\n2\n1",
+    "comment_text": "裝備穿這樣是要怎麼打荒野啦，先去把迅龍裝做出來",
+    "is_sales_lead": false,
+    "intent_score": 1,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261126000337_808",
+    "created_at": "2026-11-26 00:03:37"
   }
 ]
