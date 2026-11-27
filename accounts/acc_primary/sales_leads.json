@@ -488,5 +488,19 @@
     "error": null,
     "id": "lead_20261127000358_278",
     "created_at": "2026-11-27 00:03:58"
+  },
+  {
+    "post_url": "https://www.threads.net/@riphtency/post/DgOSkSHE7_b",
+    "author": "riphtency",
+    "keyword": "MHWilds",
+    "post_snippet": "riphtency\n1h\nI’m too afraid to do furious Rajang chat I can’t lie 💀 #mhwilds #monsterhunter #monsterhunterwilds #gaming ",
+    "comment_text": "笑死，真的完全懂那個恐懼，激昂金獅那個發怒後的無腦大跳跟雷射光真的會讓人原地往生。建議立體防禦一定要帶，不然根本初見殺。\n\n講真的野團開局打這隻真的會坐牢坐到血壓飆高，我後來都直接去 DC 語音群找車隊，裡面一堆老獵人隨便喊都有人幫忙報招帶飛，終於不用再痛苦貓車了。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "害怕打激昂金獅子",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261127010318_305",
+    "created_at": "2026-11-27 01:03:18"
   }
 ]

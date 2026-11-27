@@ -2240,5 +2240,33 @@
     "error": null,
     "id": "cmt_20261127000358_126",
     "created_at": "2026-11-27 00:03:58"
+  },
+  {
+    "post_url": "https://www.threads.net/@riphtency/post/DgOSkSHE7_b",
+    "author": "riphtency",
+    "keyword": "MHWilds",
+    "post_snippet": "riphtency\n1h\nI’m too afraid to do furious Rajang chat I can’t lie 💀 #mhwilds #monsterhunter #monsterhunterwilds #gaming ",
+    "comment_text": "笑死，真的完全懂那個恐懼，激昂金獅那個發怒後的無腦大跳跟雷射光真的會讓人原地往生。建議立體防禦一定要帶，不然根本初見殺。\n\n講真的野團開局打這隻真的會坐牢坐到血壓飆高，我後來都直接去 DC 語音群找車隊，裡面一堆老獵人隨便喊都有人幫忙報招帶飛，終於不用再痛苦貓車了。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "害怕打激昂金獅子",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127010318_378",
+    "created_at": "2026-11-27 01:03:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@erunoc0501/post/DgNU74EDvHQ",
+    "author": "erunoc0501",
+    "keyword": "MHWilds",
+    "post_snippet": "erunoc0501\n10h\nBow is incredibly nimble in MHO, especially in bounty contest where you can fire off the strong attacks s",
+    "comment_text": "這不是荒野（Wilds）好嗎，手遊工讀生上班囉",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127010353_264",
+    "created_at": "2026-11-27 01:03:53"
   }
 ]

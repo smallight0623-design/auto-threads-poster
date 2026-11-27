@@ -1,24 +1,5 @@
 [
   {
-    "id": "twitch_CulturedKawaiiQuailHotPokket-kSHP0M1gudb2ADXN",
-    "title": "This actually competes",
-    "full_content": "This actually competes",
-    "source_platform": "Twitch",
-    "media_type": "VIDEO",
-    "media_url": "https://clips.twitch.tv/CulturedKawaiiQuailHotPokket-kSHP0M1gudb2ADXN",
-    "upvotes": 30,
-    "replies_count": 0,
-    "is_priority_guide": false,
-    "priority_reason": "",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "lunch",
-      "night"
-    ],
-    "enqueued_at": "2026-11-25 22:02:31"
-  },
-  {
     "id": "twitch_VastGenerousSoybeanNomNom-XMoRtMaPMZre5xmN",
     "title": "802 plus a 662 with switch axe full release",
     "full_content": "802 plus a 662 with switch axe full release",
