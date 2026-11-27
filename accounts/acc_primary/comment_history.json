@@ -2380,5 +2380,33 @@
     "error": null,
     "id": "cmt_20261127050339_265",
     "created_at": "2026-11-27 05:03:39"
+  },
+  {
+    "post_url": "https://www.threads.net/@thehootiedude/post/DgOkUvbDN-1",
+    "author": "thehootiedude",
+    "keyword": "MHWilds",
+    "post_snippet": "thehootiedude\nRuneScape Dragonwilds\n3h\nThe Bagman wants his cookies",
+    "comment_text": "這隻袋人比上位雌火龍還難纏，餅乾肯定是拿去換素材了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127060318_160",
+    "created_at": "2026-11-27 06:03:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@queenofnobody/post/DgNPmRggVbJ",
+    "author": "queenofnobody",
+    "keyword": "MHWilds",
+    "post_snippet": "queenofnobody\nGaming Threads\n16h\nNow to wait for Dec 4. I’ll just be here twiddling my thumbs \n6\n9",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "等待遊戲更新覺得無聊",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127060359_726",
+    "created_at": "2026-11-27 06:03:59"
   }
 ]
