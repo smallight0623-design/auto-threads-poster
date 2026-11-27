@@ -34,52 +34,63 @@ def evaluate_lead_intent(post_text: str, game_name: str, config: dict) -> dict:
 \"\"\"{post_text}\"\"\"
 
 【任務評估指標】：
-1. 該玩家是否具有「求助、卡關、找隊友、需要配裝攻略、或對當前現狀感到痛苦」的明確痛點？
-2. 我們是否有切入給予「解答 ＋ 推薦高品質獵人連線群/同伴」的自然空間？
+1. **第一道絕對關卡**：這篇貼文**是否真的是在討論【{game_name}】（魔物獵人系列）**？如果它是在講《荒野亂鬥 / Brawl Stars》、《荒野行動》、《RuneScape Dragonwilds》、《薩爾達曠野之息》或其他遊戲／日常無關話題，必須直接判定 `is_target_game: false`、`intent_score: 1`、`should_reply: false`！
+2. 該玩家是否具有「求助、卡關、找隊友、需要配裝攻略、或對當前現狀感到痛苦」的明確痛點？
+3. 我們是否有切入給予「解答 ＋ 推薦高品質獵人連線群/同伴」的自然空間？
 
 【打分維度 (1 ~ 5 分)】：
-- 5分：強烈求助或徵隊友（例如「歷戰王到底怎麼打？」、「有人能一起連線嗎？」、「剛入坑推薦玩什麼？」）
-- 4分：強烈痛點但偏向吐槽（例如「野團又三貓心好累」、「單刷一直超時到底差在哪」、「身邊都沒朋友玩」）
-- 3分：普通遊戲日常（例如「今天終於做完這套了」、「這隻魔物長得好魔性」）
-- 1~2分：純謾罵、政治、官方更新轉發、非討論性內容
+- 5分：明確在聊【{game_name}】且強烈求助或徵隊友（例如「歷戰王到底怎麼打？」、「有人能一起連線嗎？」、「剛入坑推薦玩什麼？」）
+- 4分：明確在聊【{game_name}】且有強烈痛點但偏向吐槽（例如「野團又三貓心好累」、「單刷一直超時到底差在哪」、「身邊都沒朋友玩」）
+- 3分：普通【{game_name}】遊戲日常（例如「今天終於做完這套了」、「這隻魔物長得好魔性」）
+- 1~2分：非目標遊戲（如荒野亂鬥等）、純謾罵、政治、官方更新轉發、無實質內容
 
 【回傳格式要求（必須且僅能以 JSON 回傳）】：
 {{
+  "is_target_game": true或false,
   "intent_score": 1到5的整數,
   "intent_category": "SEEKING_ADVICE | LOOKING_FOR_GROUP | GAMEPLAY_STRUGGLE | CASUAL_CHAT | IRRELEVANT",
   "pain_point": "原PO的核心痛點或困擾（15字以內，若無則填無）",
-  "should_reply": true若score>=4否則false,
+  "should_reply": true若(is_target_game為true且score>=4)否則false,
   "reason": "簡述判定理由 (20字以內)"
 }}
 """
+    import time
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    try:
-        res = requests.post(
-            f"{base_url}/chat/completions",
-            headers=headers,
-            json={
-                "model": primary_model,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.2
-            },
-            timeout=15
-        )
-        if res.status_code == 200:
-            c = res.json()["choices"][0]["message"]["content"]
-            import re
-            m = re.search(r"\{.*\}", c, re.DOTALL)
-            if m:
-                return json.loads(m.group(0))
-    except Exception as e:
-        print(f"⚠️ [Intent Evaluator] 意圖評估異常: {e}")
+    for attempt in range(2):
+        try:
+            res = requests.post(
+                f"{base_url}/chat/completions",
+                headers=headers,
+                json={
+                    "model": primary_model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.2
+                },
+                timeout=25
+            )
+            if res.status_code == 200:
+                c = res.json()["choices"][0]["message"]["content"]
+                import re
+                m = re.search(r"\{.*\}", c, re.DOTALL)
+                if m:
+                    parsed = json.loads(m.group(0))
+                    if parsed.get("is_target_game") is False:
+                        parsed["intent_score"] = 1
+                        parsed["should_reply"] = False
+                    return parsed
+        except Exception as e:
+            print(f"⚠️ [Intent Evaluator] 第 {attempt+1} 次意圖評估異常: {e}")
+            if attempt == 0:
+                time.sleep(2)
 
-    # Fallback default
+    # Fallback default: do NOT force reply when API fails
     return {
-        "intent_score": 3,
-        "intent_category": "CASUAL_CHAT",
+        "is_target_game": False,
+        "intent_score": 1,
+        "intent_category": "IRRELEVANT",
         "pain_point": "無",
         "should_reply": False,
-        "reason": "評估降級預設"
+        "reason": "評估連線失敗安全跳過"
     }
 
 # ==============================================================================
@@ -126,40 +137,45 @@ def generate_stealth_chameleon_reply(
 
 【AICMO 變色龍隱形推銷四大鐵律（嚴格執行）】：
 1. 【80% 扎實專業解答（建立絕對信任）】：
-   - 開頭先針對他貼文提到的魔物、動作、走位或配裝，給予 1~2 個真正有用的專業實戰心得（證明你是自己人、是高手）。
-2. 【20% 見縫插針（第三方受惠者視角，絕非推銷員）】：
-   - 絕不能像客服或行銷號！你要扮演「之前也跟他一樣痛苦，後來找到了解法」的同行老玩家。
-   - 範例句型：「...另外野團真的太容易血壓飆高，我後來都直接在 DC 語音群找固定隊友打，裡面很多老獵人報招帶飛，打起來順超多。」
+   - 開頭先針對他貼文提到的魔物、武器、配裝或卡關點，給予 1~2 個具體、切題且實用的老手建議（證明你是同好高手）。
+   - 如果原文根本只是閒聊或不是在問攻略，請自然聊天就好，不要硬塞無關的「集中模式／防禦裝」公式！
+2. 【20% 見縫插針（自然多變，拒絕複製貼上感）】：
+   - 絕不能像客服或行銷號，也**不要每篇都重複「野團血壓飆高 / 滿編房 / 捏臉數據」同一套話術**！
+   - 僅在原PO真的遇到孤單單刷、打不過、或想找人時，才輕描淡寫帶一句自己的解決辦法（例如「後來我都跟 DC 語音認識的幾個獵友固定晚上開一兩場，有人報招真的差很多」或「配裝直接找 DC 群裡的大佬問比較快少走彎路」）。如果話題不適合提到 DC 群，就純粹給實用建議交朋友即可！
 3. 【紅線禁詞庫（違者死罪）】：
    - 嚴禁出現：「歡迎加入」、「推薦大家」、「點我主頁」、「官方」、「專屬優惠」、「點此連結」。
    - 嚴禁放任何 raw URL 網址（Threads 上放連結會直接被降權判定為垃圾訊息）。
-   - 讓對方或路人看完後，因為覺得你講得很中肯，自然而然點進你主頁看 Bio！
 4. 【語氣與長度】：
-   - 台灣道地玩家黑話、口吻親切平易近人、自嘲幽默。
-   - 總長度嚴格控制在 65 ~ 125 個字以內！不要長篇大論。
+   - 台灣道地玩家口吻，口語自然、不說教、無機器人腔。
+   - 總長度嚴格控制在 45 ~ 105 個字以內！精簡有力。
 
 【輸出要求】：直接輸出最終回覆內容，不要任何多餘引號或前言。
 """
+    import time
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    try:
-        res = requests.post(
-            f"{base_url}/chat/completions",
-            headers=headers,
-            json={
-                "model": primary_model,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.6
-            },
-            timeout=15
-        )
-        if res.status_code == 200:
-            c = res.json()["choices"][0]["message"]["content"].strip()
-            c = c.strip('"').strip("'").strip("「").strip("」").strip()
-            return c
-    except Exception as e:
-        print(f"⚠️ [Chameleon Reply] 生成失敗: {e}")
+    for attempt in range(2):
+        try:
+            res = requests.post(
+                f"{base_url}/chat/completions",
+                headers=headers,
+                json={
+                    "model": primary_model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.65
+                },
+                timeout=25
+            )
+            if res.status_code == 200:
+                c = res.json()["choices"][0]["message"]["content"].strip()
+                c = c.strip('"').strip("'").strip("「").strip("」").strip()
+                if c:
+                    return c
+        except Exception as e:
+            print(f"⚠️ [Chameleon Reply] 第 {attempt+1} 次生成失敗: {e}")
+            if attempt == 0:
+                time.sleep(2)
 
-    return f"這隻等牠大招硬直再抓破綻打。野團真的太看臉，我後來都找語音固定團打，有人報招輕鬆超多。"
+    return ""
 
 # ==============================================================================
 # 📊 模組三：推銷潛在客戶追蹤器 (Lead Tracker)

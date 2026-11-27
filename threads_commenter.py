@@ -301,7 +301,7 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
     if not keywords:
         game = acc.get("game_name", "")
         if "Monster Hunter" in game or "魔物" in game:
-            keywords = ["魔物獵人", "MHWilds", "荒野"]
+            keywords = ["魔物獵人", "MHWilds", "魔物獵人荒野"]
         elif "傳說對決" in game:
             keywords = ["傳說對決", "AOV"]
         else:
@@ -354,19 +354,38 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
                     p_author = post["author"]
                     p_text = post["text"]
 
-                    # 安全過濾：跳過自身、跳過已留言、跳過無意義短文
+                    # 安全過濾：跳過自身、跳過已留言、跳過無意義短文、跳過誤中其他遊戲與純外語貼文
                     if threads_username and threads_username.lower() in p_author.lower():
                         continue
                     if p_url.lower() in replied_urls:
                         continue
-                    if len(p_text) < 5:
+                    if len(p_text) < 8:
                         continue
+
+                    p_lower = p_text.lower()
+                    offtopic_markers = [
+                        "荒野亂鬥", "brawl stars", "brawlstars", "荒野行動",
+                        "dragonwilds", "runescape", "曠野之息", "王國之淚", "超級細胞", "supercell"
+                    ]
+                    if any(m in p_lower for m in offtopic_markers):
+                        print(f"⏭️ [海巡過濾] 跳過非目標遊戲貼文 @{p_author}: {p_text[:40]}...")
+                        continue
+
+                    # 台灣繁中目標帳號：優先過濾掉完全無中文字元的純外語貼文，避免雞同鴨講
+                    if "台灣" in acc.get("target_region", "") or "中文" in acc.get("target_region", ""):
+                        if not any("\u4e00" <= ch <= "\u9fff" for ch in p_text):
+                            print(f"⏭️ [海巡過濾] 跳過純外語貼文 @{p_author}: {p_text[:40]}...")
+                            continue
 
                     print(f"\n💡 [海巡選題選中] @{p_author}: {p_text[:60]}...")
                     
                     # 1. 意圖評估器 (借鑑 kaymen99/sales-outreach 意圖狀態機)
                     import social_seller
                     intent_res = social_seller.evaluate_lead_intent(p_text, game_name, global_cfg)
+                    if intent_res.get("is_target_game") is False:
+                        print(f"⏭️ [AI 語境把關] 非目標遊戲 ({intent_res.get('reason', '無關')})，安全跳過！")
+                        continue
+
                     is_lead = intent_res.get("should_reply", False)
                     intent_score = intent_res.get("intent_score", 3)
                     pain_point = intent_res.get("pain_point", "")
@@ -381,8 +400,14 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
                             game_name=game_name,
                             config=global_cfg
                         )
+                        if not target_reply:
+                            print("⚠️ [海巡跳過] 變色龍回覆生成失敗，寧缺勿濫跳過此篇。")
+                            continue
                         print(f"🥷 [變色龍隱形推銷回覆]: {target_reply}")
                     else:
+                        if intent_score <= 1:
+                            print("⏭️ [海巡過濾] 意圖評分過低或無關，跳過。")
+                            continue
                         # 普通日常互動：載入實戰金句庫生成神回覆 (V2 靈動版)
                         import threads_learner
                         kb = threads_learner.load_knowledge_base(acc_id)
@@ -395,6 +420,9 @@ async def run_threads_patrol_async(acc_id: str, max_comments: int = 2) -> dict:
                             config=global_cfg,
                             golden_quotes=golden_quotes
                         )
+                        if not target_reply:
+                            print("⚠️ [海巡跳過] 神回覆生成失敗，寧缺勿濫跳過此篇。")
+                            continue
                         print(f"💬 [日常高情商神回覆]: {target_reply}")
 
                     # 3. 執行發布

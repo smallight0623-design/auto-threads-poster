@@ -111,11 +111,12 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Threads [{game_name}] 爆文 (門檻 {min_upvotes} 讚)...")
                 p_list = await fetch_top_threads_posts(game_name, min_likes=min_upvotes, session_file=session_path)
             elif "x" in src_name.lower() or "twitter" in src_name.lower():
-                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 X (Twitter) [{game_name}] 即時推文 (門檻 {min_upvotes} 讚)...")
+                x_threshold = min(int(min_upvotes or 100), 25)
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 X (Twitter) [{game_name}] 熱門圖文推文 (門檻 {x_threshold} 讚)...")
                 x_session = os.path.join(os.path.dirname(session_path), "x_session.json") if session_path else "x_session.json"
                 if not os.path.exists(x_session) and os.path.exists("x_session.json"):
                     x_session = "x_session.json"
-                p_list = await fetch_top_x_tweets(game_name, min_likes=min_upvotes, session_file=x_session, sort_recent=(discovery_mode == "rising"))
+                p_list = await fetch_top_x_tweets(game_name, min_likes=x_threshold, session_file=x_session, sort_recent=False)
             elif "巴哈" in src_name or "bahamut" in src_name.lower():
                 baha_threshold = min(int(min_upvotes or 100), 5)
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描巴哈姆特哈啦板 [{game_name}] 本土爆文 (門檻 {baha_threshold} GP)...")

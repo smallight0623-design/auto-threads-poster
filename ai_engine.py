@@ -93,10 +93,19 @@ def call_ai_proxy(original_text: str, config: dict) -> str:
         }
 
         url = f"{base_url}/chat/completions"
-        try:
-            res = requests.post(url, headers=headers, json=payload, timeout=60)
-        except Exception as e:
-            raise Exception(f"AI 中轉站連線逾時或網路錯誤: {str(e)}")
+        res = None
+        last_net_err = None
+        for attempt in range(2):
+            try:
+                res = requests.post(url, headers=headers, json=payload, timeout=75)
+                break
+            except Exception as e:
+                last_net_err = e
+                if attempt == 0:
+                    import time
+                    time.sleep(3)
+        if res is None:
+            raise Exception(f"AI 中轉站連線逾時或網路錯誤: {str(last_net_err)}")
 
         if res.status_code == 200:
             data = res.json()
@@ -550,14 +559,19 @@ def generate_witty_comment(post_text: str, author: str, game_name: str, persona:
         ],
         "temperature": 0.8
     }
-    try:
-        res = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=15)
-        if res.status_code == 200:
-            c = res.json()["choices"][0]["message"]["content"].strip()
-            c = c.strip('"').strip("'").strip("「").strip("」").strip()
-            return c
-    except Exception as e:
-        print(f"[Witty Comment] 生成失敗: {e}")
+    import time
+    for attempt in range(2):
+        try:
+            res = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=25)
+            if res.status_code == 200:
+                c = res.json()["choices"][0]["message"]["content"].strip()
+                c = c.strip('"').strip("'").strip("「").strip("」").strip()
+                if c:
+                    return c
+        except Exception as e:
+            print(f"[Witty Comment] 第 {attempt+1} 次生成失敗: {e}")
+            if attempt == 0:
+                time.sleep(2)
 
-    return f"這我，建議直接開躺比較快。"
+    return ""
 

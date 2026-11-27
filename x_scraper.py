@@ -38,6 +38,21 @@ async def fetch_top_x_tweets(query: str, min_likes: int = 50, session_file: str 
             "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
             "viewport": {"width": 1920, "height": 1080}
         }
+        if (not session_file or not os.path.exists(session_file)) and os.getenv("X_SESSION_DATA", "").strip():
+            env_x = os.getenv("X_SESSION_DATA", "").strip()
+            try:
+                import base64, json
+                if not env_x.startswith("{"):
+                    env_x = base64.b64decode(env_x).decode("utf-8")
+                json.loads(env_x)
+                target_x_path = session_file or "x_session.json"
+                os.makedirs(os.path.dirname(os.path.abspath(target_x_path)), exist_ok=True)
+                with open(target_x_path, "w", encoding="utf-8") as xf:
+                    xf.write(env_x)
+                session_file = target_x_path
+            except Exception as xe:
+                print(f"⚠️ [X Scraper] 解析環境變數 X_SESSION_DATA 失敗: {xe}")
+
         if session_file and os.path.exists(session_file):
             context_kwargs["storage_state"] = session_file
 
