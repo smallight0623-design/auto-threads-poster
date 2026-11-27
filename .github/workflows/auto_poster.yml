@@ -47,6 +47,7 @@ jobs:
           AI_MODEL: ${{ secrets.AI_MODEL }}
           THREADS_SESSION_DATA: ${{ secrets.THREADS_SESSION_DATA }}
           X_SESSION_DATA: ${{ secrets.X_SESSION_DATA }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           THREADS_USERNAME: ${{ secrets.THREADS_USERNAME }}
           THREADS_PASSWORD: ${{ secrets.THREADS_PASSWORD }}
         run: |

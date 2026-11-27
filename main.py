@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import argparse
 import datetime
 import asyncio
@@ -26,18 +27,28 @@ import content_queue
 ACTIVE_RUNNING_ACCOUNTS = set()
 
 async def run_patrol_task(acc_id: str, account: dict):
-    """執行自動巡航獲客留言 (AI 社群推銷員)"""
-    if not account.get("comment_agent_enabled", True):
-        return
-    try:
-        import threads_commenter
-        max_cmt = int(account.get("comment_single_limit") or 2)
-        print(f"\n💬 [{acc_id}] 啟動 Threads 自動巡航獲客留言 (單次上限: {max_cmt} 則)...")
-        patrol_res = await threads_commenter.run_threads_patrol_async(acc_id, max_comments=max_cmt)
-        comments_sent = patrol_res.get("commented_count", 0)
-        print(f"[{acc_id}] 🎯 Threads 海巡獲客週期完成：成功發布 {comments_sent} 則留言")
-    except Exception as e:
-        print(f"⚠️ [{acc_id}] Threads 海巡獲客執行異常: {e}")
+    """執行自動巡航獲客留言 (AI 社群推銷員) 與每日衝浪學習回報"""
+    if account.get("comment_agent_enabled", True):
+        try:
+            import threads_commenter
+            max_cmt = int(account.get("comment_single_limit") or 2)
+            print(f"\n💬 [{acc_id}] 啟動 Threads 自動巡航獲客留言 (單次上限: {max_cmt} 則)...")
+            patrol_res = await threads_commenter.run_threads_patrol_async(acc_id, max_comments=max_cmt)
+            comments_sent = patrol_res.get("commented_count", 0)
+            print(f"[{acc_id}] 🎯 Threads 海巡獲客週期完成：成功發布 {comments_sent} 則留言")
+        except Exception as e:
+            print(f"⚠️ [{acc_id}] Threads 海巡獲客執行異常: {e}")
+
+    # 每日高強度衝浪學習一次並推播報告至 Discord
+    if account.get("target_platform", "Threads").lower() == "threads":
+        try:
+            import threads_learner
+            if threads_learner.should_run_daily_learning(acc_id):
+                print(f"\n📚 [{acc_id}] 啟動今日 Threads 高強度衝浪學習並回報 Discord...")
+                learn_res = await threads_learner.run_daily_threads_learning(acc_id, notify_discord=True)
+                print(f"[{acc_id}] 📚 今日學習完成 (Discord 推播: {learn_res.get('discord_notified')})")
+        except Exception as e:
+            print(f"⚠️ [{acc_id}] Threads 每日學習執行異常: {e}")
 
 async def run_for_account(acc_id: str, is_fast_track: bool = False):
     """專門為指定的社群帳號工作台執行一次搬運與發布"""
@@ -250,7 +261,16 @@ async def main():
     parser.add_argument("--all", action="store_true", help="依序執行所有啟用的帳號工作台")
     parser.add_argument("--fast-track", action="store_true", help="以破裂級爆款自主插隊模式掃描執行")
     parser.add_argument("--patrol", action="store_true", help="執行指定帳號的 Threads 留言區海巡獲客")
+    parser.add_argument("--learn", action="store_true", help="執行指定帳號的 Threads 高強度衝浪學習並回報 Discord")
     args = parser.parse_args()
+
+    if args.learn:
+        import threads_learner
+        target_acc = args.account or "acc_primary"
+        print(f"📚 [Main CLI] 啟動帳號【{target_acc}】Threads 每日衝浪學習與 Discord 推播...")
+        res = await threads_learner.run_daily_threads_learning(target_acc, notify_discord=True)
+        print("學習結果:", json.dumps(res, ensure_ascii=False, indent=2))
+        return
 
     if args.patrol:
         import threads_commenter
