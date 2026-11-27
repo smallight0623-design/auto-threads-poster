@@ -502,5 +502,19 @@
     "error": null,
     "id": "lead_20261127010318_305",
     "created_at": "2026-11-27 01:03:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@shou___yi/post/DgNOmPZkdHe",
+    "author": "shou___yi",
+    "keyword": "魔物獵人",
+    "post_snippet": "shou___yi\n魔物獵人荒野\n12h\n第一秒:真的假的啦Netflix我大哥！！\n下一秒:好吧不意外…\n該換手機了。  \nTranslate\n102\n11\n123",
+    "comment_text": "笑死，這代荒野的優化真的有夠吃效能，主機跟手機一起換下去差不多啦！\n\n不過講真的，這代開荒如果遇到鎖血鎖區或野團貓車，血壓真的會飆高。我後來都直接去 DC 語音群找固定車隊，裡面一堆老獵人每天晚上都開房報招帶飛，不只不用坐牢，還順便抄了一堆神仙配裝跟捏臉數據，遊戲體驗直接差超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "設備效能不足，面臨需換機痛點",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261127020400_868",
+    "created_at": "2026-11-27 02:04:00"
   }
 ]
