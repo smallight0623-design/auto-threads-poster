@@ -266,23 +266,23 @@
     "enqueued_at": "2026-11-27 09:09:52"
   },
   {
-    "id": "x_2126214485966995899",
-    "title": "[Event \"Trial of the Blade\" Is Live! ]",
-    "full_content": "[Event \"Trial of the Blade\" Is Live! ]\n\nFestival Opening Celebration!  \nComplete the quest chain to claim Featured Contract x10 for free! \n\nEvent Period  \nNovember 27, 2026 (Fri) 3:00–January 22, 2027 (Fri) 2:59 (UTC)\n \n#MHO #MHOutlanders #MonsterHunterOutlanders",
-    "source_platform": "X",
-    "media_type": "IMAGE",
-    "media_url": "https://pbs.twimg.com/media/HYHUx0ZaIAAPRR-?format=jpg&name=small",
-    "upvotes": 44,
+    "id": "twitch_InspiringInquisitiveWoodpeckerKappaPride-99wXD8r_rvze796T",
+    "title": "Sheriff Cind",
+    "full_content": "Sheriff Cind",
+    "source_platform": "Twitch",
+    "media_type": "VIDEO",
+    "media_url": "https://clips.twitch.tv/InspiringInquisitiveWoodpeckerKappaPride-99wXD8r_rvze796T",
+    "upvotes": 31,
     "replies_count": 0,
     "is_priority_guide": false,
     "priority_reason": "",
     "instant_priority": false,
     "timeslot_buckets": [
       "afternoon",
-      "morning",
+      "lunch",
       "night"
     ],
-    "enqueued_at": "2026-11-27 08:01:54"
+    "enqueued_at": "2026-11-27 10:02:17"
   },
   {
     "id": "x_2108142553677926728/analytics",
