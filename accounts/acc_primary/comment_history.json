@@ -2212,5 +2212,33 @@
     "error": null,
     "id": "cmt_20261126070340_510",
     "created_at": "2026-11-26 07:03:40"
+  },
+  {
+    "post_url": "https://www.threads.net/@myosotis_alpestris_/post/DgNqeW9I7AU",
+    "author": "myosotis_alpestris_",
+    "keyword": "魔物獵人",
+    "post_snippet": "myosotis_alpestris_\n魔物獵人旅人\n6h\n終於是打完劇情了\n接下來是爆論時間\n光稜龍比飛雷龍好打多了，戰鬥體驗極為舒服\n心得從連牙突換成居合術之後就化身為瘋狂的居合機器\n好玩👍  \nTranslate\n1",
+    "comment_text": "太神啦，直接化身居合機器，下一個目標是解鎖全武器了吧",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127000323_859",
+    "created_at": "2026-11-27 00:03:23"
+  },
+  {
+    "post_url": "https://www.threads.net/@sky228629/post/DgOSL1Ekye_",
+    "author": "sky228629",
+    "keyword": "魔物獵人",
+    "post_snippet": "sky228629\n燕雲十六聲\n35m\n\\更新自介/\n名字：羽落千華\nUID：3056845707\n門派：文津館\n主霖霖純奶，副修鈞鈞純唐\n只會PVE，PVP只能擦地板\n熱愛拍戲樂、打麻將、大富翁、自走棋，可以搜打撤、去刀房當吉祥物\n§已成",
+    "comment_text": "推特/脆上面看到妳也是魔物獵人同好！荒野快出了，太刀見切跟登龍的手感真的要先練好，不然正式版絕對貓車貓到懷疑人生。\n\n另外野團真的太容易血壓飆高，我後來都直接在一個 DC 語音群找固定隊友打，裡面一堆老獵人每天晚上都開滿編房報招帶飛，完全不坐牢，還能順便吸一堆神仙捏臉數據，打起來順超多。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "尋找Steam遊戲及魔物獵人隊友",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127000358_126",
+    "created_at": "2026-11-27 00:03:58"
   }
 ]
