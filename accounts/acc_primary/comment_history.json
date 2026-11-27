@@ -2352,5 +2352,33 @@
     "error": null,
     "id": "cmt_20261127040316_138",
     "created_at": "2026-11-27 04:03:16"
+  },
+  {
+    "post_url": "https://www.threads.net/@iamlw14/post/DgNqXvpkqOx",
+    "author": "iamlw14",
+    "keyword": "MHWilds",
+    "post_snippet": "iamlw14\nMonster Hunter Wilds\n11h\ncortisol drops all time low and confidence boost all time high when this theme comes on",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127050309_576",
+    "created_at": "2026-11-27 05:03:09"
+  },
+  {
+    "post_url": "https://www.threads.net/@sickestclipists/post/DgNuehogOt1",
+    "author": "sickestclipists",
+    "keyword": "MHWilds",
+    "post_snippet": "sickestclipists\nMHWI\n10h\nFirst experience with Long Sword mhwi #monsterhunter #monsterhunterwilds\n1",
+    "comment_text": "建議先玩世界，不然荒野玩完之後會覺得其他代動作很慢",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127050339_265",
+    "created_at": "2026-11-27 05:03:39"
   }
 ]
