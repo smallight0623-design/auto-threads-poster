@@ -2324,5 +2324,33 @@
     "error": null,
     "id": "cmt_20261127030337_578",
     "created_at": "2026-11-27 03:03:37"
+  },
+  {
+    "post_url": "https://www.threads.net/@f_gamer_2022/post/DgNv4e1GLmU",
+    "author": "f_gamer_2022",
+    "keyword": "魔物獵人",
+    "post_snippet": "f_gamer_2022\n魔物獵人旅人\n9h\n抽「彌多律」歪出「路加」先別急著放倉庫！🏹⚡\n就算只有 0～2 命、練度不高，只要抓對耐力跟藍瓶節奏，打起來其實超順、傷害也很夠。\n幫大家整理好兩套配裝、繪影、冒險者心得優先度跟實戰操作細節了，",
+    "comment_text": "等一下，這不是魔物獵人，這是原神吧？",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127040248_304",
+    "created_at": "2026-11-27 04:02:48"
+  },
+  {
+    "post_url": "https://www.threads.net/@jamiechen/post/DgNVXMsAHkX",
+    "author": "jamiechen",
+    "keyword": "魔物獵人",
+    "post_snippet": "jamiechen\n13h\n最近在玩魔物獵人，發現手機不裝個散熱器真的不行😂  \nTranslate",
+    "comment_text": "最屌的是這種遊戲可以不太耗電、發燙，我覺得贏很多手遊了🤣",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "手機玩魔物獵人過熱",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127040316_138",
+    "created_at": "2026-11-27 04:03:16"
   }
 ]
