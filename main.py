@@ -17,9 +17,11 @@ from threads_scraper import fetch_top_threads_posts
 from x_scraper import fetch_top_x_tweets
 from bahamut_scraper import fetch_top_bahamut_posts
 from twitch_scraper import fetch_top_twitch_clips
+from youtube_scraper import fetch_top_youtube_videos
+from fb_source_scraper import fetch_top_facebook_posts
 from ai_engine import call_ai_proxy, select_best_post_material, detect_future_events, split_post_for_threads
 from media_handler import download_media
-from threads_playwright import post_to_threads
+from threads_playwright import post_to_threads, like_comments_on_own_posts
 from facebook_playwright import post_to_facebook
 import account_manager
 import content_queue
@@ -27,7 +29,35 @@ import content_queue
 ACTIVE_RUNNING_ACCOUNTS = set()
 
 async def run_patrol_task(acc_id: str, account: dict):
-    """執行自動巡航獲客留言 (AI 社群推銷員) 與每日衝浪學習回報"""
+    """執行自家貼文留言自動點讚 ＋ 自動巡航獲客留言 ＋ 每日衝浪學習回報"""
+    ran_learning_today = False
+    is_threads = account.get("target_platform", "Threads").lower() == "threads"
+
+    # 1. 每日高強度衝浪學習一次並推播報告至 Discord
+    if is_threads:
+        try:
+            import threads_learner
+            if threads_learner.should_run_daily_learning(acc_id):
+                print(f"\n📚 [{acc_id}] 啟動今日 Threads 高強度衝浪學習並回報 Discord...")
+                learn_res = await threads_learner.run_daily_threads_learning(acc_id, notify_discord=True)
+                ran_learning_today = True
+                print(f"[{acc_id}] 📚 今日學習完成 (Discord 推播: {learn_res.get('discord_notified')})")
+        except Exception as e:
+            print(f"⚠️ [{acc_id}] Threads 每日學習執行異常: {e}")
+
+    # 2. 自家貼文底下留言自動點讚 (平時巡最近 5 篇；每日學習時深層巡檢最多 25 篇)
+    if is_threads and account.get("auto_like_own_comments", True):
+        try:
+            session_path = account_manager.get_account_session_path(acc_id)
+            acc_name = account.get("name", "")
+            username = acc_name.split("@")[-1].split()[0].strip() if "@" in acc_name else acc_name.split()[0].strip()
+            if session_path and username:
+                sweep_limit = 25 if ran_learning_today else 5
+                await like_comments_on_own_posts(acc_id, username, session_path, max_posts=sweep_limit)
+        except Exception as e:
+            print(f"⚠️ [{acc_id}] 自家貼文留言點讚異常: {e}")
+
+    # 3. 外部海巡獲客留言 (AI 社群推銷員)
     if account.get("comment_agent_enabled", True):
         try:
             import threads_commenter
@@ -38,17 +68,6 @@ async def run_patrol_task(acc_id: str, account: dict):
             print(f"[{acc_id}] 🎯 Threads 海巡獲客週期完成：成功發布 {comments_sent} 則留言")
         except Exception as e:
             print(f"⚠️ [{acc_id}] Threads 海巡獲客執行異常: {e}")
-
-    # 每日高強度衝浪學習一次並推播報告至 Discord
-    if account.get("target_platform", "Threads").lower() == "threads":
-        try:
-            import threads_learner
-            if threads_learner.should_run_daily_learning(acc_id):
-                print(f"\n📚 [{acc_id}] 啟動今日 Threads 高強度衝浪學習並回報 Discord...")
-                learn_res = await threads_learner.run_daily_threads_learning(acc_id, notify_discord=True)
-                print(f"[{acc_id}] 📚 今日學習完成 (Discord 推播: {learn_res.get('discord_notified')})")
-        except Exception as e:
-            print(f"⚠️ [{acc_id}] Threads 每日學習執行異常: {e}")
 
 async def run_for_account(acc_id: str, is_fast_track: bool = False):
     """專門為指定的社群帳號工作台執行一次搬運與發布"""
@@ -91,6 +110,22 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
     print(f"🚀 開始執行帳號工作台：【{acc_name}】 (ID: {acc_id})")
     print(f"🎯 目標平台：{target_platform} ｜ 📡 來源雷達：{source_platform} ({discovery_mode})")
     print(f"==================================================")
+
+    # 分流一：Instagram 官方 Graph API 賣場模式 (固定格式發帳號文 ＋ 自動回留言與私訊)
+    if target_platform.lower() == "instagram":
+        import ig_manager
+        res = ig_manager.run_ig_cycle(acc_id)
+        if res.get("success"):
+            account_manager.update_account_status(acc_id, "IG 營運完成", f"留言回覆 {res.get('replied_comments', 0)} 則，私訊回覆 {res.get('replied_dms', 0)} 則", state="SUCCESS")
+        return True
+
+    # 分流二：Facebook 商業社團模式 (上週熱門時段分析 ＋ 每日隨機 4 次社團發文 ＋ 留言私訊回覆)
+    if target_platform.lower() == "facebook" and (account.get("commerce_mode") or account.get("target_fb_groups")):
+        import fb_responder
+        res = await fb_responder.run_fb_commerce_cycle(acc_id)
+        if res.get("success"):
+            account_manager.update_account_status(acc_id, "FB 營運完成", f"社團發文={res.get('group_posted')}, 社團回文={res.get('group_comments_replied', 0)}", state="SUCCESS")
+        return True
 
     account_manager.update_account_status(acc_id, "初始化", f"正在檢查 {target_platform} Session 與工作台設定...")
 
@@ -136,6 +171,15 @@ async def _run_for_account_internal(acc_id: str, is_fast_track: bool = False):
                 twitch_threshold = min(int(min_upvotes or 100), 20)
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Twitch 熱門短片 [{game_name}] (門檻 {twitch_threshold} 觀看)...")
                 p_list = fetch_top_twitch_clips(game_name, min_views=twitch_threshold)
+            elif "youtube" in src_name.lower() or "yt" == src_name.lower():
+                yt_threshold = max(int(account.get("youtube_min_views") or 3000), 1000)
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 YouTube 熱門短片 [{game_name}] (門檻 {yt_threshold} 觀看)...")
+                p_list = fetch_top_youtube_videos(game_name, min_views=yt_threshold, limit=8)
+            elif "facebook" in src_name.lower() or "fb" == src_name.lower():
+                fb_targets = account.get("source_fb_targets") or []
+                fb_sess = os.path.join(os.path.dirname(session_path), "facebook_session.json") if session_path else "facebook_session.json"
+                account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描指定 Facebook 來源 ({len(fb_targets)} 個社團/粉專)...")
+                p_list = await fetch_top_facebook_posts(fb_targets, session_file=fb_sess, limit=8)
             else: # 預設 Reddit
                 mode_desc = "潛力榜 (Rising)" if discovery_mode == "rising" else "熱門榜 (Hot)"
                 account_manager.update_account_status(acc_id, "雷達掃描", f"正在掃描 Reddit r/{subreddit} {mode_desc} (門檻 {min_upvotes} 讚)...")

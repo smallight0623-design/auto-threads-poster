@@ -22,8 +22,10 @@
         "巴哈姆特",
         "Reddit",
         "X",
-        "Twitch"
+        "Twitch",
+        "YouTube"
       ],
+      "auto_like_own_comments": true,
       "strategy_prompt": "先以熱門程度判別，然後思考對於我們受眾有沒有吸引力即可。",
       "schedule_type": "fixed_times",
       "interval_minutes": 95,
@@ -47,6 +49,24 @@
         "MHWilds",
         "魔物獵人荒野"
       ]
+    },
+    {
+      "id": "acc_ig_store",
+      "name": "IG 遊戲帳號商業賣場",
+      "enabled": true,
+      "target_region": "台灣 (繁體中文)",
+      "target_platform": "Instagram",
+      "created_at": "2026-11-27 16:30:00"
+    },
+    {
+      "id": "acc_fb_groups",
+      "name": "FB 遊戲買賣社團矩陣",
+      "enabled": true,
+      "commerce_mode": true,
+      "target_region": "台灣 (繁體中文)",
+      "target_platform": "Facebook",
+      "target_fb_groups": [],
+      "created_at": "2026-11-27 16:30:00"
     }
   ]
 }

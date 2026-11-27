@@ -575,3 +575,162 @@ def generate_witty_comment(post_text: str, author: str, game_name: str, persona:
 
     return ""
 
+
+# ==============================================================================
+# 🛒 商業變現引擎：IG 固定格式商品發文、FB 社團差異化改寫、IG/FB 銷售客服回覆
+# ==============================================================================
+
+def _post_chat_with_retry(prompt_messages: list, config: dict, temperature: float = 0.4, timeout: int = 30) -> str:
+    """共用 AI 請求 helper（含環境變數優先讀取與 2 次自動重試）"""
+    import time
+    base_url = (os.getenv("AI_BASE_URL") or config.get("AI_BASE_URL", "https://api.relayrouter.ai/v1")).rstrip("/")
+    api_key = os.getenv("AI_API_KEY") or config.get("AI_API_KEY", "")
+    model = os.getenv("AI_MODEL") or config.get("AI_MODEL", "gemini-2.5-flash")
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    payload = {"model": model, "messages": prompt_messages, "temperature": temperature}
+
+    for attempt in range(2):
+        try:
+            res = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=timeout)
+            if res.status_code == 200:
+                return res.json()["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            print(f"⚠️ [AI Commercial] 第 {attempt+1} 次請求失敗: {e}")
+            if attempt == 0:
+                time.sleep(2)
+    return ""
+
+
+def format_ig_game_account_post(product: dict) -> str:
+    """
+    依指定 IG 遊戲帳號賣場固定格式生成貼文文案：
+    - 狀態標記：🔥可售中🔥 / 🔥已售出🔥
+    - 綁定方式 / 選填價格與簡潔亮點
+    - 固定標籤列
+    """
+    status_raw = str(product.get("status", "AVAILABLE")).upper()
+    status_badge = "🔥已售出🔥" if status_raw == "SOLD" else "🔥可售中🔥"
+
+    binding = product.get("binding", "請私訊詢問綁定細節").strip()
+    price = str(product.get("price", "")).strip()
+    highlights = product.get("highlights") or []
+    hashtags = product.get("hashtags") or []
+
+    lines = [status_badge, ""]
+    lines.append(f"綁定方式：{binding}")
+
+    if highlights:
+        # 精簡列出關鍵造型/戰績亮點，維持賣場圖文簡潔感
+        lines.append(f"帳號亮點：{' / '.join(str(h).strip() for h in highlights[:4])}")
+    if price and price not in ("私訊報價", ""):
+        lines.append(f"價格：{price}")
+    elif status_raw != "SOLD":
+        lines.append("有興趣歡迎直接私訊或底下留言詢問 📩")
+
+    if hashtags:
+        lines.append("")
+        tag_str = "".join(t if str(t).startswith("#") else f"#{t}" for t in hashtags)
+        lines.append(tag_str)
+
+    return "\n".join(lines).strip()
+
+
+def rewrite_fb_group_post(product: dict, group_name_or_url: str, variant_index: int, previous_variants: list, config: dict) -> str:
+    """
+    為 Facebook 指定買賣社團生成差異化文案：
+    針對同一商品切換 4 種不同切角（重點亮點型 / 退坑割愛口吻 / 稀有造型收藏型 / 誠意快速交易型），
+    確保每日 4 次發文內容完全不同，降低社團洗版偵測風險。
+    """
+    angles = [
+        "【重點規格直接切入型】：簡明扼要條列核心英雄造型與綁定方式，適合快速買家瀏覽。",
+        "【退坑誠意割愛口吻】：以玩家沒時間玩、誠心出清給下一位有緣人的自然語氣撰寫。",
+        "【稀有絕版造型展示型】：強調帳號裡最吸睛的聯動造型、水晶或段位戰績，引發玩家收藏欲。",
+        "【安全綁定與高 CP 值強調型】：重點突出『G登可改／信箱整組給』的安心交接流程與價格優勢。"
+    ]
+    chosen_angle = angles[variant_index % len(angles)]
+    prev_block = "\n---\n".join(p[:180] for p in (previous_variants or [])[-3:]) or "（尚無）"
+
+    prompt = f"""
+你是一位在台灣經營《{product.get('game', '熱門手遊')}》遊戲帳號交易的老練賣家，現在要在 Facebook 買賣社團發布一則出售貼文。
+
+【商品真實資料（嚴禁捏造未提供的數據或價格）】：
+- 標題：{product.get('title', '')}
+- 綁定方式：{product.get('binding', '')}
+- 帳號亮點：{', '.join(product.get('highlights') or [])}
+- 價格：{product.get('price', '私訊報價')}
+- 交易補充：{product.get('faq_for_ai', '')}
+
+【本次指定切入風格】：
+{chosen_angle}
+
+【今天稍早發過的前幾篇文案（本次句型、開頭與排版必須明顯不同，嚴禁撞詞）】：
+{prev_block}
+
+【寫作規範】：
+1. 使用台灣遊戲買賣社團常見的真實口吻（自然、親切、乾脆，不准像官方廣告機器人）。
+2. 嚴禁出現任何 Markdown 符號（不准用 ** 粗體或 # 標題符號，FB 不支援渲染）。
+3. 字數控制在 70 ~ 160 字以內，結尾自然引導「有興趣歡迎留言或直接私訊」。
+4. 直接輸出最終可發布的純文字貼文，不要任何解釋前言。
+"""
+    result = _post_chat_with_retry([{"role": "user", "content": prompt}], config, temperature=0.75, timeout=30)
+    if result:
+        return result.strip('"').strip("'")
+
+    # 離線安全備援模板（亦隨 variant_index 變化）
+    fallback_headers = [
+        f"🔥出清《{product.get('game', '')}》{product.get('title', '')}",
+        f"退坑割愛～找有緣人接手這隻{product.get('game', '')}帳號",
+        f"收藏玩家看過來！這組 {product.get('title', '')} 造型很齊全",
+        f"誠意出售 {product.get('title', '')}，資料完整可直接改綁"
+    ]
+    return (
+        f"{fallback_headers[variant_index % 4]}\n"
+        f"亮點：{' / '.join(product.get('highlights') or [])}\n"
+        f"綁定：{product.get('binding', '')}\n"
+        f"價格：{product.get('price', '私訊報價')}，有興趣歡迎底下留言或直接私訊我看細圖！"
+    )
+
+
+def generate_sales_support_reply(platform: str, user_message: str, products_list: list, config: dict, conversation_history: list = None) -> str:
+    """
+    IG / FB 貼文留言與私訊 (DM) AI 銷售客服回覆引擎：
+    - 嚴格依據 products.json 真實資訊回答（價格、綁定方式、是否可售中）
+    - 若買家提出議價或超出已知 FAQ 的要求，禮貌回應並引導由店主進一步確認
+    """
+    catalog_summary = []
+    for p in (products_list or [])[:8]:
+        catalog_summary.append(
+            f"- [{p.get('id')}] {p.get('title')}｜狀態:{p.get('status')}｜價格:{p.get('price')}｜綁定:{p.get('binding')}｜亮點:{','.join(p.get('highlights') or [])}｜補充:{p.get('faq_for_ai', '')}"
+        )
+    catalog_text = "\n".join(catalog_summary) if catalog_summary else "（目前尚無上架商品，請禮貌詢問對方需求後轉交店主）"
+
+    hist_lines = []
+    for h in (conversation_history or [])[-4:]:
+        hist_lines.append(f"{h.get('role', 'user')}: {h.get('text', '')}")
+    hist_text = "\n".join(hist_lines) if hist_lines else "（首次對話）"
+
+    prompt = f"""
+你是一位專業、親切且講信用台灣遊戲帳號賣場的客服小幫手（目前正在回覆 {platform} 上的買家訊息）。
+
+【目前上架商品型錄（嚴禁捏造未列出的價格、造型或保證）】：
+{catalog_text}
+
+【近期對話脈絡】：
+{hist_text}
+
+【買家最新訊息】：
+\"\"\"{user_message}\"\"\"
+
+【回覆鐵律】：
+1. 台灣繁體中文口語自然、有禮貌但不官腔（稱呼「您好」或自然接話即可）。
+2. 若對方在貼文下留言問「還在嗎 / 價格 / 怎麼賣」，簡短告知目前狀態並親切引導對方「方便的話請直接私訊我們，這邊傳細節跟報價給您！」
+3. 若對方在私訊詢問已知的綁定方式、帳號亮點或價格，直接依商品型錄精確回答。
+4. 若遇到殺價、特殊付款要求或不確定的問題，先穩住對方（如「價格部分可以幫您問一下老闆看能怎麼優惠，稍等回覆您～」），絕不擅自亂答應低價。
+5. 字數精簡控制在 25 ~ 90 字以內，直接輸出回覆內容。
+"""
+    res = _post_chat_with_retry([{"role": "user", "content": prompt}], config, temperature=0.35, timeout=25)
+    if res:
+        return res.strip('"').strip("'")
+    return ""
+
+

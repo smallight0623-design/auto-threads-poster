@@ -47,6 +47,11 @@ jobs:
           AI_MODEL: ${{ secrets.AI_MODEL }}
           THREADS_SESSION_DATA: ${{ secrets.THREADS_SESSION_DATA }}
           X_SESSION_DATA: ${{ secrets.X_SESSION_DATA }}
+          FACEBOOK_SESSION_DATA: ${{ secrets.FACEBOOK_SESSION_DATA }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_PAGE_ACCESS_TOKEN: ${{ secrets.FB_PAGE_ACCESS_TOKEN }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           THREADS_USERNAME: ${{ secrets.THREADS_USERNAME }}
           THREADS_PASSWORD: ${{ secrets.THREADS_PASSWORD }}

@@ -398,3 +398,150 @@ async def update_threads_bio(new_bio: str, session_file: str = "threads_session.
             print(f"⚠️ [Threads Bio Updater] 執行異常: {e}")
             await browser.close()
             return False
+
+
+async def like_comments_on_own_posts(acc_id: str, username: str, session_file: str, max_posts: int = 5) -> dict:
+    """
+    巡檢自己最近發布的 max_posts 篇 Threads 貼文：
+    若有人在貼文底下留言（排除自己帳號的續篇留言），自動為未點讚的留言點讚，
+    並保存已點讚紀錄於 accounts/<acc_id>/liked_comments.json 防止重複點擊。
+    """
+    import json
+    import hashlib
+    import datetime
+
+    if not session_file or not os.path.exists(session_file):
+        return {"success": False, "liked_count": 0, "error": "缺少有效 session.json"}
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    acc_dir = os.path.join(base_dir, "accounts", acc_id)
+    os.makedirs(acc_dir, exist_ok=True)
+    liked_file = os.path.join(acc_dir, "liked_comments.json")
+
+    liked_map = {}
+    if os.path.exists(liked_file):
+        try:
+            with open(liked_file, "r", encoding="utf-8") as f:
+                liked_map = json.load(f)
+        except Exception:
+            liked_map = {}
+
+    profile_url = f"https://www.threads.net/@{username}"
+    liked_this_run = 0
+    checked_posts = 0
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled", "--disable-dev-shm-usage"]
+        )
+        context = await browser.new_context(
+            storage_state=session_file,
+            viewport={"width": 1280, "height": 900},
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        )
+        page = await context.new_page()
+
+        try:
+            print(f"❤️ [自家貼文護航] 前往主頁巡檢最近 {max_posts} 篇貼文留言: {profile_url}")
+            await page.goto(profile_url, wait_until="domcontentloaded", timeout=25000)
+            await asyncio.sleep(3.5)
+
+            # 若需要掃超過 8 篇，適度向下捲動載入更多主頁貼文
+            scroll_rounds = 1 if max_posts <= 6 else 4
+            for _ in range(scroll_rounds):
+                await page.mouse.wheel(0, 900)
+                await asyncio.sleep(1.5)
+
+            post_urls = await page.evaluate(r'''(targetUser) => {
+                const links = [];
+                const seen = new Set();
+                const anchors = Array.from(document.querySelectorAll('a[href*="/post/"]'));
+                for (const a of anchors) {
+                    const m = a.href.match(/(https:\/\/(www\.)?threads\.(net|com)\/@[^\/]+\/post\/[a-zA-Z0-9_\-]+)/);
+                    if (!m) continue;
+                    const clean = m[1].replace('threads.com', 'threads.net');
+                    if (clean.toLowerCase().includes('@' + targetUser.toLowerCase()) && !seen.has(clean)) {
+                        seen.add(clean);
+                        links.push(clean);
+                    }
+                }
+                return links;
+            }''', username)
+
+            for p_url in post_urls[:max_posts]:
+                checked_posts += 1
+                try:
+                    await page.goto(p_url, wait_until="domcontentloaded", timeout=20000)
+                    await asyncio.sleep(2.5)
+
+                    # 找出非自己發表的留言項目並檢查是否已按過讚
+                    comments_info = await page.evaluate(r'''(ownUser) => {
+                        const containers = Array.from(document.querySelectorAll('div[data-pressable-container="true"], article, div[role="article"]'));
+                        const items = [];
+                        // 第 0 個為主貼文，從第 1 個開始為留言
+                        for (let i = 1; i < containers.length; i++) {
+                            const c = containers[i];
+                            const authorLink = c.querySelector('a[href^="/@"]');
+                            const author = authorLink ? authorLink.getAttribute('href').replace(/^\/@/, '').split('/')[0] : '';
+                            if (author && author.toLowerCase() === ownUser.toLowerCase()) continue;
+
+                            const txt = (c.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+                            if (!txt) continue;
+
+                            // 尋找尚未被按讚的愛心 SVG
+                            const likeSvg = c.querySelector('svg[aria-label="Like"], svg[aria-label="讚"]');
+                            const unlikeSvg = c.querySelector('svg[aria-label="Unlike"], svg[aria-label="收回讚"], svg[aria-label="取消讚"]');
+                            if (likeSvg && !unlikeSvg) {
+                                items.push({ index: i, author, snippet: txt });
+                            }
+                        }
+                        return items;
+                    }''', username)
+
+                    for item in comments_info:
+                        key_raw = f"{p_url}::{item['author']}::{item['snippet'][:40]}"
+                        cmt_hash = hashlib.md5(key_raw.encode("utf-8")).hexdigest()[:16]
+                        if cmt_hash in liked_map:
+                            continue
+
+                        clicked = await page.evaluate(r'''(idx) => {
+                            const containers = Array.from(document.querySelectorAll('div[data-pressable-container="true"], article, div[role="article"]'));
+                            const c = containers[idx];
+                            if (!c) return false;
+                            const svg = c.querySelector('svg[aria-label="Like"], svg[aria-label="讚"]');
+                            if (!svg) return false;
+                            const btn = svg.closest('div[role="button"], button') || svg.parentElement;
+                            if (btn) {
+                                btn.click();
+                                return true;
+                            }
+                            return false;
+                        }''', item["index"])
+
+                        if clicked:
+                            liked_this_run += 1
+                            liked_map[cmt_hash] = {
+                                "post_url": p_url,
+                                "author": item["author"],
+                                "snippet": item["snippet"],
+                                "liked_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            }
+                            print(f"  ❤️ 已對 @{item['author']} 的留言點讚：{item['snippet'][:35]}...")
+                            await asyncio.sleep(1.5)
+                except Exception as pe:
+                    print(f"  ⚠️ 巡檢貼文 {p_url} 異常: {pe}")
+        finally:
+            await browser.close()
+
+    # 僅保留最近 500 筆點讚紀錄
+    if len(liked_map) > 500:
+        keys = list(liked_map.keys())[-500:]
+        liked_map = {k: liked_map[k] for k in keys}
+
+    with open(liked_file, "w", encoding="utf-8") as f:
+        json.dump(liked_map, f, indent=2, ensure_ascii=False)
+
+    print(f"❤️ [自家貼文護航] 完成：巡檢 {checked_posts} 篇貼文，新增點讚 {liked_this_run} 則留言。")
+    return {"success": True, "checked_posts": checked_posts, "liked_count": liked_this_run}
+

@@ -786,29 +786,36 @@ def delete_account(acc_id):
         except Exception:
             pass
 
+def materialize_session_file(target_path: str, env_var: str, fallback_root_filename: str = None) -> str:
+    """從指定環境變數 (支援 Raw JSON 或 Base64) 還原 Playwright storage_state 檔案，若無則檢查備援路徑。"""
+    if target_path and os.path.exists(target_path):
+        return target_path
+
+    env_val = os.getenv(env_var, "").strip()
+    if env_val and target_path:
+        try:
+            if not env_val.startswith("{"):
+                import base64
+                env_val = base64.b64decode(env_val).decode("utf-8")
+            json.loads(env_val)
+            os.makedirs(os.path.dirname(os.path.abspath(target_path)), exist_ok=True)
+            with open(target_path, "w", encoding="utf-8") as f:
+                f.write(env_val)
+            return target_path
+        except Exception as e:
+            print(f"[account_manager] Warning: Failed to parse {env_var}: {e}")
+
+    if fallback_root_filename:
+        root_path = os.path.join(BASE_DIR, fallback_root_filename)
+        if os.path.exists(root_path):
+            return root_path
+    return None
+
 def get_account_session_path(acc_id):
     acc_dir = os.path.join(ACCOUNTS_DIR, acc_id)
     os.makedirs(acc_dir, exist_ok=True)
     path = os.path.join(acc_dir, "session.json")
-    if not os.path.exists(path):
-        env_session = os.getenv("THREADS_SESSION_DATA", "").strip()
-        if env_session:
-            try:
-                if not env_session.startswith("{"):
-                    import base64
-                    env_session = base64.b64decode(env_session).decode("utf-8")
-                # Verify JSON integrity
-                json.loads(env_session)
-                with open(path, "w", encoding="utf-8") as f:
-                    f.write(env_session)
-                return path
-            except Exception as e:
-                print(f"[account_manager] Warning: Failed to parse THREADS_SESSION_DATA: {e}")
-        root_session = os.path.join(BASE_DIR, "threads_session.json")
-        if os.path.exists(root_session):
-            return root_session
-        return None
-    return path
+    return materialize_session_file(path, "THREADS_SESSION_DATA", "threads_session.json")
 
 def get_account_session_content(acc_id):
     path = get_account_session_path(acc_id)
