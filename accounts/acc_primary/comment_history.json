@@ -2296,5 +2296,33 @@
     "error": null,
     "id": "cmt_20261127020400_524",
     "created_at": "2026-11-27 02:04:00"
+  },
+  {
+    "post_url": "https://www.threads.net/@bullfrog87_tw/post/DgE-MThoe4D",
+    "author": "bullfrog87_tw",
+    "keyword": "荒野",
+    "post_snippet": "bullfrog87_tw\n3d\n荒野亂鬥玩家並不這麼想  \nTranslate\n30\n6",
+    "comment_text": "荒野亂鬥玩家點進去發現不能打3v3足球，氣到原地貓車",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127030250_680",
+    "created_at": "2026-11-27 03:02:50"
+  },
+  {
+    "post_url": "https://www.threads.net/@_ying_o/post/Dfl32G6FDth",
+    "author": "_ying_o",
+    "keyword": "荒野",
+    "post_snippet": "_ying_o\n荒野亂鬥\n11/11/26\n荒野維護中 右下↘️有小遊戲可以玩欸！！  \nTranslate\n3",
+    "comment_text": "荒野亂鬥？我還以為你要說魔物獵人荒野，害我以為可以玩了",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261127030337_578",
+    "created_at": "2026-11-27 03:03:37"
   }
 ]
