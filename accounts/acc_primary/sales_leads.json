@@ -516,5 +516,19 @@
     "error": null,
     "id": "lead_20261127020400_868",
     "created_at": "2026-11-27 02:04:00"
+  },
+  {
+    "post_url": "https://www.threads.net/@xiaohe_cos/post/DgNTyDsCNPF",
+    "author": "xiaohe_cos",
+    "keyword": "荒野",
+    "post_snippet": "xiaohe_cos\n荒野亂鬥\n16h\n荒野好難玩🥹  \nTranslate",
+    "comment_text": "拍拍，荒野這次初見真的會打到懷疑人生，有些怪的招式判定有夠賊，尤其是血量少的時候容錯率超低。\n\n初期建議先農一套防禦高一點的過渡裝，武器動作一定要多用集中模式抓弱點。另外野團真的太容易血壓飆高，我後來都直接去 Discord 語音群找人打，裡面老獵人報招帶飛超熱心，每天晚上都有滿編房，不只帶過關還順便分享超香的捏臉數據，打起來順超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "遊戲難度高感到挫折",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261127070331_277",
+    "created_at": "2026-11-27 07:03:31"
   }
 ]
