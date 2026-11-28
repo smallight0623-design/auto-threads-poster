@@ -2436,5 +2436,33 @@
     "error": null,
     "id": "cmt_20261127070331_929",
     "created_at": "2026-11-27 07:03:31"
+  },
+  {
+    "post_url": "https://www.threads.net/@ray_52607/post/DeOPlz9gCcX",
+    "author": "ray_52607",
+    "keyword": "魔物獵人荒野",
+    "post_snippet": "ray_52607\n魔物獵人荒野\n10/08/26\n當有人問我魔物獵人有趣在哪：  \nTranslate\n321\n33\n3\n62",
+    "comment_text": "你朋友有在玩那款，你就去玩那款",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128000331_139",
+    "created_at": "2026-11-28 00:03:31"
+  },
+  {
+    "post_url": "https://www.threads.net/@yyingyuuuu/post/DgPRQP3ozJ5",
+    "author": "yyingyuuuu",
+    "keyword": "魔物獵人荒野",
+    "post_snippet": "yyingyuuuu\nMonster Hunter\n15h\n不懂問脆～～\n光稜的太刀，配什麽裝備才是最無敵最強  \nTranslate\n11\n10\n1",
+    "comment_text": "光稜太刀前期主要是看斬味跟面板，配裝建議先撐看破跟超會心，荒野這次見切判定很要求節奏。如果自己農素材或刷傀異覺得孤單卡住，可以去 DC 找找固定團，晚上大家都會開房語音報招，一起打真的比較不坐牢，少走很多彎路。",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "新手求太刀最強配裝",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128000359_317",
+    "created_at": "2026-11-28 00:03:59"
   }
 ]
