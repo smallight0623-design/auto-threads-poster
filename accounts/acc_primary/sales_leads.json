@@ -572,5 +572,33 @@
     "error": null,
     "id": "lead_20261128030343_471",
     "created_at": "2026-11-28 03:03:43"
+  },
+  {
+    "post_url": "https://www.threads.net/@08ckl/post/DgPNCv0GB3y",
+    "author": "08ckl",
+    "keyword": "魔物獵人",
+    "post_snippet": "08ckl\n魔物獵人\n21h\n今年我身边发生的三大事情：\n我朋友说怪物猎人是烂游戏。\n我朋友被车撞了。\n我的驾照被吊销了。  \nTranslate\n342\n13\n5\n105",
+    "comment_text": "笑死，這三件事聽起來比歷戰王還難迴避。不過說真的，如果朋友不玩又嫌遊戲爛，單刷確實容易坐牢打到心態炸裂。之前我也是自己拓荒差點起笑，後來乾脆去 Discord 揪人開語音，有人幫忙坦、報招跟分享配裝，體驗直接升級，真的不用一個人苦命扛。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "朋友嫌遊戲爛又沒人陪玩",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261128050407_817",
+    "created_at": "2026-11-28 05:04:07"
+  },
+  {
+    "post_url": "https://www.threads.net/@wilson_p.b.0130/post/DgJ3mlvEz0t",
+    "author": "wilson_p.b.0130",
+    "keyword": "魔物獵人",
+    "post_snippet": "wilson_p.b.0130\n魔物獵人旅人\n2d\n我很抱歉😞\n我有rise，但手遊版真的好好玩\n有沒有好友或群組加我這個斬擊斧玩家🥹  \nTranslate\n28\n11",
+    "comment_text": "手遊隨手按真的蠻毒的XD 斬擊斧這代變形斬接屬性解放刺超帥！如果玩荒野時想找人零解開黑或聊配裝，我們幾個老獵人每晚都在DC語音開房，不嫌棄的話可以一起來車魔物，私訊丟你傳送門！",
+    "is_sales_lead": true,
+    "intent_score": 5,
+    "pain_point": "想找斬擊斧同好與遊戲群組",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261128050441_530",
+    "created_at": "2026-11-28 05:04:41"
   }
 ]
