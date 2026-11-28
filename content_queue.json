@@ -1,24 +1,5 @@
 [
   {
-    "id": "yt_7evGy1x03OY",
-    "title": "Monster Hunter Wilds: Ascendance - Khezu Short Gameplay Showcase",
-    "full_content": "Monster Hunter Wilds: Ascendance - Khezu Short Gameplay Showcase\n\nmhwilds #mhws #mhwi #monsterhunter #monsterhunterwildsgame #ascendance #tgs2026 Source: ...",
-    "source_platform": "YouTube",
-    "media_type": "VIDEO",
-    "media_url": "https://www.youtube.com/watch?v=7evGy1x03OY",
-    "upvotes": 106306,
-    "replies_count": 0,
-    "is_priority_guide": false,
-    "priority_reason": "",
-    "instant_priority": false,
-    "timeslot_buckets": [
-      "afternoon",
-      "lunch",
-      "night"
-    ],
-    "enqueued_at": "2026-11-27 08:33:01"
-  },
-  {
     "id": "yt_WfLcmeo9enM",
     "title": "Monster Hunter Wilds: Ascendance - Teostra and Araketa Short Gameplay Showcase",
     "full_content": "Monster Hunter Wilds: Ascendance - Teostra and Araketa Short Gameplay Showcase\n\nmhwilds #mhwi #mhwils #teostra #monsterhunter #monsterhunterwildsgameplay.",
@@ -131,6 +112,25 @@
       "night"
     ],
     "enqueued_at": "2026-11-27 09:09:52"
+  },
+  {
+    "id": "twitch_BloodyMildSandpiperResidentSleeper-HsSej4Brn_5XBGgS",
+    "title": "🌰[Chestnut Vtuber] I'm exploding today [Mute]",
+    "full_content": "🌰[Chestnut Vtuber] I'm exploding today [Mute]",
+    "source_platform": "Twitch",
+    "media_type": "VIDEO",
+    "media_url": "https://clips.twitch.tv/BloodyMildSandpiperResidentSleeper-HsSej4Brn_5XBGgS",
+    "upvotes": 35,
+    "replies_count": 0,
+    "is_priority_guide": false,
+    "priority_reason": "",
+    "instant_priority": false,
+    "timeslot_buckets": [
+      "afternoon",
+      "lunch",
+      "night"
+    ],
+    "enqueued_at": "2026-11-28 01:02:32"
   },
   {
     "id": "twitch_InspiringInquisitiveWoodpeckerKappaPride-99wXD8r_rvze796T",

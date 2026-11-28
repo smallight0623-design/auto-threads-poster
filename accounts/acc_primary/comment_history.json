@@ -2464,5 +2464,33 @@
     "error": null,
     "id": "cmt_20261128000359_317",
     "created_at": "2026-11-28 00:03:59"
+  },
+  {
+    "post_url": "https://www.threads.net/@opiuyqwqwqwqwq/post/DgPWL7xm3oL",
+    "author": "opiuyqwqwqwqwq",
+    "keyword": "魔物獵人",
+    "post_snippet": "opiuyqwqwqwqwq\n15h\n给我闺女捏了一个小时的绝世美貌  \nTranslate\n3\n2",
+    "comment_text": "這我，結果進遊戲第一隻怪就把臉打到看不出來。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "捏臉花了一個小時",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128010339_681",
+    "created_at": "2026-11-28 01:03:39"
+  },
+  {
+    "post_url": "https://www.threads.net/@jp.life.biz/post/DGuPPwpvKDW",
+    "author": "jp.life.biz",
+    "keyword": "MHWilds",
+    "post_snippet": "jp.life.biz\nMH Wilds\n03/03/25\n魔物獵人荒野可以攜帶兩把武器\n如果主副武器都帶狩獵笛\n現在一次可以幫團隊上10種Buff\n參加救難信號完 一定會收到大量的謝謝貼圖\n最扯的是鎖刃龍的R8武器\n其中一個旋律「延長所有",
+    "comment_text": "這場結束你的笛子大概比本人還累，直接原地吹出超渡曲。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128010414_155",
+    "created_at": "2026-11-28 01:04:14"
   }
 ]
