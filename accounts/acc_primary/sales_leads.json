@@ -600,5 +600,19 @@
     "error": null,
     "id": "lead_20261128050441_530",
     "created_at": "2026-11-28 05:04:41"
+  },
+  {
+    "post_url": "https://www.threads.net/@zerog6176/post/DgP1z69E7DE",
+    "author": "zerog6176",
+    "keyword": "魔物獵人荒野",
+    "post_snippet": "zerog6176\n16h\n十二點過後就能迎接短暫的安寧了\n我要在這段期間默默打自己的電動\n然後猶豫到底要不要再花錢買一次Switch2的魔物獵人荒野  \nTranslate\n1\n3",
+    "comment_text": "笑死，十二點後真的精神時光屋，Switch 2 如果真能順跑荒野的話，荷包又要守不住了。\n不過講到買兩次，我是覺得不用那麼累啦。我自己現在每天晚上都固定跟 DC 認識的獵友開語音，有人報招跟打控場真的舒適很多，不用半夜自己蹲野團坐牢，配裝直接丟群組也有人秒幫改，玩起來爽度差超多。",
+    "is_sales_lead": true,
+    "intent_score": 4,
+    "pain_point": "猶豫是否要跨平台重買遊戲",
+    "status": "success",
+    "error": null,
+    "id": "lead_20261128060322_320",
+    "created_at": "2026-11-28 06:03:22"
   }
 ]
