@@ -2534,5 +2534,33 @@
     "error": null,
     "id": "cmt_20261128030343_720",
     "created_at": "2026-11-28 03:03:43"
+  },
+  {
+    "post_url": "https://www.threads.net/@josuke_z0522/post/DgRHG6UNXTs",
+    "author": "josuke_z0522",
+    "keyword": "魔物獵人",
+    "post_snippet": "josuke_z0522\n魔物獵人\n2h\n小時候喜歡恐龍的長大後對著恐龍零距離解放突刺  \nTranslate\n32\n4\n1\n2",
+    "comment_text": "小時候看侏儸紀公園，長大後在荒野騎著恐龍拿大劍砸它頭",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128040318_745",
+    "created_at": "2026-11-28 04:03:18"
+  },
+  {
+    "post_url": "https://www.threads.net/@jayen_personal/post/DfzuHsRDtHt",
+    "author": "jayen_personal",
+    "keyword": "魔物獵人荒野",
+    "post_snippet": "jayen_personal\n11/16/26\n10天沒畫畫了 可是魔物獵人很好玩欸  \nTranslate\n20\n19\n5",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "想畫畫但魔物獵人太好玩",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128040357_314",
+    "created_at": "2026-11-28 04:03:57"
   }
 ]
