@@ -2604,5 +2604,33 @@
     "error": null,
     "id": "cmt_20261128060322_715",
     "created_at": "2026-11-28 06:03:22"
+  },
+  {
+    "post_url": "https://www.threads.net/@lily_photo1112/post/DgRprVFkctU",
+    "author": "lily_photo1112",
+    "keyword": "魔物獵人",
+    "post_snippet": "lily_photo1112\n12m\n魔物獵人 pop mart✨  \nTranslate\n1",
+    "comment_text": "盲猜這盒抽完，錢包直接貓車。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128070341_121",
+    "created_at": "2026-11-28 07:03:41"
+  },
+  {
+    "post_url": "https://www.threads.net/@jacob16.tgtg/post/DgRnz-Wm5a9",
+    "author": "jacob16.tgtg",
+    "keyword": "魔物獵人",
+    "post_snippet": "jacob16.tgtg\n28m\n女兒：爸爸，Monster Hunter是什麼？\n我：是爸爸以前的職業哦\n女兒：有照片嗎？\n我：嗯，稍等一下哦\n（展示照片）\n女兒：等等，獄狼阿姨…白熾姐姐…巨戟叔叔…岩穿阿姨…燼滅刃阿姨…恐暴阿姨…天迴姐",
+    "comment_text": "這我，建議直接開躺比較快。",
+    "is_sales_lead": false,
+    "intent_score": 3,
+    "pain_point": "無",
+    "status": "success",
+    "error": null,
+    "id": "cmt_20261128070414_222",
+    "created_at": "2026-11-28 07:04:14"
   }
 ]
